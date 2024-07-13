@@ -75,7 +75,7 @@ export const authenticationAdmin = asyncHandler(async (req: CustomRequest, res: 
         if (typeof decodeUser === 'object') {
             if (userId !== decodeUser.userId) throw new errorResponse.AuthFailureError(`Invalid decode request`)
             req.keyTokenAdmin = keyTokenAdmin
-            req.user = decodeUser
+            req.admin = decodeUser
             return next()
         }
     }
@@ -86,6 +86,51 @@ export const authenticationAdmin = asyncHandler(async (req: CustomRequest, res: 
 
 })
 
+
+export const authentication = asyncHandler(async (req: CustomRequest, res: Response, next: NextFunction) => {
+    //1.check userId missing
+    const userId: string = req.headers[HEADER.CLIENT_ID] as string
+    if (!userId) throw new errorResponse.AuthFailureError("Bạn cần phải đăng nhập trước.")
+
+    const client = createClient()
+    await client.connect()
+    const keyToken = JSON.parse(await client.get('keyTokenUser') as string)
+    console.log(`keyTokenAdmin`,keyToken)
+    //2. check key store
+    if (userId!==keyToken.user) throw new errorResponse.NotFound("Not found user in key store.")
+    // console.log('key token',keyToken)
+
+    //3. verify token
+    const accessToken = req.headers[HEADER.AUTHORIZATION] as string
+    console.log('access',accessToken)
+    console.log('publicKey',keyToken.publicKey)
+    if (!accessToken) throw new errorResponse.AuthFailureError(`Invalid accessToken`)
+    try {
+        let decodeUser: PayloadTokenPair | string |undefined
+         jwt.verify(accessToken, keyToken.publicKey,(err:any, decode:any) => {
+                if (err) {
+                    console.log(`Error verify: `, err)
+                }
+                else {
+                    decodeUser = decode
+                    console.log(`Decode verify: `, decode)
+                }
+            })
+        console.log(`decode ${decodeUser}`)
+
+        if (typeof decodeUser === 'object') {
+            if (userId !== decodeUser.userId) throw new errorResponse.AuthFailureError(`Invalid decode request`)
+            req.keyToken = keyToken
+            req.user = decodeUser
+            return next()
+        }
+    }
+    catch (e) {
+        throw e
+    }
+
+
+})
 // export const authentication = asyncHandler(async (req: CustomRequest, res: Response, next: NextFunction) => {
 //     //1.check userId missing
 //     const userId: string = req.headers[HEADER.CLIENT_ID] as string

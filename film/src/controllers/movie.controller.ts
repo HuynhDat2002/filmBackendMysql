@@ -49,6 +49,26 @@ export const getAllMovie = async (req:CustomRequest,res:Response,next:NextFuncti
     }).send(res)
 }
 
+export const ratingMovie = async (req:CustomRequest,res:Response,next:NextFunction)=>{
+    const userId = req?.user?.userId as string || ""
+    new successResponse.SuccessResonse({
+        message:"Got all movie",
+        metadata: await movieService.ratingMovie({filmId:req.body.filmId,userId:userId,rating:req.body.rating})
+    }).send(res)
+}
+
+
+export const getRatings = async (req:CustomRequest,res:Response,next:NextFunction)=>{
+    const filmId = req.params.id as string ||""
+    new successResponse.SuccessResonse({
+        message:"Got all ratings",
+        metadata: await movieService.getRatings({filmId:filmId})
+    }).send(res)
+}
+
+
+
+
 
 
 

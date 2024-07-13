@@ -4,8 +4,9 @@ import {Request} from 'express'
 import {Types } from 'mongoose'
 export interface CustomRequest extends Request{
     keyToken?: KeyTokenModelProps,
-    user?:PayloadTokenPair
-    refreshToken?:string
+    user?:PayloadTokenPair,
+    admin?:PayloadTokenPair,
+    refreshToken?:string,
     keyTokenAdmin?:KeyTokenAdminProps
 }
 
@@ -66,7 +67,15 @@ export interface AdminPayloadProps{
    } ,
    keyToken:KeyTokenAdminProps
 }
-
+export interface UserPayloadProps{
+    userFound:{
+     _id:string,
+     name:string,
+     email:string,
+     role:string
+    } ,
+    keyToken:KeyTokenAdminProps
+ }
 export interface KeyTokenAdminProps{
     _id:string,
     user:string,
@@ -143,6 +152,12 @@ export interface QueryProps{
 
 export interface FilterPayloadProps{
     
+}
+
+export interface RatingProps{
+    filmId:string,
+    userId:string,
+    rating:number
 }
 //------------------AUTH-------------------
 

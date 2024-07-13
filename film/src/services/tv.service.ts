@@ -9,12 +9,13 @@ import crypto, { Sign } from 'crypto'
 import { createTokenPair } from '@/auth/util.auth'
 import { UpdateMovieProps, QueryProps, FilterPayloadProps } from '@/types'
 import { getInfoData } from '@/utils'
-import { KeyTokenModelProps, AdminPayloadProps, TVData } from '@/types'
+import { KeyTokenModelProps, AdminPayloadProps, TVData,RatingProps } from '@/types'
 import axios from 'axios'
 import { createClient } from 'redis'
 import { updateNestedObjectParser } from '@/utils'
 import { update } from 'lodash'
 import { uploadImages } from '@/configs/cloudinary.config'
+import { ratingModel } from '@/models/rating.model'
 // type MovieData = {
 //     movie: {
 //         name: string;
@@ -111,7 +112,62 @@ export const updateTV = async ({ movieId, payload }: UpdateMovieProps) => {
     return movieUpdated
 }
 
+export const ratingTV = async ({filmId,userId,rating}:RatingProps) => {
+    const movieFound = await tvModel.findOne({_id:filmId})
+    if(!movieFound) throw new errorResponse.BadRequestError(`Không tìm thấy movie!`)
+ 
+     const ratingFound = await ratingModel.findOne({filmId:filmId})
+     // if(!ratingFound) return  await ratingModel.create({
+     //     filmId:filmId,
+     //     $push:{
+     //         ratings:{
+     //             userId:userId,
+     //             rating:rating,
+     //         }
+     //     }
+     // })
+     if(!ratingFound){
+         let ratingNew = await ratingModel.create({
+             filmId: filmId,
+             ratings: [{
+                 userId: userId,
+                 rating: rating 
+             }],
+             ratingAverage:rating
+         });
+         return ratingNew;
+     }
+     const userRating = ratingFound.ratings.find((r:any) => r.userId.toString() === userId.toString());
+     if (userRating) {
+         userRating.rating = rating; // Đảm bảo rating là số hợp lệ
+     } else {
+         // Nếu người dùng chưa đánh giá, thêm đánh giá mới
+         ratingFound.ratings.push({
+             userId: userId,
+             rating: rating // Đảm bảo rating là số hợp lệ
+         });
+     }
+     const totalRatings = ratingFound.ratings.reduce((sum: number, r: any) => sum + r.rating, 0);
+     const ratingCount = ratingFound.ratings.length;
+     ratingFound.ratingAverage = totalRatings / ratingCount;
+     await ratingFound.save()
+     return ratingFound
+ 
+  }
 
+  export const getRatings = async ({ filmId }: { filmId: string }) => {
+    const movieFound = await tvModel.findOne({ _id: filmId })
+    if (!movieFound) throw new errorResponse.BadRequestError(`Không tìm thấy movie!`)
+    const ratingFound = await ratingModel.findOne({ filmId: filmId })
+    if (!ratingFound) {
+        return {
+            filmId:"",
+            ratings:[],
+            ratingAverage:0
+        }
+    }
+    return ratingFound
+}
 export const deleteTV = async (movieId: string) => {
     const tv = await tvModel.findOne({ _id: movieId })
     if (!tv) throw new errorResponse.BadRequestError(`Cannot find movie`)
@@ -121,7 +177,7 @@ export const deleteTV = async (movieId: string) => {
 
 export const getTV = async (movieId: string) => {
     const movie = await tvModel.findOne({ _id: movieId })
-    if (!movie) throw new errorResponse.BadRequestError(`Cannot find movie`)
+    if (!movie) throw new errorResponse.BadRequestError(`Không tìm thấy tvshow`)
 
     return movie
 }
@@ -156,24 +212,12 @@ export const getAllTV = async (query: QueryProps) => {
 
     }
 
-    // // Sorting
-
-    //   const sortBy = query.sort.split(",").join(" ");
-    //   query = query.sort(sortBy);
-
-    //   query = query.sort("-createdAt");
-
-
-    // if (query.fields) {
-    //   const fields = query.fields.split(",").join(" ");
-    //   console.log('fields',fields)
-    //   query = query.select(fields);
-    // } else {
-    //   query = query.select("-__v");
-    // }
+  
 
     return await tv
 }
+
+
 
 export const filterMoive = async (payload: FilterPayloadProps) => {
 

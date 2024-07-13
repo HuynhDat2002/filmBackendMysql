@@ -3,11 +3,16 @@
 import express from 'express'
 import asyncHandler from '@/helpers/asyncHandler.helper'
 import { movieController } from '@/controllers'
-import { authenticationAdmin } from '@/auth/util.auth'
+import { authenticationAdmin,authentication } from '@/auth/util.auth'
+
 const movieRouter = express.Router()
 
 movieRouter.get('/getMovie/:id',asyncHandler(movieController.getMovie))
 movieRouter.get('/getAllMovie',asyncHandler(movieController.getAllMovie))
+movieRouter.get('/getRatings/:id',asyncHandler(movieController.getRatings))
+
+movieRouter.patch('/ratingMovie',authentication,asyncHandler(movieController.ratingMovie))
+
 
 movieRouter.use(authenticationAdmin)
 movieRouter.post('/createMovie',asyncHandler(movieController.createMovie))

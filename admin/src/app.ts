@@ -15,10 +15,14 @@ const app:Application  = express()
 
 const adminApp = async (app:express.Express)=>{
 
+    const corsOptions = {
+        origin: 'http://localhost:3000', // Cho phép truy cập từ origin này
+        credentials: true, // Cho phép sử dụng credentials mode
+      };
+    app.use(cors(corsOptions)) // trao đổi tài nguyên chéo
     app.use(morgan('dev')) // trạng thái code
     app.use(helmet()) //bảo mật server bằng cách đặt các header bảo mật http khác nhau
     app.use(compression()) //giảm băng thông
-    app.use(cors()) // trao đổi tài nguyên chéo
     app.use(express.json()) // phân tích các yêu cầu json, đặt dữ liệu vào req.body
     app.use(express.urlencoded({extended:false}))//xử lý dữ liệu form URL-encoded trong các yêu cầu HTTP POST.
     // extended:false đơn giản và không sử dụng cấu trúc dữ liệu phức tạp

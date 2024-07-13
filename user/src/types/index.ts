@@ -41,9 +41,9 @@ export interface SuccessResonseProps{
 // ---------------------SERVICES------------------
 
 export interface SignUpProps{
-    name:string,
-    email:string,
-    password:string
+    name?:string,
+    email?:string,
+    password?:string,
 }
 
 export interface SignInProps{
@@ -56,6 +56,11 @@ export interface TokenPairProps{
     refreshToken:string
 }
 
+
+export interface VerifyOTPProps{
+    email:string,
+    otp:string
+}
 //------------------AUTH-------------------
 
 export interface CreateTokenPairProps{

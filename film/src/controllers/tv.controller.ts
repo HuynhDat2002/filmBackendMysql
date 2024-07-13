@@ -49,7 +49,22 @@ export const getAllTV = async (req:CustomRequest,res:Response,next:NextFunction)
     }).send(res)
 }
 
+export const ratingTV = async (req:CustomRequest,res:Response,next:NextFunction)=>{
+    const userId = req?.user?.userId as string || ""
+    new successResponse.SuccessResonse({
+        message:"Got all movie",
+        metadata: await tvService.ratingTV({filmId:req.body.filmId,userId:userId,rating:req.body.rating})
+    }).send(res)
+}
 
+export const getRatings = async (req:CustomRequest,res:Response,next:NextFunction)=>{
+    const filmId = req.params.id as string ||""
+    
+    new successResponse.SuccessResonse({
+        message:"Got all ratings",
+        metadata: await tvService.getRatings({filmId:filmId})
+    }).send(res)
+}
 
 
 

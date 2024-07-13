@@ -73,7 +73,7 @@ const movieSchema = new Schema({
     default:""
    },
    type:{type:String,default:'movie'},
-   rating:{type:Number,default:0}
+   
 
 },
 {
