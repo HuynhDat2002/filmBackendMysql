@@ -10,6 +10,17 @@ export interface CustomRequest extends Request{
     keyTokenAdmin?:KeyTokenAdminProps
 }
 
+export interface CustomRequestUser extends Request{
+    keyToken?: KeyTokenModelProps,
+    user?:UserProps,
+    admin?:PayloadTokenPair,
+    refreshToken?:string,
+    keyTokenAdmin?:KeyTokenAdminProps
+}
+export interface UserProps{
+    _id:string,name:string,email:string
+}
+
 
 //------------MODELS-------------------
 export interface KeyTokenModelProps{
@@ -158,6 +169,14 @@ export interface RatingProps{
     filmId:string,
     userId:string,
     rating:number
+}
+
+//---------COMMENT SERVICE--------------------
+export interface CreateCommentProps{
+    filmId:string,
+    user:{_id:string,name:string,email:string},
+    content:any,
+    parentCommentId:string
 }
 //------------------AUTH-------------------
 

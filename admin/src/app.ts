@@ -40,7 +40,7 @@ const adminApp = async (app:express.Express)=>{
     // subscribe message
     await subscribeMessage(channel,accessService)
     
-    app.use('/',router)
+    app.use('/admin/',router)
     
     //handling error notfound
     app.use((req:Request,res:Response,next:NextFunction)=>{

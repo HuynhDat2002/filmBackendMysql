@@ -41,8 +41,10 @@ const userApp = async (app:express.Express)=>{
     // subscribe message
     await subscribeMessage(channel,accessService)
     
-    app.use('/',router)
-    
+    app.use('/user/',router)
+    app.get('/user/hello',(req:Request,res:Response)=>{
+        res.status(200).json({message:`helllo`})
+    })
     //handling error notfound
     app.use((req:Request,res:Response,next:NextFunction)=>{
         const error:any = new Error('Not found')

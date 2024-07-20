@@ -18,6 +18,13 @@ import { uploadImages } from '@/configs/cloudinary.config'
 import { RatingProps } from '@/types'
 import { ratingModel } from '@/models/rating.model'
 import { UserPayloadProps } from '@/types'
+// const redis = require('redis');
+
+
+// const redisClient = redis.createClient({
+//     host: 'redis',
+//     port: 6379
+//   });
 // type MovieData = {
 //     movie: {
 //         name: string;
@@ -238,8 +245,10 @@ export const filterMoive = async (payload: FilterPayloadProps) => {
 }
 
 export const getPayloadAdmin = async (data: AdminPayloadProps) => {
-    const client = createClient()
+    const client = createClient({url:"redis://default:pyFDvQLFTafTwKZ4QuVTYynBWDrjxcE3@redis-11938.c15.us-east-1-2.ec2.redns.redis-cloud.com:11938"})
     await client.connect()
+    // await redisClient.on()
+    // await redisClient.connect()
 
     console.log(` i received data: `, data.adminFound)
     await client.set('admin', JSON.stringify(data.adminFound))
@@ -252,11 +261,15 @@ export const getPayloadAdmin = async (data: AdminPayloadProps) => {
 }
 
 export const getPayloadUser = async (data: UserPayloadProps) => {
-    const client = createClient()
-    await client.connect()
+    
+    const client = createClient({url:"redis://default:pyFDvQLFTafTwKZ4QuVTYynBWDrjxcE3@redis-11938.c15.us-east-1-2.ec2.redns.redis-cloud.com:11938"})
 
+    await client.connect()
+    // await client.on()
+
+    // await redisClient.connect()
     console.log(` i received data: `, data.userFound)
-    await client.set('admin', JSON.stringify(data.userFound))
+    await client.set('user', JSON.stringify(data.userFound))
     await client.set('keyTokenUser', JSON.stringify(data.keyToken))
     return {
         user: getInfoData(["_id", "name", "email", "role"], data.userFound),

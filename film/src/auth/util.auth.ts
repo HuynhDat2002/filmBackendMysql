@@ -4,7 +4,7 @@ import * as jwt from 'jsonwebtoken'
 import { CreateTokenPairProps } from "@/types"
 import asyncHandler from '@/helpers/asyncHandler.helper'
 import { Response, NextFunction } from 'express'
-import { CustomRequest } from '@/types'
+import { CustomRequest,CustomRequestUser } from '@/types'
 import { errorResponse } from '@/cores'
 import { PayloadTokenPair } from '@/types'
 import { movieService } from '@/services'
@@ -43,22 +43,22 @@ export const createTokenPair = async ({ payload, publicKey, privateKey }: Create
 export const authenticationAdmin = asyncHandler(async (req: CustomRequest, res: Response, next: NextFunction) => {
     //1.check userId missing
     const userId: string = req.headers[HEADER.CLIENT_ID] as string
-    if (!userId) throw new errorResponse.AuthFailureError("Invalid request! User not found.")
+    if (!userId) throw new errorResponse.AuthFailureError("Bạn cần phải đăng nhập trước")
         // await movieService.client.connect()
 
-    const client = createClient()
+    const client = createClient({url:"redis://default:pyFDvQLFTafTwKZ4QuVTYynBWDrjxcE3@redis-11938.c15.us-east-1-2.ec2.redns.redis-cloud.com:11938"})
     await client.connect()
     const keyTokenAdmin = JSON.parse(await client.get('keyTokenAdmin') as string)
     console.log(`keyTokenAdmin`,keyTokenAdmin)
     //2. check key store
-    if (userId!==keyTokenAdmin.user) throw new errorResponse.NotFound("Not found user in key store.")
+    if (userId!==keyTokenAdmin.user) throw new errorResponse.NotFound("Không tin thấy user trong keystore")
     // console.log('key token',keyToken)
 
     //3. verify token
     const accessToken = req.headers[HEADER.AUTHORIZATION] as string
     console.log('access',accessToken)
     console.log('publicKey',keyTokenAdmin.publicKey)
-    if (!accessToken) throw new errorResponse.AuthFailureError(`Invalid accessToken`)
+    if (!accessToken) throw new errorResponse.AuthFailureError(`Access Token không hợp lệ`)
     try {
         let decodeUser: PayloadTokenPair | string |undefined
          jwt.verify(accessToken, keyTokenAdmin.publicKey,(err:any, decode:any) => {
@@ -67,13 +67,13 @@ export const authenticationAdmin = asyncHandler(async (req: CustomRequest, res: 
                 }
                 else {
                     decodeUser = decode
-                    console.log(`Decode verify: `, decode)
+                    console.log(`Decode verify authentication: `, decode)
                 }
             })
         console.log(`decode ${decodeUser}`)
 
         if (typeof decodeUser === 'object') {
-            if (userId !== decodeUser.userId) throw new errorResponse.AuthFailureError(`Invalid decode request`)
+            if (userId !== decodeUser.userId) throw new errorResponse.AuthFailureError(`Không thể  giải mã access token`)
             req.keyTokenAdmin = keyTokenAdmin
             req.admin = decodeUser
             return next()
@@ -87,24 +87,24 @@ export const authenticationAdmin = asyncHandler(async (req: CustomRequest, res: 
 })
 
 
-export const authentication = asyncHandler(async (req: CustomRequest, res: Response, next: NextFunction) => {
+export const authentication = asyncHandler(async (req: CustomRequestUser, res: Response, next: NextFunction) => {
     //1.check userId missing
     const userId: string = req.headers[HEADER.CLIENT_ID] as string
     if (!userId) throw new errorResponse.AuthFailureError("Bạn cần phải đăng nhập trước.")
+        const client = createClient({url:"redis://default:pyFDvQLFTafTwKZ4QuVTYynBWDrjxcE3@redis-11938.c15.us-east-1-2.ec2.redns.redis-cloud.com:11938"})
 
-    const client = createClient()
     await client.connect()
     const keyToken = JSON.parse(await client.get('keyTokenUser') as string)
-    console.log(`keyTokenAdmin`,keyToken)
+    console.log(`keyTokenUser`,keyToken)
     //2. check key store
-    if (userId!==keyToken.user) throw new errorResponse.NotFound("Not found user in key store.")
+    if (userId!==keyToken.user) throw new errorResponse.NotFound("không tìm thấy  user trong key store")
     // console.log('key token',keyToken)
 
     //3. verify token
     const accessToken = req.headers[HEADER.AUTHORIZATION] as string
     console.log('access',accessToken)
     console.log('publicKey',keyToken.publicKey)
-    if (!accessToken) throw new errorResponse.AuthFailureError(`Invalid accessToken`)
+    if (!accessToken) throw new errorResponse.AuthFailureError(`Access token không hợp lệ`)
     try {
         let decodeUser: PayloadTokenPair | string |undefined
          jwt.verify(accessToken, keyToken.publicKey,(err:any, decode:any) => {
@@ -113,15 +113,16 @@ export const authentication = asyncHandler(async (req: CustomRequest, res: Respo
                 }
                 else {
                     decodeUser = decode
-                    console.log(`Decode verify: `, decode)
+                    console.log(`Decode verify authentication: `, decode)
                 }
             })
         console.log(`decode ${decodeUser}`)
 
         if (typeof decodeUser === 'object') {
-            if (userId !== decodeUser.userId) throw new errorResponse.AuthFailureError(`Invalid decode request`)
+            if (userId !== decodeUser.userId) throw new errorResponse.AuthFailureError(`Không thể giải mã access token`)
             req.keyToken = keyToken
-            req.user = decodeUser
+            const userInfo = JSON.parse(await client.get('user') as string)
+            req.user = userInfo
             return next()
         }
     }

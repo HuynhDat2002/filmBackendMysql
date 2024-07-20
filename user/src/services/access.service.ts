@@ -59,16 +59,17 @@ export const signUp = async () => {
 
 
     //create publickey and privatekey for accesstoken and refreshtoken
-    const publicKey: string = crypto.randomBytes(64).toString("hex");
-    const privateKey: string = crypto.randomBytes(64).toString("hex");
+    // const publicKey: string = crypto.randomBytes(64).toString("hex");
+    // const privateKey: string = crypto.randomBytes(64).toString("hex");
 
 
-    // const { privateKey, publicKey } = crypto.generateKeyPairSync('rsa', {
-    //     modulusLength: 4096,
-    //     publicKeyEncoding: { type: 'spki', format: 'pem' },
-    //     privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
-    // })
-
+    const { privateKey, publicKey } = crypto.generateKeyPairSync("rsa", {
+        modulusLength: 2048,
+        publicKeyEncoding: { type: 'spki', format: 'pem' },
+        privateKeyEncoding: {
+            type: 'pkcs8', format: 'pem'
+        },
+    });
 
     //create tokens
     const tokens: TokenPairProps = await createTokenPair({
@@ -115,7 +116,7 @@ export const signIn = async ({ email, password }: SignInProps) => {
     if (isValidEmail === null) throw new errorResponse.BadRequestError('Email không hợp lệ')
     const isValidPassword = await password.match(regex.passwordRegex)
     if (isValidPassword === null) throw new errorResponse.BadRequestError('Mật khẩu không hợp lệ!')
-    
+
     // check if user exist
     const userFound = await userModel.findOne({ email: email })
     if (!userFound) throw new errorResponse.AuthFailureError(`Tài khoản không tồn tại`)
@@ -125,8 +126,19 @@ export const signIn = async ({ email, password }: SignInProps) => {
     if (!checkPassword) throw new errorResponse.AuthFailureError(`Mật khẩu không trùng khớp`)
 
     //create publickey and privatekey for accesstoken and refreshtoken
-    const publicKey: string = crypto.randomBytes(64).toString("hex");
-    const privateKey: string = crypto.randomBytes(64).toString("hex");
+    // const publicKey: string = crypto.randomBytes(64).toString("hex");
+    // const privateKey: string = crypto.randomBytes(64).toString("hex");
+
+    const { privateKey, publicKey } = crypto.generateKeyPairSync("rsa", {
+        modulusLength: 2048,
+        publicKeyEncoding: { type: 'spki', format: 'pem' },
+        privateKeyEncoding: {
+            type: 'pkcs8', format: 'pem'
+        },
+    });
+
+    console.log('publicKeyyyyyy', publicKey)
+    console.log('privateKeyyyyyy', privateKey)
 
     //create tokens
     const tokens: TokenPairProps = await createTokenPair({
@@ -163,7 +175,7 @@ export const signIn = async ({ email, password }: SignInProps) => {
         }
     }
     const channel = await createChannel()
-   await publishMessage(channel, messageConfig.FILM_BINDING_KEY, JSON.stringify(data))
+    await publishMessage(channel, messageConfig.FILM_BINDING_KEY, JSON.stringify(data))
     return {
         user: getInfoData(["_id"], userFound),
         tokens: tokens.accessToken

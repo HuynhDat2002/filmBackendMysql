@@ -2,5 +2,5 @@
 
 import * as movieService from './movie.service'
 import * as tvService from './tv.service'
-
-export {movieService,tvService}
+import * as commentService from './comment.service'
+export {movieService,tvService,commentService}

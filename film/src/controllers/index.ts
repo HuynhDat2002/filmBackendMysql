@@ -2,4 +2,5 @@
 
 import * as movieController from './movie.controller'
 import * as tvController from './tv.controller'
-export {movieController,tvController}
+import * as commentController from './comment.controller'
+export {movieController,tvController,commentController}

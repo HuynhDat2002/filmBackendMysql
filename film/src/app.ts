@@ -38,7 +38,7 @@ const movieApp = async (app: express.Express) => {
     // subscribe message
     await subscribeMessage(channel, movieService)
 
-    app.use('/', router)
+    app.use('/film/', router)
 
     //handling error notfound
     app.use((req: Request, res: Response, next: NextFunction) => {
