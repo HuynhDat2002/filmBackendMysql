@@ -16,23 +16,24 @@ const HEADER = {
 }
 
 export const createTokenPair = async ({ payload, publicKey, privateKey }: CreateTokenPairProps) => {
-    const accessToken: string = jwt.sign(payload, publicKey, {
+    const accessToken: string = jwt.sign(payload, privateKey, {
+        algorithm:"RS256",
         expiresIn: "1d"
     })
 
     const refreshToken: string = jwt.sign(payload, privateKey, {
+        algorithm:"RS256",
         expiresIn: "7d"
     })
-    console.log('access111', accessToken)
-    console.log('public1111', publicKey)
-    // jwt.verify(accessToken, publicKey, (err, decode) => {
-    //     if (err) {
-    //         console.log(`Error verify: `, err)
-    //     }
-    //     else {
-    //         console.log(`Decode verify: `, decode)
-    //     }
-    // })
+
+    jwt.verify(accessToken, publicKey, (err, decode) => {
+        if (err) {
+            console.log(`Error verify: `, err)
+        }
+        else {
+            console.log(`Decode verify: `, decode)
+        }
+    })
 
     return { accessToken, refreshToken }
 }

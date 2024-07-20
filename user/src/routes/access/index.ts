@@ -6,6 +6,7 @@ import { accessController } from '@/controllers'
 import { authentication, checkLogin } from '@/auth/util.auth'
 import { otpService } from '@/services'
 const accessRouter = express.Router()
+
 accessRouter.post('/checkLogin',checkLogin)
 accessRouter.post('/signUp',asyncHandler(accessController.signUp))
 accessRouter.post('/signIn',asyncHandler(accessController.signIn))
@@ -13,7 +14,6 @@ accessRouter.post('/forgotPassword',asyncHandler(accessController.forgotPassword
 accessRouter.post('/verifyOTP',asyncHandler(accessController.verifyOTP))
 accessRouter.post('/resetPassword',asyncHandler(accessController.resetPassword))
 accessRouter.post('/sendOTP',asyncHandler(accessController.sendOTP))
-
 
 
 accessRouter.use(authentication)

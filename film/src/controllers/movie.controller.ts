@@ -3,7 +3,7 @@
 import {Request,Response,NextFunction} from 'express'
 import { successResponse } from '@/cores'
 import { movieService } from '@/services'
-import { CustomRequest, KeyTokenModelProps,QueryProps } from '@/types'
+import { CustomRequest,CustomRequestUser, KeyTokenModelProps,QueryProps } from '@/types'
 import { resolve } from 'path/win32'
 
 export const createMovie = async (req:CustomRequest,res:Response,next:NextFunction)=>{
@@ -49,8 +49,8 @@ export const getAllMovie = async (req:CustomRequest,res:Response,next:NextFuncti
     }).send(res)
 }
 
-export const ratingMovie = async (req:CustomRequest,res:Response,next:NextFunction)=>{
-    const userId = req?.user?.userId as string || ""
+export const ratingMovie = async (req:CustomRequestUser,res:Response,next:NextFunction)=>{
+    const userId = req?.user?._id as string || ""
     new successResponse.SuccessResonse({
         message:"Got all movie",
         metadata: await movieService.ratingMovie({filmId:req.body.filmId,userId:userId,rating:req.body.rating})

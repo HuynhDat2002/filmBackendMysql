@@ -44,15 +44,16 @@ export const signUp = async ({ name, email, password }: SignUpProps) => {
     if (!newUser) throw new errorResponse.BadRequestError(`Không thể tạo tài khoản mớ`)
 
     //create publickey and privatekey for accesstoken and refreshtoken
-    const publicKey: string = crypto.randomBytes(64).toString("hex");
-    const privateKey: string = crypto.randomBytes(64).toString("hex");
+    // const publicKey: string = crypto.randomBytes(64).toString("hex");
+    // const privateKey: string = crypto.randomBytes(64).toString("hex");
+    const { privateKey, publicKey } = crypto.generateKeyPairSync("rsa", {
+        modulusLength: 2048,
+        publicKeyEncoding: { type: 'spki', format: 'pem' },
+        privateKeyEncoding: {
+            type: 'pkcs8', format: 'pem'
+        },
+    });
 
-
-    // const { privateKey, publicKey } = crypto.generateKeyPairSync('rsa', {
-    //     modulusLength: 4096,
-    //     publicKeyEncoding: { type: 'spki', format: 'pem' },
-    //     privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
-    // })
 
 
     //create tokens
@@ -97,9 +98,15 @@ export const signIn = async ({ email, password }: SignInProps) => {
     if (!checkPassword) throw new errorResponse.AuthFailureError(`Mật khẩu không trùng khớp`)
 
     //create publickey and privatekey for accesstoken and refreshtoken
-    const publicKey: string = crypto.randomBytes(64).toString("hex");
-    const privateKey: string = crypto.randomBytes(64).toString("hex");
-
+    // const publicKey: string = crypto.randomBytes(64).toString("hex");
+    // const privateKey: string = crypto.randomBytes(64).toString("hex");
+    const { privateKey, publicKey } = crypto.generateKeyPairSync("rsa", {
+        modulusLength: 2048,
+        publicKeyEncoding: { type: 'spki', format: 'pem' },
+        privateKeyEncoding: {
+            type: 'pkcs8', format: 'pem'
+        },
+    });
     //create tokens
     const tokens: TokenPairProps = await createTokenPair({
         payload: {

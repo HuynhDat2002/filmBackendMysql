@@ -1,5 +1,7 @@
 'use strict'
 
+import crypto, { Sign } from 'crypto'
+
 import * as jwt from 'jsonwebtoken'
 import { CreateTokenPairProps } from "@/types"
 import asyncHandler from '@/helpers/asyncHandler.helper'
@@ -16,23 +18,25 @@ const HEADER = {
 }
 
 export const createTokenPair = async ({ payload, publicKey, privateKey }: CreateTokenPairProps) => {
-    const accessToken: string = jwt.sign(payload, publicKey, {
+   
+    const accessToken: string = jwt.sign(payload, privateKey, {
+        algorithm: 'RS256',
         expiresIn: "1d"
     })
 
     const refreshToken: string = jwt.sign(payload, privateKey, {
+        algorithm: 'RS256',
         expiresIn: "7d"
     })
-    console.log('access111', accessToken)
-    console.log('public1111', publicKey)
-    // jwt.verify(accessToken, publicKey, (err, decode) => {
-    //     if (err) {
-    //         console.log(`Error verify: `, err)
-    //     }
-    //     else {
-    //         console.log(`Decode verify: `, decode)
-    //     }
-    // })
+  
+    jwt.verify(accessToken, publicKey, (err, decode) => {
+        if (err) {
+            console.log(`Error verify: `, err)
+        }
+        else {
+            console.log(`Decode verify: `, decode)
+        }
+    })
 
     return { accessToken, refreshToken }
 }
@@ -96,7 +100,7 @@ export const checkLogin = asyncHandler(async (req: CustomRequest, res: Response,
     const userId: string = req.headers[HEADER.CLIENT_ID] as string
     if (!userId) throw new errorResponse.AuthFailureError("Unauthorized")
        
-        //check header
+        //check header userId
     const isValidId = userId.match(regex.idRegex)
     if(isValidId===null) throw new errorResponse.AuthFailureError(`Định dạng Id không đúng`)
 
@@ -109,7 +113,8 @@ export const checkLogin = asyncHandler(async (req: CustomRequest, res: Response,
     const accessToken = req.headers[HEADER.AUTHORIZATION] as string
     console.log('access', accessToken)
     console.log('publicKey', keyToken.publicKey)
-     //check header
+    
+     //check header access token
      const isValidAccess = accessToken.match(regex.accessRegex)
      if(isValidAccess===null) throw new errorResponse.AuthFailureError(`Định dạng token không đúng`)
    
