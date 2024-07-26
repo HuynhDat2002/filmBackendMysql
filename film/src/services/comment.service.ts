@@ -6,33 +6,38 @@
 3. delete a comment [user/shop/admin]
 */
 
-import { CreateCommentProps} from '@/types'
+import { CreateCommentProps } from '@/types'
 import { commentModel } from '@/models/comments.model'
 import * as errorResponse from '@/cores/error.response'
 import * as regex from '@/middlewares/regex'
 import { movieModel } from '@/models/movie.model'
 import { tvModel } from '@/models/tv.model'
+import DOMPurify from 'isomorphic-dompurify';
 export const createComment = async ({ filmId, user, content, parentCommentId }: CreateCommentProps) => {
+
     //check input
     const isValidId = await user._id.match(regex.idRegex)
     if (isValidId === null) throw new errorResponse.BadRequestError('User Id không hợp lệ')
     const isValidId2 = await filmId.match(regex.idRegex)
     if (isValidId2 === null) throw new errorResponse.BadRequestError('Film Id không hợp lệ')
-    if(parentCommentId){
+    if (parentCommentId) {
 
         const isValidId3 = await parentCommentId.match(regex.idRegex)
-    if (isValidId3 === null) throw new errorResponse.BadRequestError('Parent comment Id không hợp lệ')
+        if (isValidId3 === null) throw new errorResponse.BadRequestError('Parent comment Id không hợp lệ')
     }
 
+    const cleanContent = DOMPurify.sanitize(content);
+
+    console.log('cleanContenttt', cleanContent)
     // create new comment
     const comment = new commentModel({
         comment_filmId: filmId,
         comment_user: {
-            _id:user._id,
-            name:user.name,
-            email:user.email
+            _id: user._id,
+            name: user.name,
+            email: user.email
         },
-        comment_content: content,
+        comment_content: cleanContent,
         comment_parentId: parentCommentId
     })
     if (!comment) throw new errorResponse.BadRequestError("Cannot create a new comment. Please check your informatin again!")
@@ -42,11 +47,11 @@ export const createComment = async ({ filmId, user, content, parentCommentId }: 
     if (parentCommentId) {
 
         //reply comment
-        const parentComment: any = await commentModel.findOne({_id:parentCommentId})
+        const parentComment: any = await commentModel.findOne({ _id: parentCommentId })
         if (!parentComment) throw new errorResponse.NotFound('Comment parent not found')
 
-        rightValue = parentComment.comment_right 
-        const leftValue = parentComment.comment_left         
+        rightValue = parentComment.comment_right
+        const leftValue = parentComment.comment_left
         await commentModel.updateMany({
             comment_filmId: filmId,
             comment_left: { $gt: rightValue }
@@ -55,7 +60,7 @@ export const createComment = async ({ filmId, user, content, parentCommentId }: 
                 comment_left: 2
             }
         })
-    
+
         await commentModel.updateMany({
             comment_filmId: filmId,
             comment_right: { $gte: rightValue },
@@ -79,7 +84,7 @@ export const createComment = async ({ filmId, user, content, parentCommentId }: 
     return comment;
 }
 
-export const getCommentByParentId = async ({ filmId="", parentCommentId = null, limit = 50, offset = 0 }) => {
+export const getCommentByParentId = async ({ filmId = "", parentCommentId = null, limit = 50, offset = 0 }) => {
     // if(parentCommentId){
     const parent: any = await commentModel.findById(parentCommentId)
     if (!parent) throw new errorResponse.NotFound("Comment parent not found")
@@ -94,9 +99,11 @@ export const getCommentByParentId = async ({ filmId="", parentCommentId = null, 
             comment_right: 1,
             comment_content: 1,
             comment_parentId: 1,
-            comment_user:1,
-            comment_filmId:1,
-            _id:1
+            comment_user: 1,
+            comment_filmId: 1,
+            _id: 1,
+            createdAt: 1,
+            updatedAt: 1
 
         })
         .sort({
@@ -107,19 +114,29 @@ export const getCommentByParentId = async ({ filmId="", parentCommentId = null, 
 }
 
 export const deleteComment = async ({
-    userId="", commentId="", filmId=""
+    userId = "", commentId = "", filmId = ""
 }) => {
+
+    //check input
+    const isValidId = await userId.match(regex.idRegex)
+    if (isValidId === null) throw new errorResponse.BadRequestError('User Id không hợp lệ')
+        const isValidId3 = await commentId.match(regex.idRegex)
+    if (isValidId3 === null) throw new errorResponse.BadRequestError('Comment Id không hợp lệ')
+    const isValidId2 = await filmId.match(regex.idRegex)
+    if (isValidId2 === null) throw new errorResponse.BadRequestError('Film Id không hợp lệ')
+
+
     let foundFilm = await movieModel.findById(filmId)
     if (!foundFilm) {
         foundFilm = await tvModel.findById(filmId)
-        if(!foundFilm) throw new errorResponse.BadRequestError('Id film không đúng')
+        if (!foundFilm) throw new errorResponse.BadRequestError('Id film không đúng')
     }
 
     //1.xac dinh gia tri left va right
     const comment: any = await commentModel.findById(commentId)
     if (!comment) throw new errorResponse.NotFound("Comment not exists")
 
-    if(comment.comment_userId!==userId) throw new errorResponse.AuthFailureError("Bạn không có quyền xóa comment này")
+    if (comment.comment_user._id !== userId) throw new errorResponse.AuthFailureError("Bạn không có quyền xóa comment này")
 
     const leftValue = comment.comment_left;
     const rightValue = comment.comment_right
@@ -179,11 +196,42 @@ export const deleteComment = async ({
     return deleteCommentChild
 }
 
-export const getAllCommentByFilm= async ({filmId}:{filmId:string})=>{
-     //check input
-     const isValidId = await filmId.match(regex.idRegex)
-     if (isValidId === null) throw new errorResponse.BadRequestError('Film Id không hợp lệ')
-        
-    const comments = await commentModel.find({comment_filmId:filmId})
+export const getAllCommentByFilm = async ({ filmId }: { filmId: string }) => {
+    //check input
+    const isValidId = await filmId.match(regex.idRegex)
+    if (isValidId === null) throw new errorResponse.BadRequestError('Film Id không hợp lệ')
+
+    const comments = await commentModel.find({ comment_filmId: filmId })
     return comments;
 }
+
+
+export const editComment = async ({
+    userId = "", commentId = "", filmId = "",content=""
+}) => {
+   //check input
+   const isValidId = await userId.match(regex.idRegex)
+   if (isValidId === null) throw new errorResponse.BadRequestError('User Id không hợp lệ')
+       const isValidId3 = await commentId.match(regex.idRegex)
+   if (isValidId3 === null) throw new errorResponse.BadRequestError('Comment Id không hợp lệ')
+   const isValidId2 = await filmId.match(regex.idRegex)
+   if (isValidId2 === null) throw new errorResponse.BadRequestError('Film Id không hợp lệ')
+
+    const cleanContent = DOMPurify.sanitize(content);
+
+    let foundFilm = await movieModel.findById(filmId)
+    if (!foundFilm) {
+        foundFilm = await tvModel.findById(filmId)
+        if (!foundFilm) throw new errorResponse.BadRequestError('Id film không đúng')
+    }
+    const comment: any = await commentModel.findById(commentId)
+    if (comment.comment_user._id !== userId) throw new errorResponse.AuthFailureError("Bạn không có quyền chỉnh sửa comment này")
+
+        
+    const commentUpdate = await commentModel.findOneAndUpdate({_id:commentId},{comment_content:content},{new:true})
+
+
+    return commentUpdate
+}
+
+

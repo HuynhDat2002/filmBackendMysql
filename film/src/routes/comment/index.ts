@@ -10,9 +10,11 @@ const commentRouter = express.Router()
 
 commentRouter.get('/getAllCommentByFilm/:id',asyncHandler(commentController.getAllCommentByFilm))
 
-commentRouter.get('/getCommentByParentId',asyncHandler(commentController.getCommentByParentId))
+commentRouter.post('/getCommentByParentId',asyncHandler(commentController.getCommentByParentId))
 commentRouter.post('/createComment',authentication,asyncHandler(commentController.createComment))
 commentRouter.delete('/deleteComment',authentication,asyncHandler(commentController.deleteComment))
+commentRouter.patch('/editComment',authentication,asyncHandler(commentController.editComment))
+
 
 
 

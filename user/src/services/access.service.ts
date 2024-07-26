@@ -118,7 +118,8 @@ export const signIn = async ({ email, password }: SignInProps) => {
     if (isValidPassword === null) throw new errorResponse.BadRequestError('Mật khẩu không hợp lệ!')
 
     // check if user exist
-    const userFound = await userModel.findOne({ email: email })
+    console.log('typeof email',typeof email)
+    const userFound = await userModel.findOne({ email: email})
     if (!userFound) throw new errorResponse.AuthFailureError(`Tài khoản không tồn tại`)
 
     //compare password

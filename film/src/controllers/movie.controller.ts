@@ -66,6 +66,14 @@ export const getRatings = async (req:CustomRequest,res:Response,next:NextFunctio
     }).send(res)
 }
 
+export const getPageTotal = async (req:CustomRequest,res:Response,next:NextFunction)=>{
+    new successResponse.SuccessResonse({
+        message:"Got lenght",
+        metadata: await movieService.getPageTotal()
+    }).send(res)
+}
+
+
 
 
 

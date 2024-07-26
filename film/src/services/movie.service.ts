@@ -18,6 +18,7 @@ import { uploadImages } from '@/configs/cloudinary.config'
 import { RatingProps } from '@/types'
 import { ratingModel } from '@/models/rating.model'
 import { UserPayloadProps } from '@/types'
+import * as regex from '@/middlewares/regex'
 // const redis = require('redis');
 
 
@@ -110,6 +111,10 @@ export const createMovie = async (urlEmbed: { urlEmbed: string }) => {
 }
 
 export const updateMovie = async ({ movieId, payload }: UpdateMovieProps) => {
+    //check input
+    const isValidId2 = await movieId.match(regex.idRegex)
+    if (isValidId2 === null) throw new errorResponse.BadRequestError('Film Id không hợp lệ')
+
     console.log(payload)
     const movie = await movieModel.findOne({ _id: movieId })
     if (!movie) throw new errorResponse.BadRequestError(`Cannot find movie`)
@@ -120,6 +125,11 @@ export const updateMovie = async ({ movieId, payload }: UpdateMovieProps) => {
 
 
 export const deleteMovie = async (movieId: string) => {
+    //check input
+
+    const isValidId2 = await movieId.match(regex.idRegex)
+    if (isValidId2 === null) throw new errorResponse.BadRequestError('Film Id không hợp lệ')
+
     const movie = await movieModel.findOne({ _id: movieId })
     if (!movie) throw new errorResponse.BadRequestError(`Cannot find movie`)
     const movieDeleted = await movieModel.findOneAndDelete({ _id: movieId })
@@ -127,13 +137,27 @@ export const deleteMovie = async (movieId: string) => {
 }
 
 export const getMovie = async (movieId: string) => {
+    //check input
+
+    const isValidId2 = await movieId.match(regex.idRegex)
+    if (isValidId2 === null) throw new errorResponse.BadRequestError('Film Id không hợp lệ')
+
     const movie = await movieModel.findOne({ _id: movieId })
     if (!movie) throw new errorResponse.BadRequestError(`Không tìm thấy movie`)
-    return movie
+   const movieUpdateView= await movieModel.findOneAndUpdate({_id:movieId},{$inc:{view:1/2}},{new:true})
+
+    return movieUpdateView
 }
 
 
 export const ratingMovie = async ({ filmId, userId, rating }: RatingProps) => {
+    //check input
+    const isValidId1 = await userId.match(regex.idRegex)
+    if (isValidId1 === null) throw new errorResponse.BadRequestError('User Id không hợp lệ')
+    const isValidId2 = await filmId.match(regex.idRegex)
+    if (isValidId2 === null) throw new errorResponse.BadRequestError('Film Id không hợp lệ')
+
+
     const movieFound = await movieModel.findOne({ _id: filmId })
     if (!movieFound) throw new errorResponse.BadRequestError(`Không tìm thấy movie!`)
 
@@ -177,29 +201,39 @@ export const ratingMovie = async ({ filmId, userId, rating }: RatingProps) => {
 }
 
 export const getRatings = async ({ filmId }: { filmId: string }) => {
+
+    //check input
+    const isValidId1 = await filmId.match(regex.idRegex)
+    if (isValidId1 === null) throw new errorResponse.BadRequestError('User Id không hợp lệ')
+
     const movieFound = await movieModel.findOne({ _id: filmId })
     if (!movieFound) throw new errorResponse.BadRequestError(`Không tìm thấy movie!`)
     const ratingFound = await ratingModel.findOne({ filmId: filmId })
     if (!ratingFound) {
         return {
-            filmId:"",
-            ratings:[],
-            ratingAverage:0
+            filmId: "",
+            ratings: [],
+            ratingAverage: 0
         }
     }
     return ratingFound
 }
 export const getAllMovie = async (query: QueryProps) => {
-
     let movie
     let page = 1
     if (query.page) {
+        //check input
+        const isValidPage = await query.page.match(regex.pageRegex)
+        if (isValidPage === null) throw new errorResponse.BadRequestError('Page không hợp lệ')
+
         page = parseInt(query.page as string)
     }
-    const limit = 16
+    const limit = 20
     const skip = (page - 1) * limit
     if (query.query) {
-
+    //check input
+    const isValidQuery = await query.query.match(regex.queryRegex)
+    if (isValidQuery === null) throw new errorResponse.BadRequestError('Query không hợp lệ')
         const searchQuery = {
             $text: {
                 $search: query.query as string
@@ -220,32 +254,23 @@ export const getAllMovie = async (query: QueryProps) => {
 
     }
 
-    // // Sorting
-
-    //   const sortBy = query.sort.split(",").join(" ");
-    //   query = query.sort(sortBy);
-
-    //   query = query.sort("-createdAt");
-
-
-    // if (query.fields) {
-    //   const fields = query.fields.split(",").join(" ");
-    //   console.log('fields',fields)
-    //   query = query.select(fields);
-    // } else {
-    //   query = query.select("-__v");
-    // }
-
-    return await movie
+    return movie
 }
 
+
+export const getPageTotal = async () => {
+    const movies = await movieModel.find()
+    return {
+        movieLength: movies.length
+    }
+}
 
 export const filterMoive = async (payload: FilterPayloadProps) => {
 
 }
 
 export const getPayloadAdmin = async (data: AdminPayloadProps) => {
-    const client = createClient({url:"redis://default:pyFDvQLFTafTwKZ4QuVTYynBWDrjxcE3@redis-11938.c15.us-east-1-2.ec2.redns.redis-cloud.com:11938"})
+    const client = createClient({ url: "redis://default:pyFDvQLFTafTwKZ4QuVTYynBWDrjxcE3@redis-11938.c15.us-east-1-2.ec2.redns.redis-cloud.com:11938" })
     await client.connect()
     // await redisClient.on()
     // await redisClient.connect()
@@ -261,8 +286,8 @@ export const getPayloadAdmin = async (data: AdminPayloadProps) => {
 }
 
 export const getPayloadUser = async (data: UserPayloadProps) => {
-    
-    const client = createClient({url:"redis://default:pyFDvQLFTafTwKZ4QuVTYynBWDrjxcE3@redis-11938.c15.us-east-1-2.ec2.redns.redis-cloud.com:11938"})
+
+    const client = createClient({ url: "redis://default:pyFDvQLFTafTwKZ4QuVTYynBWDrjxcE3@redis-11938.c15.us-east-1-2.ec2.redns.redis-cloud.com:11938" })
 
     await client.connect()
     // await client.on()

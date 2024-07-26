@@ -176,7 +176,7 @@ export interface CreateCommentProps{
     filmId:string,
     user:{_id:string,name:string,email:string},
     content:any,
-    parentCommentId:string
+    parentCommentId?:string
 }
 //------------------AUTH-------------------
 

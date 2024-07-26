@@ -9,6 +9,7 @@ const tvRouter = express.Router()
 tvRouter.get('/getTV/:id',asyncHandler(tvController.getTV))
 tvRouter.get('/getAllTV',asyncHandler(tvController.getAllTV))
 tvRouter.get('/getRatings/:id',asyncHandler(tvController.getRatings))
+tvRouter.get('/getPageTotal',asyncHandler(tvController.getPageTotal))
 
 tvRouter.patch('/ratingTV',authentication,asyncHandler(tvController.ratingTV))
 

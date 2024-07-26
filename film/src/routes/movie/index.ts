@@ -10,7 +10,7 @@ const movieRouter = express.Router()
 movieRouter.get('/getMovie/:id',asyncHandler(movieController.getMovie))
 movieRouter.get('/getAllMovie',asyncHandler(movieController.getAllMovie))
 movieRouter.get('/getRatings/:id',asyncHandler(movieController.getRatings))
-
+movieRouter.get('/getPageTotal',asyncHandler(movieController.getPageTotal))
 movieRouter.patch('/ratingMovie',authentication,asyncHandler(movieController.ratingMovie))
 
 

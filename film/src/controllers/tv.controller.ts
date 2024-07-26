@@ -39,10 +39,10 @@ export const getTV = async (req:CustomRequest,res:Response,next:NextFunction)=>{
 
 export const getAllTV = async (req:CustomRequest,res:Response,next:NextFunction)=>{
     const query = {
-        query:req.query.query as string,
+        query:req.query?.query as string,
         page:req.query?.page as string
     }
-    console.log(query);
+    console.log('querrytvvvvv',query);
     new successResponse.SuccessResonse({
         message:"Got all tv",
         metadata: await tvService.getAllTV(query)
@@ -66,5 +66,11 @@ export const getRatings = async (req:CustomRequest,res:Response,next:NextFunctio
     }).send(res)
 }
 
+export const getPageTotal = async (req:CustomRequest,res:Response,next:NextFunction)=>{
+    new successResponse.SuccessResonse({
+        message:"Got lenght",
+        metadata: await tvService.getPageTotal()
+    }).send(res)
+}
 
 

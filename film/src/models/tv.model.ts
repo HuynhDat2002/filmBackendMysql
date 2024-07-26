@@ -42,7 +42,7 @@ const tvSchema = new Schema({
         type:Number,
         default:0
    },
-   actor:{
+   actor:{  
     type: Array,
     default:[]
    },
