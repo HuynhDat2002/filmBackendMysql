@@ -36,13 +36,8 @@ export const signUp = async () => {
 
     // check if user exist
     const userFound = await userModel.findOne({ email }).lean();
-    if (userFound) {
-        throw new errorResponse.BadRequestError("Tài khoản đã tồn tại");
-        // return {
-        //     code: "xxx",
-        //     message: "This shop already registered!",
-        // };
-    }
+    if (userFound) throw new errorResponse.BadRequestError("Tài khoản đã tồn tại");
+    
 
     //hash password
     const passwordHash = await bcrypt.hash(password, 10);
@@ -57,11 +52,9 @@ export const signUp = async () => {
 
     if (!newUser) throw new errorResponse.BadRequestError(`Không thể tạo tài khoản mới`)
 
-
     //create publickey and privatekey for accesstoken and refreshtoken
     // const publicKey: string = crypto.randomBytes(64).toString("hex");
     // const privateKey: string = crypto.randomBytes(64).toString("hex");
-
 
     const { privateKey, publicKey } = crypto.generateKeyPairSync("rsa", {
         modulusLength: 2048,

@@ -51,8 +51,32 @@ import * as regex from '@/middlewares/regex'
 //         }>
 //     }>;
 // };
+const isAllowedURL = async (url: string) => {
+    const allowedUrls = [
+        {
+            hostname: 'ophim1.com',
+            path: '/phim'
+        },
+        {
+            hostname: 'phimapi.com',
+            path: '/phim'
+        }
+    ]
+    const parseURL = new URL(url)
+    console.log(`parseURL`,parseURL)
+    const check = allowedUrls.some((url:any) => {
+        return url.hostname === parseURL.hostname &&
+            parseURL.pathname.startsWith(url.path) ===true
+    })
+    console.log('check',check) 
+return check
 
+}
 export const createMovie = async (urlEmbed: { urlEmbed: string }) => {
+
+    //kiểm tra url hợp lệ
+    if (! await isAllowedURL(urlEmbed.urlEmbed)) throw new errorResponse.BadRequestError(`Embed link không hợp lệ`)
+            
     const parseURL = new URL(urlEmbed.urlEmbed)
     const hostname = parseURL.hostname
     console.log('hostname', hostname)
@@ -105,7 +129,7 @@ export const createMovie = async (urlEmbed: { urlEmbed: string }) => {
         country: movie.movie.country,
         quality: movie.movie.quality,
         episode_current: movie.movie.episode_current,
-        video: movie.episodes[0].server_data[0].link_embed,
+        video: movie.episodes[0].server_data[0].link_m3u8,
     })
     return newMovie
 }
@@ -144,7 +168,7 @@ export const getMovie = async (movieId: string) => {
 
     const movie = await movieModel.findOne({ _id: movieId })
     if (!movie) throw new errorResponse.BadRequestError(`Không tìm thấy movie`)
-   const movieUpdateView= await movieModel.findOneAndUpdate({_id:movieId},{$inc:{view:1/2}},{new:true})
+    const movieUpdateView = await movieModel.findOneAndUpdate({ _id: movieId }, { $inc: { view: 1 / 2 } }, { new: true })
 
     return movieUpdateView
 }
@@ -231,9 +255,9 @@ export const getAllMovie = async (query: QueryProps) => {
     const limit = 20
     const skip = (page - 1) * limit
     if (query.query) {
-    //check input
-    const isValidQuery = await query.query.match(regex.queryRegex)
-    if (isValidQuery === null) throw new errorResponse.BadRequestError('Query không hợp lệ')
+        //check input
+        const isValidQuery = await query.query.match(regex.queryRegex)
+        if (isValidQuery === null) throw new errorResponse.BadRequestError('Query không hợp lệ')
         const searchQuery = {
             $text: {
                 $search: query.query as string
@@ -313,12 +337,6 @@ export const SubscribeEvents = async (payload: string) => {
             break;
         case 'GET_USER_PAYLOAD':
             getPayloadUser(data)
-            break;
-        case 'REMOVE_FROM_CART':
-
-            break;
-        case 'CREATE_ORDER':
-
             break;
         case 'TEST':
             console.log('Working.............')

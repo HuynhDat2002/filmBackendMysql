@@ -64,6 +64,7 @@ export const authenticationAdmin = asyncHandler(async (req: CustomRequest, res: 
          jwt.verify(accessToken, keyTokenAdmin.publicKey,(err:any, decode:any) => {
                 if (err) {
                     console.log(`Error verify: `, err)
+                    throw new errorResponse.AuthFailureError('Bạn cần phải đăng nhập trước')
                 }
                 else {
                     decodeUser = decode
@@ -107,15 +108,17 @@ export const authentication = asyncHandler(async (req: CustomRequestUser, res: R
     if (!accessToken) throw new errorResponse.AuthFailureError(`Access token không hợp lệ`)
     try {
         let decodeUser: PayloadTokenPair | string |undefined
-         jwt.verify(accessToken, keyToken.publicKey,(err:any, decode:any) => {
+            jwt.verify(accessToken, keyToken.publicKey,(err:any, decode:any) => {
                 if (err) {
                     console.log(`Error verify: `, err)
+                    throw new errorResponse.AuthFailureError('Bạn cần phải đăng nhập trước')
                 }
                 else {
                     decodeUser = decode
                     console.log(`Decode verify authentication: `, decode)
                 }
             })
+            
         console.log(`decode ${decodeUser}`)
 
         if (typeof decodeUser === 'object') {

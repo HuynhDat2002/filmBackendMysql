@@ -16,7 +16,8 @@ const app:Application  = express()
 const adminApp = async (app:express.Express)=>{
 
     const corsOptions = {
-        origin: 'http://localhost:3000', // Cho phép truy cập từ origin này
+        origin: ['http://localhost:3000','http://localhost:3001'], // Cho phép truy cập từ origin này
+
         credentials: true, // Cho phép sử dụng credentials mode
       };
     app.use(cors(corsOptions)) // trao đổi tài nguyên chéo

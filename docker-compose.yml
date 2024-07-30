@@ -34,43 +34,43 @@ services:
       - 5003
     
   
-  # film1:
-  #   build:
-  #     dockerfile: Dockerfile
-  #     context: ./film
-  #   container_name: film1
-  #   restart: always
-  #   depends_on:
-  #     - "nosql-db"
-  #     - "rabbitmq"
-  #     # - "redis"
-  #   volumes:
-  #     - .:/app
-  #     - /app/film1/node_modules
+  film1:
+    build:
+      dockerfile: Dockerfile
+      context: ./film
+    container_name: film1
+    restart: always
+    depends_on:
+      - "nosql-db"
+      - "rabbitmq"
+      # - "redis"
+    volumes:
+      - .:/app
+      - /app/film1/node_modules
 
-  #   env_file:
-  #     - ./film/.env
-  #   expose:
-  #     - 5003
+    env_file:
+      - ./film/.env
+    expose:
+      - 5003
 
-  # film2:
-  #   build:
-  #     dockerfile: Dockerfile
-  #     context: ./film
-  #   container_name: film2
-  #   restart: always
-  #   depends_on:
-  #     - "nosql-db"
-  #     - "rabbitmq"
-  #     # - "redis"
-  #   volumes:
-  #     - .:/app
-  #     - /app/film2/node_modules
+  film2:
+    build:
+      dockerfile: Dockerfile
+      context: ./film
+    container_name: film2
+    restart: always
+    depends_on:
+      - "nosql-db"
+      - "rabbitmq"
+      # - "redis"
+    volumes:
+      - .:/app
+      - /app/film2/node_modules
 
-  #   env_file:
-  #     - ./film/.env
-  #   expose:
-  #     - 5003
+    env_file:
+      - ./film/.env
+    expose:
+      - 5003
 
   user:
     build:
@@ -191,7 +191,8 @@ services:
       context: ./proxy
     depends_on:
       - film
-      
+      - film1
+      - film2
       - user
       - user1
       - user2

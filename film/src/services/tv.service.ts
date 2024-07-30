@@ -19,7 +19,32 @@ import { ratingModel } from '@/models/rating.model'
 
 import * as regex from '@/middlewares/regex'
 
+const isAllowedURL = async (url: string) => {
+    const allowedUrls = [
+        {
+            hostname: 'ophim1.com',
+            path: '/phim'
+        },
+        {
+            hostname: 'phimapi.com',
+            path: '/phim'
+        }
+    ]
+    const parseURL = new URL(url)
+    console.log(`parseURL`,parseURL)
+    const check = allowedUrls.some((url:any) => {
+        return url.hostname === parseURL.hostname &&
+            parseURL.pathname.startsWith(url.path) ===true
+    })
+    console.log('check',check) 
+return check
+
+}
 export const createTV = async (urlEmbed: { urlEmbed: string }) => {
+    
+    //kiểm tra url hợp lệ
+    if (! await isAllowedURL(urlEmbed.urlEmbed)) throw new errorResponse.BadRequestError(`Embed link không hợp lệ`)
+
     const parseURL = new URL(urlEmbed.urlEmbed)
     const hostname = parseURL.hostname
     console.log('hostname', hostname)
@@ -65,7 +90,7 @@ export const createTV = async (urlEmbed: { urlEmbed: string }) => {
         episodes: tv.episodes[0].server_data.map((data: any) => ({
             name: data.name,
             slug: data.slug,
-            video: data.link_embed
+            video: data.link_m3u8
         })),
 
     })

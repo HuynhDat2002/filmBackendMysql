@@ -89,3 +89,55 @@ export const authentication = asyncHandler(async (req: CustomRequest, res: Respo
 
 
 })
+
+export const checkLogin = asyncHandler(async (req: CustomRequest, res: Response, next: NextFunction) => {
+    //1.check userId missing
+    const userId: string = req.headers[HEADER.CLIENT_ID] as string
+    if (!userId) throw new errorResponse.AuthFailureError("Unauthorized")
+       
+        //check header userId
+        console.log('admin idddd', userId)
+    const isValidId = userId.match(regex.idRegex)
+    if(isValidId===null) throw new errorResponse.AuthFailureError(`Định dạng Id không đúng`)
+
+    //2. check key store
+    const keyToken = await keyTokenModel.findOne({ user: userId })
+    if (!keyToken) throw new errorResponse.NotFound("Unauthorized")
+    // console.log('key token',keyToken)
+
+    //3. verify token
+    const accessToken = req.headers[HEADER.AUTHORIZATION] as string
+    console.log('access', accessToken)
+    console.log('publicKey', keyToken.publicKey)
+    
+     //check header access token
+     const isValidAccess = accessToken.match(regex.accessRegex)
+     if(isValidAccess===null) throw new errorResponse.AuthFailureError(`Định dạng token không đúng`)
+   
+    if (!accessToken) throw new errorResponse.AuthFailureError(`Unauthorized`)
+
+    let decodeUser: PayloadTokenPair | string | undefined
+    jwt.verify(accessToken, keyToken.publicKey, (err, decode) => {
+        if (err) {
+            console.log(`Error verify: `, err)
+            throw new errorResponse.BadRequestError(`Unauthorized`)
+        }
+        else {
+            decodeUser = decode
+            console.log(`Decode verify: `, decode)
+        }
+    })
+    console.log(`decode ${decodeUser}`)
+
+    if (typeof decodeUser === 'object') {
+        if (userId !== decodeUser.userId) throw new errorResponse.AuthFailureError(`Unauthorized`)
+        req.keyToken = keyToken
+        req.user = decodeUser
+    }
+
+    return res.status(200).json({message:`Authorized`})
+
+
+
+
+})
