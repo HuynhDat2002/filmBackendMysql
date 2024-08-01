@@ -1,12 +1,13 @@
 'use strict'
 
-import {Request,Response,NextFunction} from 'express'
+import { Request, Response, NextFunction } from 'express'
 import { successResponse } from '@/cores'
 import { accessService } from '@/services'
-import { CustomRequest, KeyTokenModelProps,PayloadTokenPair } from '@/types'
+import { CustomRequest, KeyTokenModelProps, PayloadTokenPair } from '@/types'
 import { resolve } from 'path/win32'
-import {otpService} from '@/services'
-export const signUp = async (req:CustomRequest,res:Response,next:NextFunction)=>{
+import { otpService } from '@/services'
+import UserAgent from 'user-agents';
+export const signUp = async (req: CustomRequest, res: Response, next: NextFunction) => {
     const metadata = await accessService.signUp()
     // res.cookie('logininfo', metadata.tokens, {
     //     httpOnly: true,
@@ -14,13 +15,27 @@ export const signUp = async (req:CustomRequest,res:Response,next:NextFunction)=>
     //     sameSite: 'none'
     // });
     new successResponse.Created({
-        message:"Created a new user",
+        message: "Created a new user",
         metadata: metadata
     }).send(res)
 }
 
+// export const checkDevice = async (req: CustomRequest, res: Response, next: NextFunction) => {
+//     const userAgent = req.headers['user-agent']
+//     // res.cookie('logininfo', metadata.tokens, {
+//     //     httpOnly: true,
+//     //     maxAge: 24 * 60 * 60 * 1000, // Thời gian sống của cookie, ví dụ 1 ngày
+//     //     sameSite: 'none'
+//     // });
+//     new successResponse.SuccessResonse({
+//         message: "Check device",
+//         metadata: await accessService.checkDevice({userAgent})
+//     }).send(res)
+// }
 
-export const signIn = async (req:CustomRequest,res:Response,next:NextFunction)=>{
+export const signIn = async (req: CustomRequest, res: Response, next: NextFunction) => {
+
+    console.log('header',req.headers['user-agent'])
     const metadata = await accessService.signIn(req.body)
     // res.cookie('logininfo', metadata.tokens, {
     //     httpOnly: true,
@@ -28,71 +43,71 @@ export const signIn = async (req:CustomRequest,res:Response,next:NextFunction)=>
     //     sameSite: 'none'
     // });
     new successResponse.SuccessResonse({
-        message:"Login Successfully",
+        message: "Login Successfully",
         metadata: metadata
     }).send(res)
 }
 
 
-export const logOut = async (req:CustomRequest,res:Response,next:NextFunction)=>{
+export const logOut = async (req: CustomRequest, res: Response, next: NextFunction) => {
     new successResponse.SuccessResonse({
-        message:"Logout Successfully",
+        message: "Logout Successfully",
         metadata: await accessService.logout(req.keyToken as KeyTokenModelProps)
     }).send(res)
 }
 
 
-export const forgotPassword = async (req:CustomRequest,res:Response,next:NextFunction)=>{
+export const forgotPassword = async (req: CustomRequest, res: Response, next: NextFunction) => {
     new successResponse.SuccessResonse({
-        message:"Forgot Successfully",
+        message: "Forgot Successfully",
         metadata: await accessService.forgotPassword(req.body)
     }).send(res)
 }
 
-export const verifyOTP = async (req:CustomRequest,res:Response,next:NextFunction)=>{
+export const verifyOTP = async (req: CustomRequest, res: Response, next: NextFunction) => {
     new successResponse.SuccessResonse({
-        message:"Verify Successfully",
+        message: "Verify Successfully",
         metadata: await otpService.verifyOTP(req.body)
     }).send(res)
 }
 
-export const resetPassword = async (req:CustomRequest,res:Response,next:NextFunction)=>{
+export const resetPassword = async (req: CustomRequest, res: Response, next: NextFunction) => {
     new successResponse.SuccessResonse({
-        message:"Reset password Successfully",
+        message: "Reset password Successfully",
         metadata: await accessService.resetPassword(req.body)
     }).send(res)
 }
 
-export const sendOTP = async (req:CustomRequest,res:Response,next:NextFunction)=>{
+export const sendOTP = async (req: CustomRequest, res: Response, next: NextFunction) => {
     new successResponse.SuccessResonse({
-        message:"Sent OTP Successfully",
+        message: "Sent OTP Successfully",
         metadata: await otpService.sendOTP(req.body)
     }).send(res)
 }
 
-export const changePassword = async (req:CustomRequest,res:Response,next:NextFunction)=>{
-    const user=req.user as PayloadTokenPair
-    const {password,newPassword} = req.body
+export const changePassword = async (req: CustomRequest, res: Response, next: NextFunction) => {
+    const user = req.user as PayloadTokenPair
+    const { password, newPassword } = req.body
     new successResponse.SuccessResonse({
-        message:"Changed Password Successfully",
-        metadata: await accessService.changePassword({user,password,newPassword})
+        message: "Changed Password Successfully",
+        metadata: await accessService.changePassword({ user, password, newPassword })
     }).send(res)
 }
 
-export const getUser = async (req:CustomRequest,res:Response,next:NextFunction)=>{
-    const user=req.user as PayloadTokenPair
-   
+export const getUser = async (req: CustomRequest, res: Response, next: NextFunction) => {
+    const user = req.user as PayloadTokenPair
+
     new successResponse.SuccessResonse({
-        message:"Got User Successfully",
-        metadata: await accessService.getUser({userId:user.userId as string})
+        message: "Got User Successfully",
+        metadata: await accessService.getUser({ userId: user.userId as string })
     }).send(res)
 }
 
-export const editUser = async (req:CustomRequest,res:Response,next:NextFunction)=>{
-    const user=req.user as PayloadTokenPair
-   
+export const editUser = async (req: CustomRequest, res: Response, next: NextFunction) => {
+    const user = req.user as PayloadTokenPair
+
     new successResponse.SuccessResonse({
-        message:"Edited User Successfully",
-        metadata: await accessService.editUser({userId:user.userId as string,payload:req.body})
+        message: "Edited User Successfully",
+        metadata: await accessService.editUser({ userId: user.userId as string, payload: req.body })
     }).send(res)
 }

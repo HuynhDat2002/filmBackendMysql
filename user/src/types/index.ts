@@ -48,7 +48,8 @@ export interface SignUpProps{
 
 export interface SignInProps{
     email:string,
-    password:string
+    password:string,
+  
 }
 
 export interface TokenPairProps{

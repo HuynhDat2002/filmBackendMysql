@@ -266,7 +266,6 @@ export const editUser = async ({ userId, payload }: { userId: string, payload: {
     const isValidName = await payload.name.match(regex.nameRegex)
     if (isValidName === null) throw new errorResponse.BadRequestError('Tên không hợp lệ')
 
-
     //find user
     const userFound = await userModel.findOne({ _id: userId })
     if (!userFound) throw new errorResponse.BadRequestError(`Người dùng không tồn tại`)
@@ -275,4 +274,10 @@ export const editUser = async ({ userId, payload }: { userId: string, payload: {
     const result = await userModel.findOneAndUpdate({ _id: userId }, { payload }, { new: true })
     if (!result) throw new errorResponse.BadRequestError(`Bạn không thể  cập nhật!`)
     return result
+}
+
+export const checkDevice = async ({userAgent }: { userAgent:string}) => {
+    //check input
+    
+    
 }
