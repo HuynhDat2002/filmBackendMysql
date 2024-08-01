@@ -12,6 +12,7 @@ import { getInfoData, publishMessage, createChannel } from '@/utils'
 import { KeyTokenModelProps } from '@/types'
 import * as messageConfig from '@/configs/messageBroker.config'
 import * as regex from '@/middlewares/regex'
+import {PayloadTokenPair} from "@/types"
 export const signUp = async ({ name, email, password }: SignUpProps) => {
     //check input
     const isValidEmail = await email.match(regex.emailRegex)
@@ -180,4 +181,59 @@ export const getPayloadAdmin = async (adminId: string) => {
     const channel = await createChannel()
     publishMessage(channel, messageConfig.FILM_BINDING_KEY, JSON.stringify(data))
     return data;
+}
+
+export const getUser = async ({ userId }: { userId: string }) => {
+    //check input
+    const isValidId = await userId.match(regex.idRegex)
+    if (isValidId === null) throw new errorResponse.BadRequestError('Id không hợp lệ')
+
+    //get user
+    const userFound = await adminModel.findOne({ _id: userId })
+    if (!userFound) throw new errorResponse.BadRequestError(`Người dùng không tồn tại`)
+    return {
+        user: getInfoData(["_id", "name", "email"], userFound)
+    }
+}
+
+export const editUser = async ({ userId, payload }: { userId: string, payload: { name: string } }) => {
+    //check input
+    const isValidId = await userId.match(regex.idRegex)
+    if (isValidId === null) throw new errorResponse.BadRequestError('Id không hợp lệ')
+
+    const isValidName = await payload.name.match(regex.nameRegex)
+    if (isValidName === null) throw new errorResponse.BadRequestError('Tên không hợp lệ')
+
+
+    //find user
+    const userFound = await adminModel.findOne({ _id: userId })
+    if (!userFound) throw new errorResponse.BadRequestError(`Người dùng không tồn tại`)
+
+    //edit user
+    const result = await adminModel.findOneAndUpdate({ _id: userId }, { payload }, { new: true })
+    if (!result) throw new errorResponse.BadRequestError(`Bạn không thể  cập nhật!`)
+    return result
+}
+
+export const changePassword = async ({ user, password, newPassword }: { user: PayloadTokenPair, password: string, newPassword: string }) => {
+    //check input
+    const id = user.userId as string
+    const isValidId = await id.match(regex.idRegex)
+    if (isValidId === null) throw new errorResponse.BadRequestError('Id không hợp lệ')
+    const isValidPassword = await password.match(regex.passwordRegex)
+    if (isValidPassword === null) throw new errorResponse.BadRequestError('Mật khẩu không hợp lệ!')
+
+    const isValidNewPassword = await newPassword.match(regex.passwordRegex)
+    if (isValidNewPassword === null) throw new errorResponse.BadRequestError('Mật khẩu không hợp lệ!')
+
+    //find user
+    const userFound = await adminModel.findOne({ _id: user.userId })
+    if (!userFound) throw new errorResponse.BadRequestError(`Bạn chưa xác thực tài khoản! Hãy đăng nhập trước.`)
+
+    //check password match
+    const checkPassword = await bcrypt.compare(password, userFound.password)
+    if (!checkPassword) throw new errorResponse.AuthFailureError(`Mật khẩu bạn nhập không đúng`)
+
+    // change password
+    return await adminModel.findOneAndUpdate({ _id: user.userId }, { password: newPassword }, { new: true })
 }

@@ -17,12 +17,12 @@ const HEADER = {
 
 export const createTokenPair = async ({ payload, publicKey, privateKey }: CreateTokenPairProps) => {
     const accessToken: string = jwt.sign(payload, privateKey, {
-        algorithm:"RS256",
+        algorithm: "RS256",
         expiresIn: "1d"
     })
 
     const refreshToken: string = jwt.sign(payload, privateKey, {
-        algorithm:"RS256",
+        algorithm: "RS256",
         expiresIn: "7d"
     })
 
@@ -45,12 +45,12 @@ export const authentication = asyncHandler(async (req: CustomRequest, res: Respo
     //check header
     const isValidId = userId.match(regex.idRegex)
     if (isValidId === null) throw new errorResponse.AuthFailureError(`Định dạng Id không đúng`)
-        
-    if (!userId) throw new errorResponse.AuthFailureError("Invalid request! User not found.")
+
+    if (!userId) throw new errorResponse.AuthFailureError("Không tìm thấy user")
 
     //2. check key store
     const keyToken = await keyTokenModel.findOne({ user: userId })
-    if (!keyToken) throw new errorResponse.NotFound("Not found user in key store.")
+    if (!keyToken) throw new errorResponse.NotFound("Không tìm thấy key store")
     // console.log('key token',keyToken)
 
 
@@ -58,47 +58,44 @@ export const authentication = asyncHandler(async (req: CustomRequest, res: Respo
     const accessToken = req.headers[HEADER.AUTHORIZATION] as string
     console.log('access', accessToken)
     console.log('publicKey', keyToken.publicKey)
+
+    if (!accessToken) throw new errorResponse.AuthFailureError(`Bạn cần phải đăng nhập trước`)
+
     //check header
     const isValidAccess = accessToken.match(regex.accessRegex)
     if (isValidAccess === null) throw new errorResponse.AuthFailureError(`Định dạng token không đúng`)
 
-    if (!accessToken) throw new errorResponse.AuthFailureError(`Invalid accessToken`)
+
+
     try {
-        let decodeUser: PayloadTokenPair | string | undefined
-        jwt.verify(accessToken, keyToken.publicKey, (err, decode) => {
+        jwt.verify(accessToken, keyToken.publicKey, (err: any, decode: any) => {
             if (err) {
                 console.log(`Error verify: `, err)
+                throw new errorResponse.AuthFailureError(`Bạn cần phải đăng nhập trước`)
             }
             else {
-                decodeUser = decode
                 console.log(`Decode verify: `, decode)
+                if (userId !== decode.userId) throw new errorResponse.AuthFailureError(`Không tìm thấy user`)
+                req.keyToken = keyToken
+                req.user = decode
+                return next()
             }
         })
-        console.log(`decode ${decodeUser}`)
-
-        if (typeof decodeUser === 'object') {
-            if (userId !== decodeUser.userId) throw new errorResponse.AuthFailureError(`Invalid decode request`)
-            req.keyToken = keyToken
-            req.user = decodeUser
-            return next()
-        }
     }
     catch (e) {
         throw e
     }
-
-
 })
 
 export const checkLogin = asyncHandler(async (req: CustomRequest, res: Response, next: NextFunction) => {
     //1.check userId missing
     const userId: string = req.headers[HEADER.CLIENT_ID] as string
-    if (!userId) throw new errorResponse.AuthFailureError("Unauthorized")
-       
-        //check header userId
-        console.log('admin idddd', userId)
+    if (!userId) throw new errorResponse.AuthFailureError("Không tìm thấy user này")
+
+    //check header userId
+    console.log('admin idddd', userId)
     const isValidId = userId.match(regex.idRegex)
-    if(isValidId===null) throw new errorResponse.AuthFailureError(`Định dạng Id không đúng`)
+    if (isValidId === null) throw new errorResponse.AuthFailureError(`Định dạng Id không đúng`)
 
     //2. check key store
     const keyToken = await keyTokenModel.findOne({ user: userId })
@@ -109,35 +106,27 @@ export const checkLogin = asyncHandler(async (req: CustomRequest, res: Response,
     const accessToken = req.headers[HEADER.AUTHORIZATION] as string
     console.log('access', accessToken)
     console.log('publicKey', keyToken.publicKey)
-    
-     //check header access token
-     const isValidAccess = accessToken.match(regex.accessRegex)
-     if(isValidAccess===null) throw new errorResponse.AuthFailureError(`Định dạng token không đúng`)
-   
-    if (!accessToken) throw new errorResponse.AuthFailureError(`Unauthorized`)
 
-    let decodeUser: PayloadTokenPair | string | undefined
-    jwt.verify(accessToken, keyToken.publicKey, (err, decode) => {
+    if (!accessToken) throw new errorResponse.AuthFailureError(`Bạn cần phải đăng nhập trước`)
+
+    //check header access token
+    const isValidAccess = accessToken.match(regex.accessRegex)
+    if (isValidAccess === null) throw new errorResponse.AuthFailureError(`Định dạng token không đúng`)
+
+    jwt.verify(accessToken, keyToken.publicKey, (err: any, decode: any) => {
         if (err) {
             console.log(`Error verify: `, err)
-            throw new errorResponse.BadRequestError(`Unauthorized`)
+            throw new errorResponse.AuthFailureError(`Bạn cần phải đăng nhập trước`)
         }
         else {
-            decodeUser = decode
             console.log(`Decode verify: `, decode)
+            if (userId !== decode.userId) throw new errorResponse.AuthFailureError(`Không tìm thấy user`)
+            req.keyToken = keyToken
+            req.user = decode
         }
     })
-    console.log(`decode ${decodeUser}`)
-
-    if (typeof decodeUser === 'object') {
-        if (userId !== decodeUser.userId) throw new errorResponse.AuthFailureError(`Unauthorized`)
-        req.keyToken = keyToken
-        req.user = decodeUser
-    }
-
-    return res.status(200).json({message:`Authorized`})
 
 
-
+    return res.status(200).json({ message: `Authorized` })
 
 })
