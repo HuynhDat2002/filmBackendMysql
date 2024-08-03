@@ -8,6 +8,7 @@ import { CustomRequest } from '@/types'
 import { errorResponse } from '@/cores'
 import { keyTokenModel } from '@/models/keyToken.model'
 import { PayloadTokenPair } from '@/types'
+import { adminModel } from '@/models/access.model';
 import * as regex from '@/middlewares/regex'
 const HEADER = {
     CLIENT_ID: 'x-client-id',
@@ -42,11 +43,17 @@ export const createTokenPair = async ({ payload, publicKey, privateKey }: Create
 export const authentication = asyncHandler(async (req: CustomRequest, res: Response, next: NextFunction) => {
     //1.check userId missing
     const userId: string = req.headers[HEADER.CLIENT_ID] as string
+
+    if (!userId) throw new errorResponse.AuthFailureError("Không tìm thấy user")
+
     //check header
     const isValidId = userId.match(regex.idRegex)
     if (isValidId === null) throw new errorResponse.AuthFailureError(`Định dạng Id không đúng`)
 
-    if (!userId) throw new errorResponse.AuthFailureError("Không tìm thấy user")
+
+     // check if user exist
+    const userFound = await adminModel.findOne({_id:userId})
+    if(!userFound) throw new errorResponse.BadRequestError('User Id không tồn tại')
 
     //2. check key store
     const keyToken = await keyTokenModel.findOne({ user: userId })
@@ -96,6 +103,10 @@ export const checkLogin = asyncHandler(async (req: CustomRequest, res: Response,
     console.log('admin idddd', userId)
     const isValidId = userId.match(regex.idRegex)
     if (isValidId === null) throw new errorResponse.AuthFailureError(`Định dạng Id không đúng`)
+    
+    // check if user exist
+    const userFound = await adminModel.findOne({_id:userId})
+    if(!userFound) throw new errorResponse.BadRequestError('User Id không tồn tại')
 
     //2. check key store
     const keyToken = await keyTokenModel.findOne({ user: userId })

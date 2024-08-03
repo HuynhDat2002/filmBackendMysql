@@ -54,6 +54,7 @@ export const sendOTPVerifyEmail = async ({email}:{email:string})=>{
 
 
 export const sendOTP = async ({name,email,password}:{name:string,email:string,password:string})=>{
+    console.log('emailotp',email)
     const isValidEmail = await email.match(regex.emailRegex)
     if (isValidEmail === null) throw new errorResponse.BadRequestError('Email không hợp lệ')
     const isValidName = await name.match(regex.nameRegex)
@@ -63,10 +64,11 @@ export const sendOTP = async ({name,email,password}:{name:string,email:string,pa
 
     const result =  await sendOTPVerifyEmail({email})
    if(result) {
-    const client = createClient()
+    const client = createClient({ url: "redis://default:pyFDvQLFTafTwKZ4QuVTYynBWDrjxcE3@redis-11938.c15.us-east-1-2.ec2.redns.redis-cloud.com:11938" })
     await client.connect()
     await client.set('userSign', JSON.stringify({name,email,password}))
    }
+   
    return result
 }
 export const verifyOTP = async ({email,otp}:VerifyOTPProps)=>{

@@ -49,6 +49,7 @@ export interface SignUpProps{
 export interface SignInProps{
     email:string,
     password:string,
+    userAgent:string
   
 }
 
