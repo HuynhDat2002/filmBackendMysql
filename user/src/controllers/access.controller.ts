@@ -20,23 +20,25 @@ export const signUp = async (req: CustomRequest, res: Response, next: NextFuncti
     }).send(res)
 }
 
-// export const checkDevice = async (req: CustomRequest, res: Response, next: NextFunction) => {
-//     const userAgent = req.headers['user-agent']
-//     // res.cookie('logininfo', metadata.tokens, {
-//     //     httpOnly: true,
-//     //     maxAge: 24 * 60 * 60 * 1000, // Thời gian sống của cookie, ví dụ 1 ngày
-//     //     sameSite: 'none'
-//     // });
-//     new successResponse.SuccessResonse({
-//         message: "Check device",
-//         metadata: await accessService.checkDevice({userAgent})
-//     }).send(res)
-// }
+export const checkDevice = async (req: CustomRequest, res: Response, next: NextFunction) => {
+    const userAgent = req.headers['user-agent'] as string
+    // res.cookie('logininfo', metadata.tokens, {
+    //     httpOnly: true,
+    //     maxAge: 24 * 60 * 60 * 1000, // Thời gian sống của cookie, ví dụ 1 ngày
+    //     sameSite: 'none'
+    // });
+    new successResponse.SuccessResonse({
+        message: "Check device",
+        metadata: await accessService.checkDevice({email:req.body.email,password:req.body.password,userAgent})
+    }).send(res)
+}
 
 export const signIn = async (req: CustomRequest, res: Response, next: NextFunction) => {
 
     console.log('header',req.headers['user-agent'])
-    const metadata = await accessService.signIn(req.body)
+    const userAgent = req.headers['user-agent'] as string
+
+    const metadata = await accessService.signIn({email:req.body.email,password:req.body.password,userAgent})
     // res.cookie('logininfo', metadata.tokens, {
     //     httpOnly: true,
     //     maxAge: 24 * 60 * 60 * 1000, // Thời gian sống của cookie, ví dụ 1 ngày

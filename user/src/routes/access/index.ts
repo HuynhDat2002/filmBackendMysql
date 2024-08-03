@@ -8,6 +8,7 @@ import { otpService } from '@/services'
 const accessRouter = express.Router()
 
 accessRouter.post('/checkLogin',checkLogin)
+accessRouter.post('/checkDevice',asyncHandler(accessController.checkDevice))
 accessRouter.post('/signUp',asyncHandler(accessController.signUp))
 accessRouter.post('/signIn',asyncHandler(accessController.signIn))
 accessRouter.post('/forgotPassword',asyncHandler(accessController.forgotPassword))
