@@ -19,7 +19,8 @@ const HEADER = {
 }
 
 export const createTokenPair = async ({ payload, publicKey, privateKey }: CreateTokenPairProps) => {
-
+    // in ra payload truoc khi su dung jwt de so sanh
+    console.log(`payload`, payload)
     const accessToken: string = jwt.sign(payload, privateKey, {
         algorithm: 'RS256',
         expiresIn: "1d"
@@ -29,16 +30,16 @@ export const createTokenPair = async ({ payload, publicKey, privateKey }: Create
         algorithm: 'RS256',
         expiresIn: "7d"
     })
-
+    // in ra accessToken để kiểm tra
+    console.log(`accessToken login:`,accessToken)
     jwt.verify(accessToken, publicKey, (err, decode) => {
         if (err) {
-            console.log(`Error verify: `, err)
+            console.log(`Error verify login: `, err)
         }
         else {
-            console.log(`Decode verify: `, decode)
+            console.log(`Decode verify login: `, decode)
         }
     })
-
     return { accessToken, refreshToken }
 }
 

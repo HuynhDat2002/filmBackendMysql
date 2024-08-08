@@ -20,11 +20,4 @@ commentRouter.delete('/deleteCommentAdmin',authenticationAdmin,asyncHandler(comm
 commentRouter.patch('/editCommentAdmin',authenticationAdmin,asyncHandler(commentController.editCommentAdmin))
 
 
-
-
-
-
-
-
-
 export default commentRouter
