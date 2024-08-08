@@ -110,7 +110,7 @@ export const checkDevice = async ({ email, password, userAgent }: SignInProps) =
 
     // check if user exist
     console.log('typeof email', typeof email)
-    const userFound = await userModel.findOne({ email: email })
+    const userFound = await userModel.findOne({ email: email})
     if (!userFound) throw new errorResponse.AuthFailureError(`Tài khoản không tồn tại`)
 
     //compare password
@@ -126,8 +126,6 @@ export const checkDevice = async ({ email, password, userAgent }: SignInProps) =
     return {
         user: getInfoData(["_id", 'name'], userFound)
     }
-
-
 }
 
 export const signIn = async ({ email, password, userAgent }: SignInProps) => {
@@ -139,7 +137,7 @@ export const signIn = async ({ email, password, userAgent }: SignInProps) => {
 
     // check if user exist
     console.log('typeof email', typeof email)
-    const userFound = await userModel.findOne({ email: email })
+    const userFound = await userModel.findOne({ email: email})
     if (!userFound) throw new errorResponse.AuthFailureError(`Tài khoản không tồn tại`)
 
     //compare password

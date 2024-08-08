@@ -39,7 +39,7 @@ export const signUp = async ({ name, email, password }: SignUpProps) => {
         name,
         email,
         password: passwordHash,
-        role: "USER",
+        role: "ADMIN",
     });
 
     if (!newUser) throw new errorResponse.BadRequestError(`Không thể tạo tài khoản mớ`)
