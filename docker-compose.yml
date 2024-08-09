@@ -9,11 +9,13 @@ services:
     volumes:
       - ./db/:/data/db
 
+
   rabbitmq:
     image: rabbitmq:alpine
     container_name: rabbitmq
     ports:
       - '5672:5672'
+
 
   film:
     build:
@@ -27,8 +29,6 @@ services:
     volumes:
       - .:/app
       - /app/film/node_modules
-    ports:
-      - "5003:5003"
     env_file:
       - ./film/.env
     expose:
@@ -44,10 +44,10 @@ services:
     depends_on:
       - "nosql-db"
       - "rabbitmq"
-      # - "redis"
+      - film
     volumes:
       - .:/app
-      - /app/film1/node_modules
+      - /app/film/node_modules
 
     env_file:
       - ./film/.env
@@ -63,10 +63,10 @@ services:
     depends_on:
       - "nosql-db"
       - "rabbitmq"
-      # - "redis"
+      - film
     volumes:
       - .:/app
-      - /app/film2/node_modules
+      - /app/film/node_modules
 
     env_file:
       - ./film/.env
@@ -82,7 +82,7 @@ services:
     depends_on:
       - "nosql-db"
       - "rabbitmq"
-      # - "redis"
+
     volumes:
       - .:/app
       - /app/user/node_modules
@@ -100,10 +100,10 @@ services:
     depends_on:
       - "nosql-db"
       - "rabbitmq"
-      # - "redis"
+      - user
     volumes:
       - .:/app
-      - /app/user1/node_modules
+      - /app/user/node_modules
     env_file:
       - ./user/.env
     expose:
@@ -118,14 +118,15 @@ services:
     depends_on:
       - "nosql-db"
       - "rabbitmq"
-      # - "redis"
+      - user
     volumes:
       - .:/app
-      - /app/user2/node_modules
+      - /app/user/node_modules
     env_file:
       - ./user/.env
     expose:
       - 5000
+
   admin:
     build:
       dockerfile: Dockerfile
@@ -155,14 +156,15 @@ services:
     depends_on:
       - "nosql-db"
       - "rabbitmq"
-      # - "redis"
+      - admin
     volumes:
       - .:/app/
-      - /app/admin1/node_modules
+      - /app/admin/node_modules
     env_file:
       - ./admin/.env
     expose:
       - 5002
+
 
   admin2:
     build:
@@ -174,10 +176,10 @@ services:
     depends_on:
       - "nosql-db"
       - "rabbitmq"
-      # - "redis"
+      - admin
     volumes:
       - .:/app/
-      - /app/admin2/node_modules
+      - /app/admin/node_modules
     env_file:
       - ./admin/.env
     expose:
@@ -186,7 +188,7 @@ services:
       
   nginx-proxy:
     image: reserve-proxy
-    container_name: nginx-mircro
+    container_name: nginx-backend
     build:
       dockerfile: Dockerfile
       context: ./proxy
@@ -206,7 +208,8 @@ services:
       - ./proxy/nginx.conf:/etc/nginx/nginx.conf
       - /var/log/nginx:/var/log/nginx
       - /etc/ssl/certs:/etc/nginx/ssl
-  
+ 
+
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.10.2
     container_name: elasticsearch-digitic
@@ -217,6 +220,8 @@ services:
       - "9200:9200"
     volumes:
       - esdata:/usr/share/elasticsearch/data
+
+
 
   logstash:
     image: docker.elastic.co/logstash/logstash:7.10.2
@@ -235,6 +240,7 @@ services:
       - "5044:5044"
       - "9600:9600"
 
+
   kibana:
     image: docker.elastic.co/kibana/kibana:7.10.2
     container_name: kibana
@@ -245,6 +251,7 @@ services:
       - "5601:5601"
     depends_on:
       - elasticsearch
+
 
       
 volumes:
