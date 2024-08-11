@@ -147,10 +147,8 @@ export const updateMovie = async ({ movieId, payload }: UpdateMovieProps) => {
     return movieUpdated
 }
 
-
 export const deleteMovie = async (movieId: string) => {
     //check input
-
     const isValidId2 = await movieId.match(regex.idRegex)
     if (isValidId2 === null) throw new errorResponse.BadRequestError('Film Id không hợp lệ')
 
@@ -162,7 +160,6 @@ export const deleteMovie = async (movieId: string) => {
 
 export const getMovie = async (movieId: string) => {
     //check input
-
     const isValidId2 = await movieId.match(regex.idRegex)
     if (isValidId2 === null) throw new errorResponse.BadRequestError('Film Id không hợp lệ')
 
