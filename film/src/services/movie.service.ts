@@ -318,7 +318,7 @@ export const getPayloadUser = async (data: UserPayloadProps) => {
     await client.set('user', JSON.stringify(data.userFound))
     await client.set('keyTokenUser', JSON.stringify(data.keyToken))
     return {
-        user: getInfoData(["_id", "name", "email", "role"], data.userFound),
+        user: getInfoData(["_id", "name", "email", "role","userAgent"], data.userFound),
         keyToke: getInfoData(["user", "publicKey", "refreshToken"], data.keyToken)
 
     }

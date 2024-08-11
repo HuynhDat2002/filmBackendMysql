@@ -89,6 +89,8 @@ export const authenticationAdmin = asyncHandler(async (req: CustomRequest, res: 
 
 export const authentication = asyncHandler(async (req: CustomRequestUser, res: Response, next: NextFunction) => {
     //1.check userId missing
+    console.log('headers authentication',req.headers)
+
     const userId: string = req.headers[HEADER.CLIENT_ID] as string
     if (!userId) throw new errorResponse.AuthFailureError("Bạn cần phải đăng nhập trước.")
     const client = createClient({ url: "redis://default:pyFDvQLFTafTwKZ4QuVTYynBWDrjxcE3@redis-11938.c15.us-east-1-2.ec2.redns.redis-cloud.com:11938" })
@@ -97,14 +99,17 @@ export const authentication = asyncHandler(async (req: CustomRequestUser, res: R
     const keyToken = JSON.parse(await client.get('keyTokenUser') as string)
     const userInfo = JSON.parse(await client.get('user') as string)
     console.log(`keyTokenUser`, keyToken)
+    console.log(`userAgent`, userInfo)
 
+    if(!userInfo.userAgent.includes(req.headers["user-agent"])) throw new errorResponse.BadRequestError(`Ban dang dang nhap tren thiet bi moi`)
+    
     //2. check key store
     if (userId !== keyToken.user) throw new errorResponse.NotFound("không tìm thấy  user trong key store")
-
-    //check userId
-    const isValidId = userId.match(regex.idRegex)
-    if (isValidId === null) throw new errorResponse.AuthFailureError(`Định dạng Id không đúng`)
-
+        
+        //check userId
+        const isValidId = userId.match(regex.idRegex)
+        if (isValidId === null) throw new errorResponse.AuthFailureError(`Định dạng Id không đúng`)
+            
     //3. verify token
     const accessToken = req.headers[HEADER.AUTHORIZATION] as string
     console.log('access', accessToken)

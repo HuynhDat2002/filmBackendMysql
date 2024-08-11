@@ -58,7 +58,8 @@ export const authentication = asyncHandler(async (req: CustomRequest, res: Respo
      // check if user exist
     const userFound = await userModel.findOne({_id:userId})
     if(!userFound) throw new errorResponse.BadRequestError('User Id không tồn tại')
-
+    if(!userFound.userAgent.includes(req.headers["user-agent"])) throw new errorResponse.BadRequestError(`Ban dang dang nhap tren thiet bi moi`)
+    
     //2. check key store
     const keyToken = await keyTokenModel.findOne({ user: userId })
     if (!keyToken) throw new errorResponse.NotFound("Không tìm thấy user trong keyToken")
