@@ -1,0 +1,8 @@
+-- DropForeignKey
+ALTER TABLE `OTP` DROP FOREIGN KEY `OTP_email_fkey`;
+
+-- AlterTable
+ALTER TABLE `OTP` MODIFY `verified` BOOLEAN NOT NULL DEFAULT false;
+
+-- AlterTable
+ALTER TABLE `User` MODIFY `role` ENUM('USER', 'ADMIN') NOT NULL DEFAULT 'USER';

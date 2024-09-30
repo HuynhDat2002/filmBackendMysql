@@ -16,7 +16,7 @@ movieRouter.patch('/ratingMovie',authentication,asyncHandler(movieController.rat
 
 movieRouter.use(authenticationAdmin)
 movieRouter.post('/createMovie',asyncHandler(movieController.createMovie))
-movieRouter.put('/updateMovie',asyncHandler(movieController.updateMovie))
+// movieRouter.put('/updateMovie',asyncHandler(movieController.updateMovie))
 movieRouter.delete('/deleteMovie/:id',asyncHandler(movieController.deleteMovie))
 
 

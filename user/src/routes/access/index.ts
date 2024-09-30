@@ -22,6 +22,8 @@ accessRouter.post('/logout',asyncHandler(accessController.logOut))
 accessRouter.post('/changePassword',asyncHandler(accessController.changePassword))
 accessRouter.get('/getUser',asyncHandler(accessController.getUser))
 accessRouter.patch('/editUser',asyncHandler(accessController.editUser))
+accessRouter.patch('/editAgent',asyncHandler(accessController.editAgent))
+
 
 
 export default accessRouter

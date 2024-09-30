@@ -113,3 +113,12 @@ export const editUser = async (req: CustomRequest, res: Response, next: NextFunc
         metadata: await accessService.editUser({ userId: user.userId as string, payload: req.body })
     }).send(res)
 }
+
+export const editAgent = async (req: CustomRequest, res: Response, next: NextFunction) => {
+    const user = req.user as PayloadTokenPair
+
+    new successResponse.SuccessResonse({
+        message: "Edited UserAgent Successfully",
+        metadata: await accessService.editAgent({ userId: user.userId as string, userAgent: req.body.userAgent })
+    }).send(res)
+}

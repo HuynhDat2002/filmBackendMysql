@@ -8,6 +8,7 @@ RUN npm install
 
 COPY . .
 
+# RUN npx prisma migrate dev --name init
 
 EXPOSE 5003
 

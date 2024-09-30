@@ -1,21 +1,21 @@
 'use strict'
 //hi
-import { userModel } from '@/models/access.model'
 import { Request, Response, NextFunction } from 'express'
 import { SignUpProps, SignInProps, TokenPairProps, PayloadTokenPair } from '@/types'
 import { errorResponse } from '@/cores'
 import bcrypt from 'bcrypt'
-import crypto, { Sign } from 'crypto'
+import crypto, { hash, Sign } from 'crypto'
 import { createTokenPair } from '@/auth/util.auth'
-import { keyTokenModel } from '@/models/keyToken.model'
 import { getInfoData } from '@/utils'
 import { KeyTokenModelProps } from '@/types'
-import { otpModel } from '@/models/otp.model'
 import { createClient } from 'redis'
 import { createChannel, publishMessage } from '@/utils'
 import * as messageConfig from '@/configs/messageBroker.config'
 import * as regex from '@/middlewares/regex'
 import { otpService } from '.'
+import { prisma } from '@/db/prisma.init'
+import _ from 'lodash'
+
 type dataSign = {
     name: string, email: string, password: string
 }
@@ -34,23 +34,32 @@ export const signUp = async () => {
     const isValidPassword = await password.match(regex.passwordRegex)
     if (isValidPassword === null) throw new errorResponse.BadRequestError('Mật khẩu không hợp lệ! Mật khẩu phải có ít nhất 1 chữ hoa, một ký tự đặc biệt và có độ dài từ 8-32 ký tự')
 
-    // check if user exist
-    const userFound = await userModel.findOne({ email }).lean();
+
+    const userFound = await prisma.user.findUnique({ where: { email: email } });
     if (userFound) throw new errorResponse.BadRequestError("Tài khoản đã tồn tại");
 
+    //checkVerify
+    const checkVerified = await prisma.oTP.findUnique({ where: { email: email } })
+    if (!checkVerified) throw new errorResponse.BadRequestError('You need to verify OTP first')
+    if (!checkVerified.verified) throw new errorResponse.BadRequestError('You need to verify OTP first')
+    const expires = checkVerified.expiresAt as any
+    if (expires < Date.now()) throw new Error(`OTP has expired`)
+    await prisma.oTP.delete({ where: { email: email } })
 
     //hash password
     const passwordHash = await bcrypt.hash(password, 10);
 
     //create new user
-    const newUser = await userModel.create({
-        name,
-        email,
-        password: passwordHash,
-        role: "USER",
+    const newUser = await prisma.user.create({
+        data: {
+            name,
+            email,
+            password: passwordHash,
+            role: "USER"
+        }
     });
 
-    if (!newUser) throw new errorResponse.BadRequestError(`Không thể tạo tài khoản mới`)
+    if (!newUser) throw new errorResponse.BadRequestError(`Cannot create new account. Try again!`)
 
     //create publickey and privatekey for accesstoken and refreshtoken
     // const publicKey: string = crypto.randomBytes(64).toString("hex");
@@ -67,7 +76,7 @@ export const signUp = async () => {
     //create tokens
     const tokens: TokenPairProps = await createTokenPair({
         payload: {
-            userId: newUser._id.toString(),
+            userId: newUser.id.toString(),
             email: email
         },
         publicKey,
@@ -75,11 +84,13 @@ export const signUp = async () => {
     })
 
     // create key token to store publickey,privatekey,refreshtoken
-    const keyToken = await keyTokenModel.create({
-        user: newUser._id,
-        publicKey,
-        privateKey,
-        refreshToken: tokens.refreshToken
+    const keyToken = await prisma.keyTokens.create({
+        data: {
+            userId: newUser.id,
+            publicKey,
+            privateKey,
+            refreshToken: tokens.refreshToken
+        }
     })
 
     if (!keyToken) throw new errorResponse.BadRequestError(`Không thể  tạo key token`)
@@ -96,7 +107,7 @@ export const signUp = async () => {
     publishMessage(channel, messageConfig.FILM_BINDING_KEY, JSON.stringify(dataPayload))
 
     return {
-        user: getInfoData(["_id"], newUser),
+        user: getInfoData(["id"], newUser),
         tokens: tokens.accessToken
     }
 }
@@ -110,51 +121,103 @@ export const checkDevice = async ({ email, password, userAgent }: SignInProps) =
 
     // check if user exist
     console.log('typeof email', typeof email)
-    const userFound = await userModel.findOne({ email: email})
+    const userFound = await prisma.user.findUnique({ where: { email: email }, include: { userAgent: true } })
     if (!userFound) throw new errorResponse.AuthFailureError(`Tài khoản không tồn tại`)
 
     //compare password
     const checkPassword = await bcrypt.compare(password, userFound.password)
     if (!checkPassword) throw new errorResponse.AuthFailureError(`Mật khẩu không trùng khớp`)
 
-    //check device
-    if (!userFound.userAgent.includes(userAgent)) {
+    // check device
+
+    const userAgents = userFound.userAgent.map(ua => ua.agentId);
+    const getUserAgentId = await prisma.userAgent.findFirst({ where: { agent: userAgent } })
+    if (!userAgents.includes(getUserAgentId?.id as string)) {
         await otpService.sendOTPVerifyEmail({ email })
         console.log('sent', email)
         throw new errorResponse.BadRequestError('Bạn đang đăng nhập trên thiết bị mới, hãy xác minh bằng email trước')
     }
+
     return {
-        user: getInfoData(["_id", 'name'], userFound)
+        user: getInfoData(["id", 'name'], userFound)
     }
 }
 
 export const signIn = async ({ email, password, userAgent }: SignInProps) => {
     //check input
-    const isValidEmail = await email.match(regex.emailRegex)
-    if (isValidEmail === null) throw new errorResponse.BadRequestError('Email không hợp lệ')
+    // const isValidEmail = await email.match(regex.emailRegex)
+    // if (isValidEmail === null) throw new errorResponse.BadRequestError('Email không hợp lệ')
     const isValidPassword = await password.match(regex.passwordRegex)
     if (isValidPassword === null) throw new errorResponse.BadRequestError('Mật khẩu không hợp lệ!')
 
     // check if user exist
     console.log('typeof email', typeof email)
-    const userFound = await userModel.findOne({ email: email})
+    const userFound1 = await prisma.user.findUnique({ where: { email: email }, include: { userAgent: true } })
+    // const userFound1: any = await prisma.$queryRawUnsafe(`
+    //     SELECT u.*, ua.*
+    //     FROM User u
+    //     LEFT JOIN UserOnAgent ua ON u.id = ua.userId
+    //     WHERE u.email = '${email}';
+    //   `);
+    // const groupedUsers = _.map(_.groupBy(userFound1, 'id'), (userRows) => {
+    //     const user = userRows[0]; // Thông tin user lặp lại trong mỗi dòng
+    //     console.log('userrow', userRows)
+    //     return {
+    //         id: user.id,
+    //         name: user.name,
+    //         email: user.email,
+    //         password: user.password,
+    //         role: user.role,
+    //         userAgent: userRows.map(row => ({
+    //             userId: row.id != null ? row.id : "",
+    //             agentId: row.agentId != null ? row.agentId : ""
+    //         }))
+    //     };
+    // });
+    // console.dir(groupedUsers, { depth: null });
+     const userFound = userFound1
     if (!userFound) throw new errorResponse.AuthFailureError(`Tài khoản không tồn tại`)
-
+    console.log('password', userFound.password)
     //compare password
     const checkPassword = await bcrypt.compare(password, userFound.password)
     if (!checkPassword) throw new errorResponse.AuthFailureError(`Mật khẩu không trùng khớp`)
 
+    console.log('userfound-login', userFound)
     //check device
-    if (!userFound.userAgent.includes(userAgent)) {
+    const userAgents = userFound.userAgent.map((ua: any) => ua.agentId);
+    console.log('userAgents', userAgents)
+    let getUserAgentId = await prisma.userAgent.findFirst({ where: { agent: userAgent } })
+    console.log('getuseragentid', getUserAgentId)
+    if (!getUserAgentId) getUserAgentId = { id: "", agent: "" }
+    if (!userAgents.includes(getUserAgentId.id as string)) {
         //check verify
-        const checkVerified = await otpModel.findOne({ email: email })
+        const checkVerified = await prisma.oTP.findUnique({ where: { email: email } })
         if (!checkVerified) throw new errorResponse.BadRequestError('Bạn đang đăng nhập trên thiết bị mới, hãy xác minh bằng email trước')
         if (!checkVerified.verified) throw new errorResponse.BadRequestError('Bạn đang đăng nhập trên thiết bị mới, hãy xác minh bằng email trước')
         const expires = checkVerified.expiresAt as any
-        if (expires < Date.now()) throw new Error(`OTP đã hết hạn`)
-        await otpModel.findOneAndDelete({ email: email })
-        await userFound.userAgent.push(userAgent)
-        await userFound.save()
+        if (expires < Date.now()) throw new errorResponse.BadRequestError(`OTP đã hết hạn`)
+        const newAgent = await prisma.userOnAgent.create({
+            data: {
+                userAgent: {
+                    connectOrCreate:{
+                        where:{
+                            agent:userAgent
+                        },
+                        create:{
+                            agent:userAgent
+                        }
+                    }
+                },
+                user: {
+                    connect: {
+                        id: userFound.id as string
+                    }
+                }
+            }
+        })
+        console.log('newAgent', newAgent)
+        if (newAgent) await prisma.oTP.delete({ where: { email: email } })
+
     }
 
     //create publickey and privatekey for accesstoken and refreshtoken
@@ -175,7 +238,7 @@ export const signIn = async ({ email, password, userAgent }: SignInProps) => {
     //create tokens
     const tokens: TokenPairProps = await createTokenPair({
         payload: {
-            userId: userFound._id.toString(),
+            userId: userFound.id.toString(),
             email
         },
         publicKey,
@@ -183,19 +246,20 @@ export const signIn = async ({ email, password, userAgent }: SignInProps) => {
     })
 
     // create key token to store publickey,privatekey,refreshtoken
-    const keyToken = await keyTokenModel.findOneAndUpdate(
-        { user: userFound._id },
-        {
-            user: userFound._id,
+    const keyToken = await prisma.keyTokens.upsert({
+        where: { userId: userFound.id },
+        create: {
+            userId: userFound.id,
             publicKey: publicKey,
             privateKey: privateKey,
             refreshToken: tokens.refreshToken
         },
-        {
-            upsert: true,
-            new: true
+        update: {
+            publicKey: publicKey,
+            privateKey: privateKey,
+            refreshToken: tokens.refreshToken
         }
-    )
+    })
     if (!keyToken) throw new errorResponse.BadRequestError(`Không thể  tạo key token`)
 
     // publish message to movie server
@@ -209,7 +273,7 @@ export const signIn = async ({ email, password, userAgent }: SignInProps) => {
     const channel = await createChannel()
     await publishMessage(channel, messageConfig.FILM_BINDING_KEY, JSON.stringify(data))
     return {
-        user: getInfoData(["_id"], userFound),
+        user: getInfoData(["id"], userFound),
         tokens: tokens.accessToken
     }
 
@@ -218,7 +282,7 @@ export const signIn = async ({ email, password, userAgent }: SignInProps) => {
 
 export const logout = async (keyToken: KeyTokenModelProps) => {
     //delete key in keytoken
-    const delKey = await keyTokenModel.deleteOne({ _id: keyToken._id })
+    const delKey = await prisma.keyTokens.delete({ where: { id: keyToken.id as string } })
     if (!delKey) throw new errorResponse.BadRequestError(`Không thể  xóa key token`)
     return delKey
 }
@@ -230,7 +294,7 @@ export const forgotPassword = async ({ email }: { email: string }) => {
     if (isValidEmail === null) throw new errorResponse.BadRequestError('Email không hợp lệ')
 
     //find user
-    const foundUser = await userModel.findOne({ email: email })
+    const foundUser = await prisma.user.findUnique({ where: { email: email } })
     if (!foundUser) throw new Error(`Không tìm thấy tài khoản`)
     console.log('userrrr', foundUser)
 
@@ -247,7 +311,7 @@ export const resetPassword = async ({ email, newPassword }: { email: string, new
     if (isValidNewPassword === null) throw new errorResponse.BadRequestError('Mật khẩu không hợp lệ!')
 
     //check verify
-    const checkVerified = await otpModel.findOne({ email: email })
+    const checkVerified = await prisma.oTP.findUnique({ where: { email: email } })
     if (!checkVerified) throw new errorResponse.BadRequestError(`Bạn chưa được gửi mã otp`)
     if (!checkVerified.verified) throw new Error('Bạn cần phải xác nhận email trước')
 
@@ -255,8 +319,8 @@ export const resetPassword = async ({ email, newPassword }: { email: string, new
     const hashNewPassword = await bcrypt.hash(newPassword, 10)
 
     //reset password
-    const result = await userModel.findOneAndUpdate({ email: email }, { password: hashNewPassword }, { new: true })
-    if (result) await otpModel.findOneAndDelete({ email: email })
+    const result = await prisma.user.update({ where: { email: email }, data: { password: hashNewPassword } })
+    if (result) await prisma.oTP.delete({ where: { email: email } })
     return result
 }
 
@@ -272,15 +336,17 @@ export const changePassword = async ({ user, password, newPassword }: { user: Pa
     if (isValidNewPassword === null) throw new errorResponse.BadRequestError('Mật khẩu không hợp lệ!')
 
     //find user
-    const userFound = await userModel.findOne({ _id: user.userId })
+    const userFound = await prisma.user.findUnique({ where: { id: user.userId } })
     if (!userFound) throw new errorResponse.BadRequestError(`Bạn chưa xác thực tài khoản! Hãy đăng nhập trước.`)
 
     //check password match
     const checkPassword = await bcrypt.compare(password, userFound.password)
     if (!checkPassword) throw new errorResponse.AuthFailureError(`Mật khẩu bạn nhập không đúng`)
 
+    //hash password
+    const hashNewPassword = await bcrypt.hash(newPassword, 10)
     // change password
-    return await userModel.findOneAndUpdate({ _id: user.userId }, { password: newPassword }, { new: true })
+    return await prisma.user.update({ where: { id: user.userId }, data: { password: hashNewPassword } })
 }
 
 
@@ -290,10 +356,10 @@ export const getUser = async ({ userId }: { userId: string }) => {
     if (isValidId === null) throw new errorResponse.BadRequestError('Id không hợp lệ')
 
     //get user
-    const userFound = await userModel.findOne({ _id: userId })
+    const userFound = await prisma.user.findUnique({ where: { id: userId } })
     if (!userFound) throw new errorResponse.BadRequestError(`Người dùng không tồn tại`)
     return {
-        user: getInfoData(["_id", "name", "email"], userFound)
+        user: getInfoData(["id", "name", "email"], userFound)
     }
 }
 
@@ -307,12 +373,45 @@ export const editUser = async ({ userId, payload }: { userId: string, payload: a
     }
     console.log('payload edit', payload)
     //find user
-    const userFound = await userModel.findOne({ _id: userId })
+    const userFound = await prisma.user.findUnique({ where: { id: userId } })
     if (!userFound) throw new errorResponse.BadRequestError(`Người dùng không tồn tại`)
 
     //edit user
-    const result = await userModel.findOneAndUpdate({ _id: userId }, { $set: payload }, { new: true })
+    const result = await prisma.user.update({ where: { id: userId }, data: payload })
     if (!result) throw new errorResponse.BadRequestError(`Bạn không thể  cập nhật!`)
     return result
 }
 
+export const editAgent = async ({ userId, userAgent }: { userId: string, userAgent: string }) => {
+    //check input
+    const isValidId = await userId.match(regex.idRegex)
+    if (isValidId === null) throw new errorResponse.BadRequestError('Id không hợp lệ')
+
+    //find user
+    const userFound = await prisma.user.findUnique({ where: { id: userId } })
+    if (!userFound) throw new errorResponse.BadRequestError(`Người dùng không tồn tại`)
+
+    await prisma.userOnAgent.deleteMany({ where: { userId: userFound.id as string } })
+
+    const result = await prisma.userOnAgent.create({
+        data: {
+            userAgent: {
+                connectOrCreate:{
+                    where:{
+                        agent:userAgent
+                    },
+                    create:{
+                        agent:userAgent
+                    }
+                }
+            },
+            user: {
+                connect: {
+                    id: userFound.id as string
+                }
+            }
+        }
+    })
+
+    return result
+}

@@ -13,10 +13,10 @@ accessRouter.post('/signIn',asyncHandler(accessController.signIn))
 
 accessRouter.use(authentication)
 
-accessRouter.get('/getPayloadAdmin/',asyncHandler(accessController.getPayloadAdmin))
+accessRouter.get('/getPayloadAdmin',asyncHandler(accessController.getPayloadAdmin))
 accessRouter.get('/getUser',asyncHandler(accessController.getUser))
 accessRouter.post('/logout',asyncHandler(accessController.logOut))
-accessRouter.post('/changePassword',asyncHandler(accessController.changePassword))
+accessRouter.patch('/changePassword',asyncHandler(accessController.changePassword))
 accessRouter.patch('/editUser',asyncHandler(accessController.editUser))
 
 

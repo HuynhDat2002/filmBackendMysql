@@ -4,12 +4,12 @@ import cookieParser from 'cookie-parser'
 import helmet from 'helmet'
 import compression from 'compression'
 import cors from 'cors'
-import instanceMongodb from '@/db/init.mongodb'
 import checkOverload from '@/db/checkOverload'
 import router from '@/routes'
 import { subscribeMessage } from './utils'
 import { createChannel } from './utils'
 import { accessService } from './services'
+import { connectDB } from './db/prisma.init'
 const app:Application  = express()
 
 
@@ -30,8 +30,7 @@ const userApp = async (app:express.Express)=>{
     // app.use(cookieParser(process.env.COOKIE_SESSION_SECRET))
    app.use(cookieParser()) 
     //connect to db
-    instanceMongodb
-    
+    connectDB()
     //checking overload
     checkOverload()
 

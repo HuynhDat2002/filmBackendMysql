@@ -10,6 +10,7 @@ import { keyTokenModel } from '@/models/keyToken.model'
 import { PayloadTokenPair } from '@/types'
 import { adminModel } from '@/models/access.model';
 import * as regex from '@/middlewares/regex'
+import { prisma } from '@/db/prisma.init'
 const HEADER = {
     CLIENT_ID: 'x-client-id',
     REFRESHTOKEN: 'refreshtoken',
@@ -39,7 +40,6 @@ export const createTokenPair = async ({ payload, publicKey, privateKey }: Create
     return { accessToken, refreshToken }
 }
 
-
 export const authentication = asyncHandler(async (req: CustomRequest, res: Response, next: NextFunction) => {
     //1.check userId missing
     const userId: string = req.headers[HEADER.CLIENT_ID] as string
@@ -50,16 +50,14 @@ export const authentication = asyncHandler(async (req: CustomRequest, res: Respo
     const isValidId = userId.match(regex.idRegex)
     if (isValidId === null) throw new errorResponse.AuthFailureError(`Định dạng Id không đúng`)
 
-
      // check if user exist
-    const userFound = await adminModel.findOne({_id:userId})
+    const userFound = await prisma.user.findUnique({where:{id:userId},include:{userAgent:true}})
     if(!userFound) throw new errorResponse.BadRequestError('User Id không tồn tại')
 
     //2. check key store
-    const keyToken = await keyTokenModel.findOne({ user: userId })
+    const keyToken = await prisma.keyTokens.findUnique({where:{ userId: userId }})
     if (!keyToken) throw new errorResponse.NotFound("Không tìm thấy key store")
     // console.log('key token',keyToken)
-
 
     //3. verify token
     const accessToken = req.headers[HEADER.AUTHORIZATION] as string
@@ -71,8 +69,6 @@ export const authentication = asyncHandler(async (req: CustomRequest, res: Respo
     //check header
     const isValidAccess = accessToken.match(regex.accessRegex)
     if (isValidAccess === null) throw new errorResponse.AuthFailureError(`Định dạng token không đúng`)
-
-
 
     try {
         jwt.verify(accessToken, keyToken.publicKey, (err: any, decode: any) => {
@@ -105,11 +101,11 @@ export const checkLogin = asyncHandler(async (req: CustomRequest, res: Response,
     if (isValidId === null) throw new errorResponse.AuthFailureError(`Định dạng Id không đúng`)
     
     // check if user exist
-    const userFound = await adminModel.findOne({_id:userId})
+    const userFound = await prisma.user.findUnique({where:{id:userId},include:{userAgent:true}})
     if(!userFound) throw new errorResponse.BadRequestError('User Id không tồn tại')
 
     //2. check key store
-    const keyToken = await keyTokenModel.findOne({ user: userId })
+    const keyToken = await prisma.keyTokens.findUnique({where:{ userId: userId }})
     if (!keyToken) throw new errorResponse.NotFound("Unauthorized")
     // console.log('key token',keyToken)
 

@@ -10,7 +10,7 @@ import { PayloadTokenPair } from '@/types'
 import { movieService } from '@/services'
 import { createClient } from 'redis'
 import * as regex from '@/middlewares/regex'
-
+import { prisma } from '@/db/prisma.init'
 const HEADER = {
     CLIENT_ID: 'x-client-id',
     REFRESHTOKEN: 'refreshtoken',
@@ -53,7 +53,7 @@ export const authenticationAdmin = asyncHandler(async (req: CustomRequest, res: 
     console.log(`keyTokenAdmin`, keyTokenAdmin)
 
     //2. check key store
-    if (userId !== keyTokenAdmin.user) throw new errorResponse.NotFound("Không tin thấy user trong keystore")
+    if (userId !== keyTokenAdmin.userId) throw new errorResponse.NotFound("Không tin thấy user trong keystore")
 
     //check userId
     const isValidId = userId.match(regex.idRegex)
@@ -70,7 +70,7 @@ export const authenticationAdmin = asyncHandler(async (req: CustomRequest, res: 
     const isValidAccess = accessToken.match(regex.accessRegex)
     if (isValidAccess === null) throw new errorResponse.AuthFailureError(`Định dạng token không đúng`)
 
-    jwt.verify(accessToken, keyTokenAdmin.publicKey,  (err: any, decode: any) => {
+    jwt.verify(accessToken, keyTokenAdmin.publicKey, (err: any, decode: any) => {
         if (err) {
             console.log(`Error verify: `, err)
             throw new errorResponse.AuthFailureError(`Bạn cần phải đăng nhập trước`)
@@ -89,7 +89,7 @@ export const authenticationAdmin = asyncHandler(async (req: CustomRequest, res: 
 
 export const authentication = asyncHandler(async (req: CustomRequestUser, res: Response, next: NextFunction) => {
     //1.check userId missing
-    console.log('headers authentication',req.headers)
+    console.log('headers authentication', req.headers)
 
     const userId: string = req.headers[HEADER.CLIENT_ID] as string
     if (!userId) throw new errorResponse.AuthFailureError("Bạn cần phải đăng nhập trước.")
@@ -99,17 +99,17 @@ export const authentication = asyncHandler(async (req: CustomRequestUser, res: R
     const keyToken = JSON.parse(await client.get('keyTokenUser') as string)
     const userInfo = JSON.parse(await client.get('user') as string)
     console.log(`keyTokenUser`, keyToken)
-    console.log(`userAgent`, userInfo)
+    console.log('userlogininfo',userInfo)
+    const userAgents = userInfo.userAgent.map((ua: { id: string, agent: string, userId: string }) => ua.agent)
+    if (!userAgents.includes(req.headers["user-agent"])) throw new errorResponse.BadRequestError(`Ban dang dang nhap tren thiet bi moi`)
 
-    if(!userInfo.userAgent.includes(req.headers["user-agent"])) throw new errorResponse.BadRequestError(`Ban dang dang nhap tren thiet bi moi`)
-    
     //2. check key store
-    if (userId !== keyToken.user) throw new errorResponse.NotFound("không tìm thấy  user trong key store")
-        
-        //check userId
-        const isValidId = userId.match(regex.idRegex)
-        if (isValidId === null) throw new errorResponse.AuthFailureError(`Định dạng Id không đúng`)
-            
+    if (userId !== keyToken.userId) throw new errorResponse.NotFound("không tìm thấy  user trong key store")
+
+    //check userId
+    const isValidId = userId.match(regex.idRegex)
+    if (isValidId === null) throw new errorResponse.AuthFailureError(`Định dạng Id không đúng`)
+
     //3. verify token
     const accessToken = req.headers[HEADER.AUTHORIZATION] as string
     console.log('access', accessToken)
@@ -121,7 +121,7 @@ export const authentication = asyncHandler(async (req: CustomRequestUser, res: R
     const isValidAccess = accessToken.match(regex.accessRegex)
     if (isValidAccess === null) throw new errorResponse.AuthFailureError(`Định dạng token không đúng`)
 
-    jwt.verify(accessToken, keyToken.publicKey,  (err: any, decode: any) => {
+    jwt.verify(accessToken, keyToken.publicKey, (err: any, decode: any) => {
         if (err) {
             console.log(`Error verify: `, err)
             throw new errorResponse.AuthFailureError(`Bạn cần phải đăng nhập trước`)

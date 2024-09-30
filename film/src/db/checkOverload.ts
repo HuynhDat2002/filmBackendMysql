@@ -3,10 +3,11 @@
 import mongoose from "mongoose"
 import os from 'os'
 import process from "process"
+import {prisma} from './prisma.init'
 
 const checkOverload = async ()=>{
     setInterval(()=>{
-        const numConnections = mongoose.connections.length
+        const numConnections = prisma.$connect.length
         const numCores = os.cpus().length
         const memoryUsage = process.memoryUsage().rss
         const maxConnections = numCores*5

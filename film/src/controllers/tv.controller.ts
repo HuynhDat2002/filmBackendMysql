@@ -13,21 +13,21 @@ export const createTV = async (req:CustomRequest,res:Response,next:NextFunction)
     }).send(res)
 }
 
-export const updateTV = async (req:CustomRequest,res:Response,next:NextFunction)=>{
-    new successResponse.SuccessResonse({
-        message:"Updated a tv",
-        metadata: await tvService.updateTV(req.body)
-    }).send(res)
-}
+// export const updateTV = async (req:CustomRequest,res:Response,next:NextFunction)=>{
+//     new successResponse.SuccessResonse({
+//         message:"Updated a tv",
+//         metadata: await tvService.updateTV(req.body)
+//     }).send(res)
+// }
 
 
-export const deleteTV = async (req:CustomRequest,res:Response,next:NextFunction)=>{
-    const movieId = req.params.id
-    new successResponse.SuccessResonse({
-        message:"Deleted a tv",
-        metadata: await tvService.deleteTV(movieId)
-    }).send(res)
-}
+// export const deleteTV = async (req:CustomRequest,res:Response,next:NextFunction)=>{
+//     const movieId = req.params.id
+//     new successResponse.SuccessResonse({
+//         message:"Deleted a tv",
+//         metadata: await tvService.deleteTV(movieId)
+//     }).send(res)
+// }
 
 export const getTV = async (req:CustomRequest,res:Response,next:NextFunction)=>{
     const movieId = req.params.id
@@ -50,7 +50,7 @@ export const getAllTV = async (req:CustomRequest,res:Response,next:NextFunction)
 }
 
 export const ratingTV = async (req:CustomRequestUser,res:Response,next:NextFunction)=>{
-    const userId = req?.user?._id as string || ""
+    const userId = req?.user?.id as string || ""
     new successResponse.SuccessResonse({
         message:"Got all movie",
         metadata: await tvService.ratingTV({filmId:req.body.filmId,userId:userId,rating:req.body.rating})

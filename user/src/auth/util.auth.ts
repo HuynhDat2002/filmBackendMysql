@@ -8,10 +8,9 @@ import asyncHandler from '@/helpers/asyncHandler.helper'
 import { Response, NextFunction } from 'express'
 import { CustomRequest } from '@/types'
 import { errorResponse } from '@/cores'
-import { keyTokenModel } from '@/models/keyToken.model'
 import { PayloadTokenPair } from '@/types'
-import { userModel } from '@/models/access.model'
 import * as regex from '@/middlewares/regex'
+import { prisma } from '@/db/prisma.init'
 const HEADER = {
     CLIENT_ID: 'x-client-id',
     REFRESHTOKEN: 'refreshtoken',
@@ -56,12 +55,14 @@ export const authentication = asyncHandler(async (req: CustomRequest, res: Respo
     if (isValidId === null) throw new errorResponse.AuthFailureError(`Định dạng Id không đúng`)
 
      // check if user exist
-    const userFound = await userModel.findOne({_id:userId})
+     const userFound = await prisma.user.findUnique({where:{id:userId},include:{userAgent:true}})
     if(!userFound) throw new errorResponse.BadRequestError('User Id không tồn tại')
-    if(!userFound.userAgent.includes(req.headers["user-agent"])) throw new errorResponse.BadRequestError(`Ban dang dang nhap tren thiet bi moi`)
+    const userAgents = userFound.userAgent.map(ua=>ua.agentId)
+    const getAgentId = await prisma.userAgent.findFirst({where:{agent:req.headers["user-agent"] as string}})
+    if(!userAgents.includes(getAgentId?.id as string)) throw new errorResponse.BadRequestError(`Ban dang dang nhap tren thiet bi moi`)
     
     //2. check key store
-    const keyToken = await keyTokenModel.findOne({ user: userId })
+    const keyToken = await prisma.keyTokens.findUnique({where:{ userId: userId }})
     if (!keyToken) throw new errorResponse.NotFound("Không tìm thấy user trong keyToken")
     // console.log('key token',keyToken)
 
@@ -99,14 +100,14 @@ export const checkLogin = asyncHandler(async (req: CustomRequest, res: Response,
 
     //check header userId
     const isValidId = userId.match(regex.idRegex)
-    if (isValidId === null) throw new errorResponse.AuthFailureError(`Định dạng Id không đúng`)
+    if (isValidId === null) throw new errorResponse.AuthFailureError(`Invalid Format Id`)
 
     // check if user exist
-    const userFound = await userModel.findOne({_id:userId})
-    if(!userFound) throw new errorResponse.BadRequestError('User Id không tồn tại')
+    const userFound = await prisma.user.findUnique({where:{id:userId},include:{userAgent:true}})
+    if(!userFound) throw new errorResponse.BadRequestError('Not Found User')
 
     //2. check key store
-    const keyToken = await keyTokenModel.findOne({ user: userId })
+    const keyToken = await prisma.keyTokens.findUnique({where:{ userId: userId }})
     if (!keyToken) throw new errorResponse.NotFound("Unauthorized")
     // console.log('key token',keyToken)
 

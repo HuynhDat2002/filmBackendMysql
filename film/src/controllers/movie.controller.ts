@@ -13,12 +13,12 @@ export const createMovie = async (req:CustomRequest,res:Response,next:NextFuncti
     }).send(res)
 }
 
-export const updateMovie = async (req:CustomRequest,res:Response,next:NextFunction)=>{
-    new successResponse.SuccessResonse({
-        message:"Updated a movie",
-        metadata: await movieService.updateMovie(req.body)
-    }).send(res)
-}
+// export const updateMovie = async (req:CustomRequest,res:Response,next:NextFunction)=>{
+//     new successResponse.SuccessResonse({
+//         message:"Updated a movie",
+//         metadata: await movieService.updateMovie(req.body)
+//     }).send(res)
+// }
 
 
 export const deleteMovie = async (req:CustomRequest,res:Response,next:NextFunction)=>{
@@ -50,7 +50,8 @@ export const getAllMovie = async (req:CustomRequest,res:Response,next:NextFuncti
 }
 
 export const ratingMovie = async (req:CustomRequestUser,res:Response,next:NextFunction)=>{
-    const userId = req?.user?._id as string || ""
+    const userId = req?.user?.id as string || ""
+
     new successResponse.SuccessResonse({
         message:"Got all movie",
         metadata: await movieService.ratingMovie({filmId:req.body.filmId,userId:userId,rating:req.body.rating})

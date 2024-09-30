@@ -15,9 +15,9 @@ commentRouter.post('/createComment',authentication,asyncHandler(commentControlle
 commentRouter.delete('/deleteComment',authentication,asyncHandler(commentController.deleteComment))
 commentRouter.patch('/editComment',authentication,asyncHandler(commentController.editComment))
 
-commentRouter.post('/createCommentAdmin',authenticationAdmin,asyncHandler(commentController.createCommentAdmin))
-commentRouter.delete('/deleteCommentAdmin',authenticationAdmin,asyncHandler(commentController.deleteCommentAdmin))
-commentRouter.patch('/editCommentAdmin',authenticationAdmin,asyncHandler(commentController.editCommentAdmin))
+// commentRouter.post('/createCommentAdmin',authenticationAdmin,asyncHandler(commentController.createCommentAdmin))
+// commentRouter.delete('/deleteCommentAdmin',authenticationAdmin,asyncHandler(commentController.deleteCommentAdmin))
+// commentRouter.patch('/editCommentAdmin',authenticationAdmin,asyncHandler(commentController.editCommentAdmin))
 
 
 export default commentRouter

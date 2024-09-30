@@ -10,6 +10,7 @@ import router from '@/routes'
 import { createChannel } from './utils'
 import { subscribeMessage } from './utils'
 import {movieService} from '@/services'
+import { connectDB } from './db/prisma.init'
 const movieApp = async (app: express.Express) => {
 
 
@@ -28,7 +29,7 @@ const movieApp = async (app: express.Express) => {
     app.use(cookieParser(process.env.COOKIE_SESSION_SECRET))
 
     //connect to db
-    instanceMongodb
+    connectDB()
 
     //checking overload
     checkOverload()

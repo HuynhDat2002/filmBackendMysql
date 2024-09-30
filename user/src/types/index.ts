@@ -4,6 +4,8 @@ import {Request} from 'express'
 import {Types } from 'mongoose'
 export interface CustomRequest extends Request{
     keyToken?: KeyTokenModelProps,
+
+    
     user?:PayloadTokenPair
     refreshToken?:string
 }
@@ -11,11 +13,11 @@ export interface CustomRequest extends Request{
 
 //------------MODELS-------------------
 export interface KeyTokenModelProps{
-    _id:string|Types.ObjectId;
-    user:string|Types.ObjectId;
+    id:string|Types.ObjectId;
+    userId:string|Types.ObjectId;
   publicKey:string;
   privateKey:string;
-  refreshTokensUsed:string[]|null;
+//   refreshTokensUsed:string[]|null;
   refreshToken:string
 }
 //-----------------------CONFIGS-------------------

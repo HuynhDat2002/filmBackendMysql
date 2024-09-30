@@ -15,8 +15,8 @@ tvRouter.patch('/ratingTV',authentication,asyncHandler(tvController.ratingTV))
 
 tvRouter.use(authenticationAdmin)
 tvRouter.post('/createTV',asyncHandler(tvController.createTV))
-tvRouter.put('/updateTV',asyncHandler(tvController.updateTV))
-tvRouter.delete('/deleteTV/:id',asyncHandler(tvController.deleteTV))
+// tvRouter.put('/updateTV',asyncHandler(tvController.updateTV))
+// tvRouter.delete('/deleteTV/:id',asyncHandler(tvController.deleteTV))
 
     
 

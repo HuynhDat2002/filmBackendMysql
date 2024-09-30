@@ -8,7 +8,10 @@
   },
   "scripts": {
     "test": "jest",
-    "start": "nodemon --inspect server.ts"
+    "migrate:init": "npx prisma migrate dev",
+    "migrate:deploy": "npx prisma migrate deploy",
+    "dev": "nodemon --inspect --watch prisma/schema.prisma --exec \"npx prisma migrate dev && npx prisma generate && ts-node server.ts\"",
+    "start": "nodemon --inspect"
   },
   "keywords": [],
   "author": "",
@@ -30,10 +33,12 @@
     "helmet": "^7.1.0",
     "morgan": "^1.10.0",
     "nodemon": "^3.1.4",
+    "prisma": "^5.18.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.5.2"
   },
   "dependencies": {
+    "@prisma/client": "^5.18.0",
     "amqplib": "^0.10.4",
     "bcrypt": "^5.1.1",
     "compression": "^1.7.4",
