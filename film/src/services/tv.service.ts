@@ -406,9 +406,6 @@ export const getAllTV = async (query: QueryProps) => {
             where: {
                 name: {
                     search: query.query
-                },
-                origin_name: {
-                    search: query.query
                 }
             },
             include: {

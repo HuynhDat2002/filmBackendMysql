@@ -6,6 +6,7 @@ import _ from 'lodash'
 import {Types} from 'mongoose'
 import * as config from '@/configs/messageBroker.config'
 import amqplib from 'amqplib'
+import { errorResponse } from '@/cores'
 
 const convertToObjectId = (id:any)=>{
     return new Types.ObjectId(id)
@@ -54,13 +55,27 @@ const updateNestedObjectParser = (obj:any)=>{
 // ----------------------message broker-------------------------
 
 //create a channel
- const createChannel = async ()=>{
-    const connection = await amqplib.connect(config.MSG_QUEUE_URL)
-    const channel = await connection.createChannel()
-    await channel.assertExchange(config.EXCHANGE_NAME,'direct',{
-      durable: true
-    })
-    return channel
+ const createChannel = async () : Promise<amqplib.Channel>=>{
+    let retries = 3
+    while (retries>0){
+
+        try{
+    
+            const connection = await amqplib.connect(config.MSG_QUEUE_URL)
+            const channel = await connection.createChannel()
+            await channel.assertExchange(config.EXCHANGE_NAME,'direct',{
+              durable: true
+            })
+            return channel
+        }
+        catch (error){
+            console.log(`Loi ket noi rabbitmq`)
+            retries -=1;
+            if(retries===0) throw new errorResponse.BadRequestError('Ket noi rabbitmq that bai')
+            await new Promise(resolve=>setTimeout(resolve,3000))
+        }
+    }
+    throw new errorResponse.BadRequestError('Không thể tạo kênh kết nối RabbitMQ');
   }
   
   

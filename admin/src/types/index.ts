@@ -43,7 +43,8 @@ export interface SuccessResonseProps{
 export interface SignUpProps{
     name:string,
     email:string,
-    password:string
+    password:string,
+    role?:string
 }
 
 export interface SignInProps{
@@ -68,6 +69,7 @@ export interface CreateTokenPairProps{
 export interface PayloadTokenPair extends jwt.JwtPayload {
     userId?:string;
     email?:string;
+    role?:string;
     iat?:number;
     exp?:number;
   }

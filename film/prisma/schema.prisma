@@ -145,8 +145,6 @@ model Movie {
   rating          Rating?      
   comment Comment[]        
   @@fulltext([name])
-  @@fulltext([origin_name])
-  @@fulltext([name, origin_name])
 }
 
 //----------TV----------------
@@ -175,7 +173,7 @@ model TV {
   type            String           @default("tv")
   rating          Rating?   
   comment Comment[]        
-  @@fulltext([name, origin_name])
+  @@fulltext([name])
 }
 
 model Episodes {

@@ -46,18 +46,17 @@ export const authenticationAdmin = asyncHandler(async (req: CustomRequest, res: 
     if (!userId) throw new errorResponse.AuthFailureError("Bạn cần phải đăng nhập trước")
     // await movieService.client.connect()
 
+    //check userId
+    const isValidId = userId.match(regex.idRegex)
+    if (isValidId === null) throw new errorResponse.AuthFailureError(`Định dạng Id không đúng`)
+
     const client = createClient({ url: "redis://default:pyFDvQLFTafTwKZ4QuVTYynBWDrjxcE3@redis-11938.c15.us-east-1-2.ec2.redns.redis-cloud.com:11938" })
     await client.connect()
     const keyTokenAdmin = JSON.parse(await client.get('keyTokenAdmin') as string)
     const userInfo = JSON.parse(await client.get('admin') as string)
-    console.log(`keyTokenAdmin`, keyTokenAdmin)
 
     //2. check key store
-    if (userId !== keyTokenAdmin.userId) throw new errorResponse.NotFound("Không tin thấy user trong keystore")
-
-    //check userId
-    const isValidId = userId.match(regex.idRegex)
-    if (isValidId === null) throw new errorResponse.AuthFailureError(`Định dạng Id không đúng`)
+    if (userId !== keyTokenAdmin.userId) throw new errorResponse.NotFound("Bạn cần phải đăng nhập trước")
 
     //3. verify token
     const accessToken = req.headers[HEADER.AUTHORIZATION] as string
@@ -83,7 +82,6 @@ export const authenticationAdmin = asyncHandler(async (req: CustomRequest, res: 
             return next()
         }
     })
-
 })
 
 
@@ -98,13 +96,18 @@ export const authentication = asyncHandler(async (req: CustomRequestUser, res: R
     await client.connect()
     const keyToken = JSON.parse(await client.get('keyTokenUser') as string)
     const userInfo = JSON.parse(await client.get('user') as string)
+    const agent = JSON.parse(await client.get('agent') as string)
+    
     console.log(`keyTokenUser`, keyToken)
     console.log('userlogininfo',userInfo)
-    const userAgents = userInfo.userAgent.map((ua: { id: string, agent: string, userId: string }) => ua.agent)
+    console.log('agent',agent)
+
+    const userAgents = agent.map((ua:any) => ua.userAgent.agent)
     if (!userAgents.includes(req.headers["user-agent"])) throw new errorResponse.BadRequestError(`Ban dang dang nhap tren thiet bi moi`)
 
     //2. check key store
     if (userId !== keyToken.userId) throw new errorResponse.NotFound("không tìm thấy  user trong key store")
+    if (userId !== userInfo.id) throw new errorResponse.NotFound("Ban hay dang nhap truoc")
 
     //check userId
     const isValidId = userId.match(regex.idRegex)

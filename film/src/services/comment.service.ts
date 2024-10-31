@@ -40,6 +40,7 @@ export const createComment = async ({
             throw new errorResponse.NotFound("Comment parent not found");
     }
 
+    // clean comment' content
     const cleanContent = DOMPurify.sanitize(content);
 
     console.log("cleanContenttt", cleanContent);
@@ -55,12 +56,14 @@ export const createComment = async ({
     //     comment_parentId: parentCommentId
     // })
 
+    // check film exist
     const movie = await prisma.movie.findUnique({ where: { id: filmId } });
     if (!movie) {
         const tv = await prisma.tV.findUnique({ where: { id: filmId } });
         if (!tv) throw new errorResponse.BadRequestError(`FilmId doesn\'t exists`);
     }
 
+    // create comment
     const comment = await prisma.comment.create({
         data: {
             ...(movie

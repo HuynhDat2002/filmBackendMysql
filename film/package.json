@@ -33,7 +33,9 @@
     "typescript": "^5.5.2"
   },
   "dependencies": {
+    "@elastic/elasticsearch": "^8.15.0",
     "@prisma/client": "^5.19.1",
+    "accesscontrol": "^2.2.1",
     "amqp": "^0.2.7",
     "amqplib": "^0.10.4",
     "axios": "^1.7.2",

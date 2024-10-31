@@ -8,7 +8,7 @@
   },
   "scripts": {
     "test": "jest",
-     "start": "nodemon --inspect"
+    "start": "nodemon --inspect"
   },
   "keywords": [],
   "author": "",
@@ -34,6 +34,7 @@
   },
   "dependencies": {
     "@prisma/client": "^5.18.0",
+    "accesscontrol": "^2.2.1",
     "amqplib": "^0.10.4",
     "bcrypt": "^5.1.1",
     "compression": "^1.7.4",
@@ -48,6 +49,7 @@
     "mongoose": "^8.4.4",
     "os": "^0.1.2",
     "process": "^0.11.10",
+    "redis": "^4.7.0",
     "slugify": "^1.6.6"
   }
 }

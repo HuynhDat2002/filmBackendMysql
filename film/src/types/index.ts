@@ -85,7 +85,15 @@ export interface UserPayloadProps {
         email: string,
         role: string
     },
-    keyToken: KeyTokenAdminProps
+    keyToken: KeyTokenAdminProps,
+    agent: Array<{
+        userAgent: {
+            id: string,
+            agent: string
+        },
+        userId: string,
+        agentId: string
+    }>
 }
 export interface KeyTokenAdminProps {
     id: string,
@@ -192,5 +200,6 @@ export interface PayloadTokenPair extends jwt.JwtPayload {
     email?: string;
     iat?: number;
     exp?: number;
+    role?:string;
 }
 

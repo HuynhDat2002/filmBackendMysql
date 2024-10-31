@@ -45,6 +45,34 @@ services:
       - '5672:5672'
       - '5671:5671'
  
+  rbac:
+    build:
+      dockerfile: Dockerfile
+      context: ./rbac
+    container_name: rbac
+    restart: always
+    environment:
+      - DB_PORT=3306
+      - DB_HOST=db-mysql
+      - DB_USER=root
+      - DB_PASSWORD=trongdat1335
+      - DB_NAME=rbacdb
+    depends_on:
+      - db-mysql
+      - rabbitmq
+    volumes:
+      - .:/app
+      - /app/rbac/node_modules
+    env_file:
+      - ./rbac/.env
+    expose:
+      - 5004
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
   film:
     build:
       dockerfile: Dockerfile
@@ -308,6 +336,7 @@ services:
       - film
       - user
       - admin
+      - rbac
     ports:
       - 443:443
     volumes:

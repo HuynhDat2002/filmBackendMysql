@@ -38,7 +38,7 @@ export const signIn = async (req: CustomRequest, res: Response, next: NextFuncti
     console.log('header',req.headers['user-agent'])
     const userAgent = req.headers['user-agent'] as string
 
-    const metadata = await accessService.signIn({email:req.body.email,password:req.body.password,userAgent})
+    const metadata = await accessService.signIn({email:req.body.email,password:req.body.password,userAgent,tokenCaptcha:req.body.tokenCaptcha})
     // res.cookie('logininfo', metadata.tokens, {
     //     httpOnly: true,
     //     maxAge: 24 * 60 * 60 * 1000, // Thời gian sống của cookie, ví dụ 1 ngày

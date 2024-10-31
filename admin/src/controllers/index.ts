@@ -1,5 +1,5 @@
 'use strict'
 
 import * as accessController from './access.controller'
-
-export {accessController}
+import * as profileController from './profile.controller'
+export {accessController,profileController}

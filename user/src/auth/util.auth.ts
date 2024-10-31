@@ -57,6 +57,8 @@ export const authentication = asyncHandler(async (req: CustomRequest, res: Respo
      // check if user exist
      const userFound = await prisma.user.findUnique({where:{id:userId},include:{userAgent:true}})
     if(!userFound) throw new errorResponse.BadRequestError('User Id không tồn tại')
+     
+    // check new device
     const userAgents = userFound.userAgent.map(ua=>ua.agentId)
     const getAgentId = await prisma.userAgent.findFirst({where:{agent:req.headers["user-agent"] as string}})
     if(!userAgents.includes(getAgentId?.id as string)) throw new errorResponse.BadRequestError(`Ban dang dang nhap tren thiet bi moi`)
@@ -90,7 +92,6 @@ export const authentication = asyncHandler(async (req: CustomRequest, res: Respo
             return next()
         }
     })
-
 })
 
 export const checkLogin = asyncHandler(async (req: CustomRequest, res: Response, next: NextFunction) => {

@@ -13,8 +13,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
-
 //----------------USER-------------------
 model User {
   id               String             @id @default(uuid()) @db.VarChar(36)
@@ -27,7 +25,9 @@ model User {
   updatedAt        DateTime           @updatedAt
   keyToken         KeyTokens?
   refreshTokenUsed RefreshTokenUsed[]
-  userAgent UserOnAgent[]
+  userAgent        UserOnAgent[]
+  failedLogin      Int @default(0)
+  timeLock         DateTime?
   // otp              OTP?
 }
 
@@ -40,17 +40,20 @@ enum AccountStatus {
   Active
   Inactive
 }
-model UserOnAgent{
-    user   User @relation(fields: [userId], references: [id],onDelete: Cascade, onUpdate: Cascade)
-  userId String  @db.VarChar(36)
-  userAgent  UserAgent @relation(fields: [agentId], references: [id],onDelete: Cascade, onUpdate: Cascade)
-  agentId String @db.VarChar(36)
-  @@id([userId,agentId])
+
+model UserOnAgent {
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  userId    String    @db.VarChar(36)
+  userAgent UserAgent @relation(fields: [agentId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  agentId   String    @db.VarChar(36)
+
+  @@id([userId, agentId])
 }
-model UserAgent{
-  id               String             @id @default(uuid()) @db.VarChar(36)
-  agent String @unique
-  user UserOnAgent[]
+
+model UserAgent {
+  id    String        @id @default(uuid()) @db.VarChar(36)
+  agent String        @unique
+  user  UserOnAgent[]
 }
 
 // -----------------------KEY TOKEN------------------------
@@ -58,9 +61,9 @@ model UserAgent{
 model KeyTokens {
   id           String   @id @default(uuid()) @db.VarChar(36)
   userId       String   @unique
-  privateKey   String @db.Text
-  publicKey    String @db.Text
-  refreshToken String @db.Text
+  privateKey   String   @db.Text
+  publicKey    String   @db.Text
+  refreshToken String   @db.Text
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   user         User     @relation(fields: [userId], references: [id])
@@ -84,9 +87,52 @@ model OTP {
   email     String   @unique
   otp       String   @unique
   expiresAt DateTime
-  verified  Boolean @default(false)
+  verified  Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   // user User @relation(fields: [email], references: [email])
 }
+
+//---------------RBAC--------------------------
+
+// model RoleRBAC {
+//   id              String  @id @default(uuid())
+//   rol_name        String  @default("USER")
+//   rol_slug        String  @default("")
+//   rol_status      Status  @default(PENDING)
+//   rol_description String? @db.Text
+//   rol_grants      Grant[]
+// }
+
+// enum Status {
+//   PENDING
+//   ACTIVE
+//   BLOCKED
+// }
+
+// model Grant {
+//   id         String    @id @default(uuid())
+//   resourceId String
+//   resource   Resource  @relation(fields: [resourceId], references: [id])
+//   actions    Actions[]
+//   attributes String    @default("*")
+//   role       RoleRBAC  @relation(fields: [roleId], references: [id])
+//   roleId     String    @unique
+// }
+
+// model Resource {
+//   id              String   @id @default(uuid())
+//   src_name        String   @db.Text
+//   src_slug        String   @db.Text
+//   src_description String? @db.Text
+//   grant           Grant[]
+//   createdAt       DateTime @default(now())
+// }
+
+// model Actions {
+//   id      String @id @default(uuid())
+//   action  String @unique
+//   grant   Grant  @relation(fields: [grantId], references: [id])
+//   grantId String
+// }

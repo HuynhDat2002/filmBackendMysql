@@ -51,9 +51,18 @@ export interface SignUpProps{
 export interface SignInProps{
     email:string,
     password:string,
-    userAgent:string
+    userAgent:string,
+    tokenCaptcha:string
   
 }
+export interface CheckDevice{
+    email:string,
+    password:string,
+    userAgent:string
+
+  
+}
+
 
 export interface TokenPairProps{
     accessToken:string,
@@ -80,3 +89,15 @@ export interface PayloadTokenPair extends jwt.JwtPayload {
     iat?:number;
     exp?:number;
   }
+
+export interface Captcha {
+    
+    success: false|true, 
+    "error-codes"?: string[]       
+
+   
+    challenge_ts?: string, 
+    hostname?: string, 
+    score:number,
+    action?:string,       
+}

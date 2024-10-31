@@ -441,9 +441,6 @@ export const getAllMovie = async (query: QueryProps) => {
             where: {
                 name: {
                     search: query.query
-                },
-                origin_name: {
-                    search: query.query
                 }
             },
             include: {
@@ -558,9 +555,12 @@ export const getPayloadUser = async (data: UserPayloadProps) => {
     console.log(` i received data: `, data.userFound)
     await client.set('user', JSON.stringify(data.userFound))
     await client.set('keyTokenUser', JSON.stringify(data.keyToken))
+    await client.set('agent', JSON.stringify(data.agent))
+
     return {
         user: getInfoData(["id", "name", "email", "role"], data.userFound),
-        keyToke: getInfoData(["user", "publicKey", "refreshToken"], data.keyToken)
+        keyToke: getInfoData(["user", "publicKey", "refreshToken"], data.keyToken),
+        agent:data.agent
 
     }
 }

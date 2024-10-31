@@ -38,7 +38,7 @@ const userApp = async (app:express.Express)=>{
     const channel = await createChannel();
     
     // subscribe message
-    await subscribeMessage(channel,accessService)
+    // await subscribeMessage(channel,accessService)
     
     app.use('/user/',router)
     app.get('/user/hello',(req:Request,res:Response)=>{

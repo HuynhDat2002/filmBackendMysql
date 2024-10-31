@@ -5,7 +5,9 @@ import asyncHandler from '@/helpers/asyncHandler.helper'
 import { accessController } from '@/controllers'
 import { authentication, checkLogin } from '@/auth/util.auth'
 import { otpService } from '@/services'
+import { checkPermission } from '@/auth/check.permission'
 const accessRouter = express.Router()
+
 
 accessRouter.post('/checkLogin',checkLogin)
 accessRouter.post('/checkDevice',asyncHandler(accessController.checkDevice))
@@ -19,10 +21,10 @@ accessRouter.post('/sendOTP',asyncHandler(accessController.sendOTP))
 
 accessRouter.use(authentication)
 accessRouter.post('/logout',asyncHandler(accessController.logOut))
-accessRouter.post('/changePassword',asyncHandler(accessController.changePassword))
-accessRouter.get('/getUser',asyncHandler(accessController.getUser))
-accessRouter.patch('/editUser',asyncHandler(accessController.editUser))
-accessRouter.patch('/editAgent',asyncHandler(accessController.editAgent))
+accessRouter.post('/changePassword',checkPermission('updateOwn','user'),asyncHandler(accessController.changePassword))
+accessRouter.get('/getUser',checkPermission('readOwn','user'),asyncHandler(accessController.getUser))
+accessRouter.patch('/editUser',checkPermission('updateOwn','user'),asyncHandler(accessController.editUser))
+accessRouter.patch('/editAgent',checkPermission('updateOwn','user'),asyncHandler(accessController.editAgent))
 
 
 

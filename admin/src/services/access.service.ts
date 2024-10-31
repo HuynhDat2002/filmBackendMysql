@@ -13,7 +13,8 @@ import * as messageConfig from '@/configs/messageBroker.config'
 import * as regex from '@/middlewares/regex'
 import { PayloadTokenPair } from "@/types"
 import { prisma } from '@/db/prisma.init'
-export const signUp = async ({ name, email, password }: SignUpProps) => {
+import { Role } from '@prisma/client';
+export const signUp = async ({ name, email, password,role="ADMIN" }: SignUpProps) => {
     //check input
     const isValidEmail = await email.match(regex.emailRegex)
     if (isValidEmail === null) throw new errorResponse.BadRequestError('Email không hợp lệ')
@@ -33,13 +34,14 @@ export const signUp = async ({ name, email, password }: SignUpProps) => {
     }
     //hash password
     const passwordHash = await bcrypt.hash(password, 10);
-
+    
     //create new user
     const newUser = await prisma.user.create({
         data: {
             name,
             email,
             password: passwordHash,
+            role:role as Role
         }
     });
 
@@ -55,8 +57,6 @@ export const signUp = async ({ name, email, password }: SignUpProps) => {
             type: 'pkcs8', format: 'pem'
         },
     });
-
-
 
     //create tokens
     const tokens: TokenPairProps = await createTokenPair({
@@ -115,7 +115,8 @@ export const signIn = async ({ email, password }: SignInProps) => {
     const tokens: TokenPairProps = await createTokenPair({
         payload: {
             userId: userFound.id.toString(),
-            email
+            email,
+            role:userFound.role.toString()
         },
         publicKey,
         privateKey
@@ -146,6 +147,7 @@ export const signIn = async ({ email, password }: SignInProps) => {
             keyToken: keyToken
         }
     }
+    
     const channel = await createChannel()
     await publishMessage(channel, messageConfig.FILM_BINDING_KEY, JSON.stringify(data))
     return {

@@ -1,13 +1,13 @@
 'use strict'
 //hi
 import { Request, Response, NextFunction } from 'express'
-import { SignUpProps, SignInProps, TokenPairProps, PayloadTokenPair } from '@/types'
+import { SignUpProps, SignInProps, TokenPairProps, PayloadTokenPair, CheckDevice } from '@/types'
 import { errorResponse } from '@/cores'
 import bcrypt from 'bcrypt'
 import crypto, { hash, Sign } from 'crypto'
 import { createTokenPair } from '@/auth/util.auth'
 import { getInfoData } from '@/utils'
-import { KeyTokenModelProps } from '@/types'
+import { KeyTokenModelProps, Captcha } from '@/types'
 import { createClient } from 'redis'
 import { createChannel, publishMessage } from '@/utils'
 import * as messageConfig from '@/configs/messageBroker.config'
@@ -15,10 +15,13 @@ import * as regex from '@/middlewares/regex'
 import { otpService } from '.'
 import { prisma } from '@/db/prisma.init'
 import _ from 'lodash'
-
+import axios from 'axios';
 type dataSign = {
     name: string, email: string, password: string
 }
+
+
+
 export const signUp = async () => {
     // get data from redis
     const client = createClient({ url: "redis://default:pyFDvQLFTafTwKZ4QuVTYynBWDrjxcE3@redis-11938.c15.us-east-1-2.ec2.redns.redis-cloud.com:11938" })
@@ -95,16 +98,17 @@ export const signUp = async () => {
 
     if (!keyToken) throw new errorResponse.BadRequestError(`Không thể  tạo key token`)
 
-    // publish message to movie server
-    const dataPayload = {
-        event: "GET_USER_PAYLOAD",
-        data: {
-            userFound: newUser,
-            keyToken: keyToken
-        }
-    }
-    const channel = await createChannel()
-    publishMessage(channel, messageConfig.FILM_BINDING_KEY, JSON.stringify(dataPayload))
+
+    // // publish message to movie server
+    // const dataPayload = {
+    //     event: "GET_USER_PAYLOAD",
+    //     data: {
+    //         userFound: newUser,
+    //         keyToken: keyToken
+    //     }
+    // }
+    // const channel = await createChannel()
+    // publishMessage(channel, messageConfig.FILM_BINDING_KEY, JSON.stringify(dataPayload))
 
     return {
         user: getInfoData(["id"], newUser),
@@ -112,7 +116,7 @@ export const signUp = async () => {
     }
 }
 
-export const checkDevice = async ({ email, password, userAgent }: SignInProps) => {
+export const checkDevice = async ({ email, password, userAgent }: CheckDevice) => {
     //check input
     const isValidEmail = await email.match(regex.emailRegex)
     if (isValidEmail === null) throw new errorResponse.BadRequestError('Email không hợp lệ')
@@ -143,44 +147,109 @@ export const checkDevice = async ({ email, password, userAgent }: SignInProps) =
     }
 }
 
-export const signIn = async ({ email, password, userAgent }: SignInProps) => {
+
+export const verifyTokenCaptcha = async (token: string) => {
+    const secretKey = process.env.CAPTCHA_SECRET_KEY
+    console.log('secerkey',secretKey)
+    console.log('token12',token)
+    if (!secretKey) throw new errorResponse.AuthFailureError('Not secret key found')
+    const url = new URL("https://www.google.com/recaptcha/api/siteverify")
+    url.searchParams.append('secret', secretKey);
+    url.searchParams.append('response', token)
+
+    const res = await axios.post(url.toString())
+
+    if (!res) return null
+    console.log('res',res)
+    const captchaData: Captcha = await res.data
+    console.log('captcha', captchaData)
+    if (!captchaData) {
+        return {
+            success: false,
+            message: "Captcha Failed"
+        }
+    }
+    if (!captchaData.success || captchaData.score < 0.5) {
+        return {
+            success: false,
+            message: "Captcha Failed",
+            errors: !captchaData.success ? captchaData["error-codes"]:null,
+        }
+    }
+    return {
+        success: true,
+        message: "Captcha Successfully"
+    }
+}
+
+export const signIn = async ({ email, password, userAgent,tokenCaptcha }: SignInProps) => {
     //check input
-    // const isValidEmail = await email.match(regex.emailRegex)
-    // if (isValidEmail === null) throw new errorResponse.BadRequestError('Email không hợp lệ')
+    const isValidEmail = await email.match(regex.emailRegex)
+    if (isValidEmail === null) throw new errorResponse.BadRequestError('Email không hợp lệ')
     const isValidPassword = await password.match(regex.passwordRegex)
     if (isValidPassword === null) throw new errorResponse.BadRequestError('Mật khẩu không hợp lệ!')
+
+    //captcha
+    // const captcha = await verifyTokenCaptcha(tokenCaptcha)
+    // console.log('captcha',captcha)
+    // if(!captcha) throw new errorResponse.AuthFailureError('Ban chua xac minh captcha')
+    // if(captcha.success===false) throw new errorResponse.AuthFailureError(`${captcha.message}`)
+
+   
+
+
 
     // check if user exist
     console.log('typeof email', typeof email)
     const userFound1 = await prisma.user.findUnique({ where: { email: email }, include: { userAgent: true } })
-    // const userFound1: any = await prisma.$queryRawUnsafe(`
-    //     SELECT u.*, ua.*
-    //     FROM User u
-    //     LEFT JOIN UserOnAgent ua ON u.id = ua.userId
-    //     WHERE u.email = '${email}';
-    //   `);
-    // const groupedUsers = _.map(_.groupBy(userFound1, 'id'), (userRows) => {
-    //     const user = userRows[0]; // Thông tin user lặp lại trong mỗi dòng
-    //     console.log('userrow', userRows)
-    //     return {
-    //         id: user.id,
-    //         name: user.name,
-    //         email: user.email,
-    //         password: user.password,
-    //         role: user.role,
-    //         userAgent: userRows.map(row => ({
-    //             userId: row.id != null ? row.id : "",
-    //             agentId: row.agentId != null ? row.agentId : ""
-    //         }))
-    //     };
-    // });
-    // console.dir(groupedUsers, { depth: null });
-     const userFound = userFound1
+
+    const userFound = userFound1
     if (!userFound) throw new errorResponse.AuthFailureError(`Tài khoản không tồn tại`)
     console.log('password', userFound.password)
+
+       
+    //check how many times login error
+    if(userFound.timeLock && userFound.timeLock as Date>new Date()) throw new errorResponse.AuthFailureError(`Tai khoang cua ban da bi khoa trong vong 1p. Hay thu lai sau!`)
+   
     //compare password
     const checkPassword = await bcrypt.compare(password, userFound.password)
-    if (!checkPassword) throw new errorResponse.AuthFailureError(`Mật khẩu không trùng khớp`)
+    if (!checkPassword) {
+        let failedTimes = await userFound.failedLogin
+        let lockUntil = await userFound.timeLock as Date
+        failedTimes +=1
+        if(failedTimes >5) {
+            await prisma.user.update({
+                where:{
+                    id:userFound.id
+                },
+                data:{
+                    failedLogin:0,
+                    timeLock: new Date(Date.now() + 60*1000)
+                }
+            })
+            throw new errorResponse.AuthFailureError(`Tai khoang cua ban da bi khoa trong vong 1p. Hay thu lai sau!`)
+
+        }
+        await prisma.user.update({
+            where:{
+                id:userFound.id
+            },
+            data:{
+                failedLogin:failedTimes,
+            }
+        })
+        throw new errorResponse.AuthFailureError(`Mật khẩu không trùng khớp. Ban con ${5-failedTimes} lan thu`)
+    }
+
+    await prisma.user.update({
+        where:{
+            id:userFound.id
+        },
+        data:{
+            failedLogin:0,
+            timeLock: null
+        }
+    })
 
     console.log('userfound-login', userFound)
     //check device
@@ -199,12 +268,12 @@ export const signIn = async ({ email, password, userAgent }: SignInProps) => {
         const newAgent = await prisma.userOnAgent.create({
             data: {
                 userAgent: {
-                    connectOrCreate:{
-                        where:{
-                            agent:userAgent
+                    connectOrCreate: {
+                        where: {
+                            agent: userAgent
                         },
-                        create:{
-                            agent:userAgent
+                        create: {
+                            agent: userAgent
                         }
                     }
                 },
@@ -239,7 +308,8 @@ export const signIn = async ({ email, password, userAgent }: SignInProps) => {
     const tokens: TokenPairProps = await createTokenPair({
         payload: {
             userId: userFound.id.toString(),
-            email
+            email,
+            role: userFound.role
         },
         publicKey,
         privateKey
@@ -261,13 +331,19 @@ export const signIn = async ({ email, password, userAgent }: SignInProps) => {
         }
     })
     if (!keyToken) throw new errorResponse.BadRequestError(`Không thể  tạo key token`)
-
+    const agent = await prisma.userOnAgent.findMany({
+        where: {
+            userId: userFound.id
+        },
+        include: { userAgent: true }
+    })
     // publish message to movie server
     const data = {
         event: "GET_USER_PAYLOAD",
         data: {
             userFound: userFound,
-            keyToken: keyToken
+            keyToken: keyToken,
+            agent: agent
         }
     }
     const channel = await createChannel()
@@ -396,12 +472,12 @@ export const editAgent = async ({ userId, userAgent }: { userId: string, userAge
     const result = await prisma.userOnAgent.create({
         data: {
             userAgent: {
-                connectOrCreate:{
-                    where:{
-                        agent:userAgent
+                connectOrCreate: {
+                    where: {
+                        agent: userAgent
                     },
-                    create:{
-                        agent:userAgent
+                    create: {
+                        agent: userAgent
                     }
                 }
             },

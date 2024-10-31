@@ -33,7 +33,7 @@ export const createTokenPair = async ({ payload, publicKey, privateKey }: Create
             console.log(`Error verify: `, err)
         }
         else {
-            console.log(`Decode verify: `, decode)
+            console.log(`Decode verify login: `, decode)
         }
     })
 
@@ -44,7 +44,7 @@ export const authentication = asyncHandler(async (req: CustomRequest, res: Respo
     //1.check userId missing
     const userId: string = req.headers[HEADER.CLIENT_ID] as string
 
-    if (!userId) throw new errorResponse.AuthFailureError("Không tìm thấy user")
+    if (!userId) throw new errorResponse.AuthFailureError("Bạn cần phải đăng nhập trước")
 
     //check header
     const isValidId = userId.match(regex.idRegex)
