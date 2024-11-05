@@ -54,6 +54,28 @@ export const sendOTPVerifyEmail = async ({ email }: { email: string }) => {
 
 }
 
+export const notifyAccountLocked = async ({ email }: { email: string }) => {
+    const isValidEmail = await email.match(regex.emailRegex)
+    if (isValidEmail === null) throw new Error('Email is invalid')
+    //     const foundUser = await otpModel.findOne({email:email})
+    // if(foundUser) throw new errorResponse.BadRequestError(`This email has been used by another user`)
+    const foundOTP = await prisma.oTP.findUnique({ where: { email: email } })
+    if (foundOTP) await prisma.oTP.delete({ where: { email: email } })
+   
+    const mailOptions = {
+        from: 'hltdat2002@gmail.com',
+        to: email,
+        subject: 'Verify your email',
+        html: `
+            <p>Your account has been locked within 1 minute because of a lot of failed login requests.</p>
+            <p>Please change your password as soon as posible.</p>
+            `
+    }
+
+    const transport = await sendOTPEmail(mailOptions)
+    return transport  
+
+}
 
 export const sendOTP = async ({ name, email, password }: { name: string, email: string, password: string }) => {
     console.log('emailotp', email)

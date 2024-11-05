@@ -16,6 +16,7 @@ import { otpService } from '.'
 import { prisma } from '@/db/prisma.init'
 import _ from 'lodash'
 import axios from 'axios';
+import { notifyAccountLocked } from './otp.service'
 type dataSign = {
     name: string, email: string, password: string
 }
@@ -184,10 +185,10 @@ export const verifyTokenCaptcha = async (token: string) => {
 
 export const signIn = async ({ email, password, userAgent,tokenCaptcha }: SignInProps) => {
     //check input
-    const isValidEmail = await email.match(regex.emailRegex)
-    if (isValidEmail === null) throw new errorResponse.BadRequestError('Email không hợp lệ')
-    const isValidPassword = await password.match(regex.passwordRegex)
-    if (isValidPassword === null) throw new errorResponse.BadRequestError('Mật khẩu không hợp lệ!')
+    // const isValidEmail = await email.match(regex.emailRegex)
+    // if (isValidEmail === null) throw new errorResponse.BadRequestError('Email không hợp lệ')
+    // const isValidPassword = await password.match(regex.passwordRegex)
+    // if (isValidPassword === null) throw new errorResponse.BadRequestError('Mật khẩu không hợp lệ!')
 
     //captcha
     // const captcha = await verifyTokenCaptcha(tokenCaptcha)
@@ -209,7 +210,7 @@ export const signIn = async ({ email, password, userAgent,tokenCaptcha }: SignIn
 
        
     //check how many times login error
-    if(userFound.timeLock && userFound.timeLock as Date>new Date()) throw new errorResponse.AuthFailureError(`Tai khoang cua ban da bi khoa trong vong 1p. Hay thu lai sau!`)
+    if(userFound.timeLock && userFound.timeLock as Date>new Date()) throw new errorResponse.AuthFailureError(`Tai khoan cua ban da bi khoa trong vong 1p. Hay thu lai sau!`)
    
     //compare password
     const checkPassword = await bcrypt.compare(password, userFound.password)
@@ -217,7 +218,7 @@ export const signIn = async ({ email, password, userAgent,tokenCaptcha }: SignIn
         let failedTimes = await userFound.failedLogin
         let lockUntil = await userFound.timeLock as Date
         failedTimes +=1
-        if(failedTimes >5) {
+        if(failedTimes >4) {
             await prisma.user.update({
                 where:{
                     id:userFound.id
@@ -227,7 +228,8 @@ export const signIn = async ({ email, password, userAgent,tokenCaptcha }: SignIn
                     timeLock: new Date(Date.now() + 60*1000)
                 }
             })
-            throw new errorResponse.AuthFailureError(`Tai khoang cua ban da bi khoa trong vong 1p. Hay thu lai sau!`)
+            await notifyAccountLocked({email:userFound.email})
+            throw new errorResponse.AuthFailureError(`Tai khoan cua ban da bi khoa trong vong 1p. Hay thu lai sau!`)
 
         }
         await prisma.user.update({
@@ -252,6 +254,7 @@ export const signIn = async ({ email, password, userAgent,tokenCaptcha }: SignIn
     })
 
     console.log('userfound-login', userFound)
+
     //check device
     const userAgents = userFound.userAgent.map((ua: any) => ua.agentId);
     console.log('userAgents', userAgents)

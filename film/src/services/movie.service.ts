@@ -430,8 +430,8 @@ export const getAllMovie = async (query: QueryProps) => {
     const skip = (page - 1) * limit
     if (query.query) {
         //check input
-        const isValidQuery = await query.query.match(regex.queryRegex)
-        if (isValidQuery === null) throw new errorResponse.BadRequestError('Query không hợp lệ')
+        // const isValidQuery = await query.query.match(regex.queryRegex)
+        // if (isValidQuery === null) throw new errorResponse.BadRequestError('Query không hợp lệ')
         // const searchQuery = {
         //     $text: {
         //         $search: query.query as string
@@ -441,6 +441,9 @@ export const getAllMovie = async (query: QueryProps) => {
             where: {
                 name: {
                     search: query.query
+                },
+                origin_name: {
+                    contains: query.query
                 }
             },
             include: {

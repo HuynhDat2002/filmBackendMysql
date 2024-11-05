@@ -323,11 +323,29 @@ services:
   #     - ./admin/.env
   #   expose:
   #     - 5002
+  # waf:
+  #   image: owasp/modsecurity-crs:4.8.0-nginx-202410301110
+  #   container_name: waf-film
+  #   ports:
+  #     - "80:80"
+  #   volumes:
+  #     - "./proxy/modsecurity:/etc/modsecurity"
+  #     - "./proxy/modsecurity.d/include.conf:/etc/modsecurity.d/include.conf"
+  #     - "./proxy/modsecurity.d/modsecurity.conf:/etc/modsecurity.d/modsecurity.conf"
+  #   depends_on:
+  #     - nginx-proxy
+  #   environment:
+  #     - PROXY_PASS=https://nginx:443
 
-
-      
+  nextjs:
+    container_name: nextjs-frontend
+    build: 
+      dockerfile: Dockerfile
+      context: ./filmFrontendUserMysql
+    restart: always
+  
   nginx-proxy:
-    image: reserve-proxy
+    image: reverse-proxy
     container_name: nginx-backend
     build:
       dockerfile: Dockerfile
@@ -337,12 +355,15 @@ services:
       - user
       - admin
       - rbac
+      - nextjs
     ports:
       - 443:443
     volumes:
       - ./proxy/nginx.conf:/etc/nginx/nginx.conf
       - /var/log/nginx:/var/log/nginx
       - /etc/ssl/certs:/etc/nginx/ssl
+      - ./proxy/modsecurity.conf:/etc/nginx/modsecurity.conf:ro
+
 
  
 
