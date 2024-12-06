@@ -1,0 +1,308 @@
+version: '3.8'
+services:
+
+  
+  db-mysql:
+    image: mysql:8
+    container_name: mysql-server
+    restart: always
+    volumes:
+      - my-db:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: trongdat1335
+    ports:
+      - 3308:3306
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    # networks:
+    #   - backend-network
+
+  # prisma:
+  #   image: prismagraphql/prisma:1.34
+  #   container_name: prisma-server
+
+  #   restart: always
+  #   ports:
+  #     - '4466:4466'
+  #   environment:
+  #     PRISMA_CONFIG: |
+  #       managementApiSecret: myprismasecret
+  #       port: 4466
+  #       databases:
+  #         default:
+  #           connector: mysql
+  #           host: db-mysql
+  #           port: 3306
+  #           user: root
+  #           password: trongdat1335
+  #           connectionLimit: 100
+  #           migrations: true
+  rabbitmq:
+    image: rabbitmq:alpine
+    container_name: rabbitmq
+    ports:
+      - '5672:5672'
+      - '5671:5671'
+    # networks:
+    #   - backend-network
+ 
+  rbac:
+    build:
+      context: ./rbac
+      dockerfile: Dockerfile
+    # container_name: rbac
+    restart: always
+    image: tdat/rbac:1.0.0
+    deploy:
+      replicas: 3
+    environment:
+      - DB_PORT=3306
+      - DB_HOST=db-mysql
+      - DB_USER=root
+      - DB_PASSWORD=trongdat1335
+      - DB_NAME=rbacdb
+      - DATABASE_URL=mysql://root:trongdat1335@db-mysql:3306/rbacdb
+    depends_on:
+      - db-mysql
+      - rabbitmq
+    volumes:
+      - .:/app
+      - /app/rbac/node_modules
+    env_file:
+      - ./rbac/.env
+    expose:
+      - 5004
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    # networks:
+    #   - backend-network
+
+  film:
+    build:
+      context: ./film
+      dockerfile: Dockerfile
+    # container_name: film
+    restart: always
+    deploy:
+      replicas: 3
+    image: tdat/film:1.0.0
+    environment:
+      - DB_PORT=3306
+      - DB_HOST=db-mysql
+      - DB_USER=root
+      - DB_PASSWORD=trongdat1335
+      - DB_NAME=filmdb
+      - DATABASE_URL=mysql://root:trongdat1335@db-mysql:3306/filmdb
+    depends_on:
+      - db-mysql
+      - rabbitmq
+    volumes:
+      - .:/app
+      - /app/film/node_modules
+    env_file:
+      - ./film/.env
+    expose:
+      - 5003
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    # networks:
+    #   - backend-network
+
+  
+
+
+  user:
+    build:
+      context: ./user
+      dockerfile: Dockerfile
+    # container_name: user
+    restart: always
+    image: tdat/user:1.0.0
+    deploy:
+      replicas: 3
+    environment:
+      - DB_PORT=3306
+      - DB_HOST=db-mysql
+      - DB_USER=root
+      - DB_PASSWORD=trongdat1335
+      - DB_NAME=userdb
+      - DATABASE_URL=mysql://root:trongdat1335@db-mysql:3306/userdb
+    depends_on:
+      - db-mysql
+      - rabbitmq
+    volumes:
+      - .:/app
+      - /app/user/node_modules
+    env_file:
+      - ./user/.env
+    expose:
+      - 5000
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    # networks:
+    #   - backend-network
+
+
+
+
+
+  admin:
+    build:
+      context: ./admin
+      dockerfile: Dockerfile
+    # container_name: admin
+    restart: always
+    image: tdat/admin:1.0.0
+    deploy:
+      replicas: 3
+    environment:
+      - DB_PORT=3306
+      - DB_HOST=db-mysql
+      - DB_USER=root
+      - DB_PASSWORD=trongdat1335
+      - DB_NAME=admindb
+      - DATABASE_URL=mysql://root:trongdat1335@db-mysql:3306/admindb
+    depends_on:
+      - db-mysql
+      - rabbitmq
+      # - "redis"
+    volumes:
+      - .:/app/
+      - /app/admin/node_modules
+    env_file:
+      - ./admin/.env
+    expose:
+      - 5002
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    # networks:
+    #   - backend-network
+
+  nextjs:
+    # container_name: nextjs-frontend
+    build: 
+      context: ./filmFrontendUser
+      dockerfile: Dockerfile
+    image: tdat/nextjs:1.0.0
+    restart: always
+    deploy:
+      replicas: 3
+    # networks:
+    #   - backend-network
+
+  nextjs-admin:
+    # container_name: nextjs-frontend
+    build: 
+      context: ./filmFrontendAdmin
+      dockerfile: Dockerfile
+    # image: tdat/nextjs:1.0.0
+    restart: always
+    deploy:
+      replicas: 3
+    # networks:
+    #   - backend-network
+  
+  nginx-proxy:
+    image: tdat/nginx:1.0.0 # owasp/modsecurity-crs:nginx #reverse-proxy # owasp/modsecurity-crs:nginx 
+    user: "root"
+    container_name: nginx-backend
+    # build:
+    #   dockerfile: Dockerfile
+    #   context: ./proxy
+    depends_on:
+      - film
+      - user
+      - admin
+      - rbac  
+      - nextjs
+    ports:
+      - 443:443
+    volumes:
+      - ./proxy/nginx.conf:/etc/nginx/nginx.conf
+      - /var/log/nginx:/var/log/nginx
+      - /etc/ssl/certs:/etc/nginx/ssl
+      - ./proxy/modsecurity.conf:/etc/modsecurity/modsecurity.conf
+      - ./proxy/coreruleset:/etc/modsecurity.d/owasp-crs
+      - ./proxy/crs-setup.conf:/etc/nginx/owasp-modsecurity-crs-3.0.2/crs-setup.conf
+    # networks:
+    #   - backend-network
+
+
+ 
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.10.2
+    container_name: elasticsearch-digitic
+    restart: always
+    environment:
+      - discovery.type=single-node
+    ports:
+      - "9200:9200"
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+    # networks:
+    #   - backend-network
+
+
+
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:7.10.2
+    container_name: logstash
+    restart: always
+    environment:
+      - TZ=Asia/Ho_Chi_Minh  # Đặt múi giờ của hệ thống
+    volumes:
+      - ./logstash/pipeline:/usr/share/logstash/pipeline
+      - /var/log/nginx:/var/log/nginx
+      - ./logstash/csv:/usr/share/logstash/csv
+    depends_on:
+      - elasticsearch
+    ports:
+      - "5044:5044"
+      - "9600:9600"
+    # networks:
+    #   - backend-network
+
+
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.10.2
+    container_name: kibana
+    restart: always
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+    depends_on:
+      - elasticsearch
+    # networks:
+    #   - backend-network
+
+
+
+# networks:
+#   backend-network:
+#     driver: bridge  
+
+volumes:
+  esdata:
+    driver: local
+  my-db:
+    external: true
+

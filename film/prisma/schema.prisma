@@ -1,0 +1,247 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["fullTextSearch", "fullTextIndex","relationJoins"]
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Actor {
+  id   String        @id @default(uuid()) @db.VarChar(36)
+  name String @unique
+  movie ActorOnMovie[] 
+  tv ActorOnTV[] 
+}
+
+model ActorOnMovie {
+
+  actor   Actor  @relation(fields: [actorId], references: [id],onDelete: Cascade, onUpdate: Cascade)
+  actorId String @db.VarChar(36)
+
+  movie  Movie @relation(fields: [movieId], references: [id],onDelete: Cascade, onUpdate: Cascade)
+  movieId String @db.VarChar(36)
+  @@id([movieId,actorId])
+}
+
+model ActorOnTV {
+  actor   Actor  @relation(fields: [actorId], references: [id],onDelete: Cascade, onUpdate: Cascade)
+  actorId String @db.VarChar(36)
+
+  tv     TV   @relation(fields: [tvId], references: [id],onDelete: Cascade, onUpdate: Cascade)
+  tvId String @db.VarChar(36)
+  @@id([tvId,actorId])
+}
+
+
+model Director {
+  id   String           @id @default(uuid()) @db.VarChar(36)
+  name String @unique
+  movie DirectorOnMovie[]
+  tv DirectorOnTV[]
+}
+
+model DirectorOnMovie {
+  director   Director @relation(fields: [directorId], references: [id],onDelete: Cascade, onUpdate: Cascade)
+  directorId String   @db.VarChar(36)
+
+  movie  Movie @relation(fields: [movieId], references: [id],onDelete: Cascade, onUpdate: Cascade)
+  movieId String @db.VarChar(36)
+  @@id([movieId,directorId])
+
+}
+
+model DirectorOnTV {
+  director   Director @relation(fields: [directorId], references: [id],onDelete: Cascade, onUpdate: Cascade)
+  directorId String   @db.VarChar(36)
+
+  tv  TV @relation(fields: [tvId], references: [id],onDelete: Cascade, onUpdate: Cascade)
+  tvId String @db.VarChar(36)
+  @@id([tvId,directorId])
+}
+
+model Category {
+  id   String           @id @default(uuid()) @db.VarChar(36)
+  name String @unique
+  slug String
+  movie CategoryOnMovie[] 
+  tv CategoryOnTV[] 
+}
+
+model CategoryOnMovie {
+  
+  category   Category @relation(fields: [categoryId], references: [id],onDelete: Cascade, onUpdate: Cascade)
+  categoryId String   @db.VarChar(36)
+   movie  Movie @relation(fields: [movieId], references: [id],onDelete: Cascade, onUpdate: Cascade)
+  movieId String @db.VarChar(36)
+  @@id([movieId,categoryId])
+
+}
+
+
+model CategoryOnTV {
+  
+  category   Category @relation(fields: [categoryId], references: [id],onDelete: Cascade, onUpdate: Cascade)
+  categoryId String   @db.VarChar(36)
+   tv  TV @relation(fields: [tvId], references: [id],onDelete: Cascade, onUpdate: Cascade)
+  tvId String @db.VarChar(36)
+  @@id([tvId,categoryId])
+
+}
+
+model Country {
+  id   String          @id @default(uuid()) @db.VarChar(36)
+  name String @unique
+  slug String
+  movie CountryOnMovie[] 
+  tv CountryOnTV[]
+}
+
+model CountryOnMovie { 
+  country   Country @relation(fields: [countryId], references: [id],onDelete: Cascade, onUpdate: Cascade)
+  countryId String  @db.VarChar(36)
+  movie  Movie @relation(fields: [movieId], references: [id],onDelete: Cascade, onUpdate: Cascade)
+  movieId String @db.VarChar(36)
+  @@id([movieId,countryId])
+}
+
+model CountryOnTV {
+  country   Country @relation(fields: [countryId], references: [id],onDelete: Cascade, onUpdate: Cascade)
+  countryId String  @db.VarChar(36)
+   tv  TV @relation(fields: [tvId], references: [id],onDelete: Cascade, onUpdate: Cascade)
+  tvId String @db.VarChar(36)
+  @@id([tvId,countryId])
+}
+
+//----------Movie----------------
+model Movie {
+  id              String           @id @default(uuid()) @db.VarChar(36)
+  name            String
+  slug            String
+  origin_name     String
+  content         String           @db.Text
+  poster_url      String
+  thumb_url       String
+  trailer         String
+  time            String
+  lang            String
+  year            Int
+  view            Int              @default(0)
+  actor           ActorOnMovie[]
+  director        DirectorOnMovie[]
+  category        CategoryOnMovie[]
+  country         CountryOnMovie[]
+  quality         String
+  episode_current String
+  video           String           @default("")
+  type            String           @default("movie")
+  rating          Rating?      
+  comment Comment[]        
+  @@fulltext([name])
+}
+
+//----------TV----------------
+model TV {
+  id              String           @id @default(uuid()) @db.VarChar(36)
+  name            String
+  slug            String
+  origin_name     String
+  content         String           @db.Text
+  poster_url      String
+  thumb_url       String
+  trailer         String
+  time            String
+  lang            String
+  year            Int
+  view            Int @default(0)
+  actor           ActorOnTV[]
+  director        DirectorOnTV[]
+  category        CategoryOnTV[]
+  country         CountryOnTV[]
+
+  quality         String
+  episode_current String
+  episode_total   Int
+  episodes        Episodes[]
+  type            String           @default("tv")
+  rating          Rating?   
+  comment Comment[]        
+  @@fulltext([name])
+}
+
+model Episodes {
+  id    String @id @default(uuid()) @db.VarChar(36)
+  name  String
+  slug  String
+  video String
+  tv    TV     @relation(fields: [tvId], references: [id],onDelete: Cascade, onUpdate: Cascade)
+  tvId  String @db.VarChar(36)
+}
+
+//----------------RATING----------------
+model UserRatings {
+  id String @id @default(uuid()) @db.VarChar(36)
+  userId       String  @db.VarChar(36) @unique
+  film   User_Rating[]
+}
+
+model User_Rating{
+  userRating   UserRatings @relation(fields: [userRatingId], references: [userId],onDelete: Cascade, onUpdate: Cascade)
+  userRatingId String  @db.VarChar(36)
+  ratingNumber Int
+  rating  Rating @relation(fields: [ratingId], references: [id],onDelete: Cascade, onUpdate: Cascade)
+  ratingId String @db.VarChar(36)
+  @@id([ratingId,userRatingId])
+}
+model Rating {
+  id            String        @id @default(uuid()) @db.VarChar(36)
+  ratings       User_Rating[]
+  ratingAverage Float           @default(0.0)
+  movieId        String?        @db.VarChar(36) @unique
+  movie Movie? @relation(fields: [movieId],references: [id],onDelete: Cascade, onUpdate: Cascade)
+  tvId        String?        @db.VarChar(36)  @unique
+  tv TV? @relation(fields: [tvId],references: [id],onDelete: Cascade, onUpdate: Cascade)
+}
+
+// ---------------COMMENT------------------
+model CommentUser {
+  id String @id @default(uuid()) @db.VarChar(36)
+  userId    String  @db.VarChar(36)
+  name      String
+  email     String
+  role String @default("USER")
+  comment   Comment[]
+} 
+
+model Comment {
+  id               String       @id @default(uuid()) @db.VarChar(36)
+  comment_movie Movie? @relation(fields: [comment_movieId],references:[id])
+  comment_movieId  String?       @db.VarChar(36)
+  comment_tv TV? @relation(fields: [comment_tvId],references:[id])
+  comment_tvId String?       @db.VarChar(36)
+  comment_user     CommentUser @relation(fields: [comment_user_id],references: [id],onDelete: Cascade, onUpdate: Cascade)
+  comment_user_id String @db.VarChar(36)
+  comment_content  String       @db.Text
+  comment_left     Int          @default(0)
+  comment_right    Int          @default(0)
+  comment_parentId String?       @db.VarChar(36)
+  isDeleted        Boolean      @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+
+model UserLogin{
+   id               String       @id @default(uuid()) @db.VarChar(36)
+   userId String @unique
+   user String @db.Text
+   keyToken String @db.Text
+   agent String @db.Text
+}
