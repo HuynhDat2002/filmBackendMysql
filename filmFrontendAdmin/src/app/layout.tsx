@@ -14,8 +14,12 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import Menu from '@/components/NavbarMenu'
 import React from 'react';
 import Head from 'next/head';
-config.autoAddCss = false;
+import { Suspense } from 'react'
 
+config.autoAddCss = false;
+function SearchBarFallback() {
+  return <>placeholder</>
+}
 
 // export const metadata: Metadata = {
 //   title: "Navy Film Admin",
@@ -48,8 +52,9 @@ export default function RootLayout({
               </div>
             }
             <div className="w-[90%] xl:w-[75%] flex justify-center items-center  mx-auto  shadow-2xl ">
-
+            <Suspense fallback={<SearchBarFallback />}>
               {children}
+              </Suspense>
             </div>
           </div>
         </body>

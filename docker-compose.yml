@@ -212,6 +212,8 @@ services:
       dockerfile: Dockerfile
     # image: tdat/nextjs:1.0.0
     restart: always
+    expose:
+      - 3001
     deploy:
       replicas: 3
     # networks:
@@ -230,6 +232,7 @@ services:
       - admin
       - rbac  
       - nextjs
+      - nextjs-admin
     ports:
       - 443:443
     volumes:
@@ -239,6 +242,7 @@ services:
       - ./proxy/modsecurity.conf:/etc/modsecurity/modsecurity.conf
       - ./proxy/coreruleset:/etc/modsecurity.d/owasp-crs
       - ./proxy/crs-setup.conf:/etc/nginx/owasp-modsecurity-crs-3.0.2/crs-setup.conf
+      - ./proxy/.htpasswd:/etc/nginx/.htpasswd
     # networks:
     #   - backend-network
 

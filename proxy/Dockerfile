@@ -11,7 +11,7 @@ RUN openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
     -keyout /etc/ssl/certs/selfsigned.key \
     -out /etc/ssl/certs/selfsigned.crt \
     -subj "/C=US/ST=State/L=City/O=Organization/OU=Unit/CN=localhost"
-RUN sh -c "echo 'adfilm:$(openssl passwd -apr1 Abc123456)' >> /etc/nginx/.htpasswd"
+
 
 USER root
 
@@ -99,7 +99,7 @@ COPY crs-setup.conf /etc/nginx/owasp-modsecurity-crs-3.0.2/crs-setup.conf
 # RUN cd /etc/nginx/owasp-modsecurity-crs-3.0.2 && \
 # cp crs-setup.conf.example crs-setup.conf
 COPY ./modsec/main.conf /etc/nginx/modsec/main.conf
-
+COPY ./.htpasswd /etc/nginx/.htpasswd
 
 # Đảm bảo rằng chứng chỉ SSL tồn tại và có quyền truy cập đúng
 RUN chmod 777 /etc/ssl/certs/selfsigned.crt

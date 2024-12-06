@@ -92,7 +92,7 @@ export default function Login({ isOpen, onClose, openSignUp, openForgot,openVeri
             }
             <Modal
                 isOpen={isOpen}
-                onClose={onClose}
+                // onClose={onClose}
                 placement="center"
                 isDismissable={false}
             >

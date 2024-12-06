@@ -17,7 +17,7 @@ const router = useRouter()
   const movies: any = useAppSelector((state) => state.movieReducer.movies.metadata)
   const tvs: any = useAppSelector((state) => state.tvReducer.tvs.metadata)
   const user: any = useAppSelector((state) => state.userReducer)
-  const userinfo: { user: { _id: string, email: string, name: string } } = JSON.parse(localStorage.getItem('userinfo') as string) ? JSON.parse(localStorage.getItem('userinfo') as string) :  { user: { _id: "", email: "", name: "" } } 
+  const userinfo: { user: { id: string, email: string, name: string } } = typeof window !== "undefined" ? (JSON.parse(  localStorage.getItem('userinfo') as string) ? JSON.parse(localStorage.getItem('userinfo') as string) :  { user: { id: "", email: "", name: "" } } ) : { user: { id: "", email: "", name: "" } }
   useEffect(()=>{
   },user.isLoading)
 

@@ -14,19 +14,25 @@ export default function Search() {
     const [searchList, setSearchList] = useState<Array<any>>([])
     const movie = useAppSelector((state) => state.movieReducer)
     const tv = useAppSelector((state) => state.tvReducer)
-    const query = searchParams?.get('query') as string
-    const page = searchParams?.get('page') as string
+    // const query = searchParams?.get('query') as string
+    // const page = searchParams?.get('page') as string
     const [isOpenError, setIsOpenError] = useState(false)
     const [messageError, setMessageError] = useState("")
-
+    const [query, setQuery] = useState("")
+    const [page, setPage] = useState("1")
 
     const dispatch = useAppDispatch()
     useEffect(() => {
+        const query = searchParams?.get('query') as string || ''
+        const page = searchParams?.get('page') as string || '1'
         dispatch(searchMovie({ query: query, page: page }))
         dispatch(searchTV({ query, page }))
 
     }, [query, page])
-
+    useEffect(() => {
+        setQuery(searchParams?.get('query') as string || '')
+        setPage(searchParams?.get('page') as string || '1')
+    }, [searchParams])
     useEffect(() => {
         let combinedList: Array<any> = []
         if (movie.isSearch && movie.isSuccess) combinedList = [...movie.movies.metadata]

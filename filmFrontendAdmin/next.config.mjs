@@ -9,6 +9,7 @@ const __dirname = dirname(__filename);
 
 const nextConfig = {
     appDir: true,
+    basePath: '/adminpage',
  
 };
 

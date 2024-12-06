@@ -80,7 +80,7 @@ export default function Search() {
                         className="flex justify-center items-center my-10 font-bold text-3xl"
 
                     >
-                        <div>Không tìm thấy kết quả mong muốn cho {query}!</div>
+                        <div>Không tìm thấy kết quả mong muốn!</div>
                         
                     </div>
                 }
