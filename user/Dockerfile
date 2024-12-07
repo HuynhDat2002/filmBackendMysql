@@ -1,8 +1,9 @@
-FROM node:latest
+FROM node:20.18.1
 
 WORKDIR /app/user
 
 COPY package.json .
+
 
 RUN npm install
 COPY . .

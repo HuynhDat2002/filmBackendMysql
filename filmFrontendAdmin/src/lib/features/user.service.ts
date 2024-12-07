@@ -61,6 +61,8 @@ export const checkLogin = async () => {
     try {
         await updateAxiosUserInstance()
         const response = await axiosUser.post(`/checkLogin`);
+        await updateAxiosUserInstance()
+
         return response.data;
     }
     catch (error: any) {

@@ -21,6 +21,8 @@ accessRouter.post('/signUp',authentication,checkPermission("createAny","admin"),
 accessRouter.post('/signIn',asyncHandler(accessController.signIn))
 // accessRouter.get('/profile',checkPermission('readOwn',"user","user"),asyncHandler(profileController.profile))
 accessRouter.use(authentication)
+accessRouter.get('/getUserList',checkPermission("readAny","user"),asyncHandler(accessController.getUserList))
+accessRouter.delete('/deleteUser/:id',checkPermission("deleteAny","user"),asyncHandler(accessController.deleteUser))
 
 accessRouter.get('/getPayloadAdmin',checkPermission("readOwn","admin"),asyncHandler(accessController.getPayloadAdmin))
 accessRouter.get('/getUser',checkPermission("readOwn","admin"),asyncHandler(accessController.getUser))

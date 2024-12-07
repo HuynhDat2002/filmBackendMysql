@@ -1,3 +1,4 @@
+import { getUserList } from './../controllers/access.controller';
 
 'use strict'
 
@@ -84,13 +85,36 @@ const updateNestedObjectParser = (obj:any)=>{
     channel.consume(appQueue.queue,async (data:any)=>{
         console.log('received data from admin')
         console.log(data.content.toString())
+        const client = createClient({ url: "redis://default:pyFDvQLFTafTwKZ4QuVTYynBWDrjxcE3@redis-11938.c15.us-east-1-2.ec2.redns.redis-cloud.com:11938" })
+        await client.connect()
         const received = JSON.parse(data.content.toString())
+        if(received?.event==="GET_USER_LIST"){
+            const userList = await received.data.userList
+            await client.set('userList',JSON.stringify(userList))
 
+            // const data={
+            //     event: "GET_USER_LIST",
+            //     data:{
+            //         userList:userList
+            //     }
+            // }
+            // await publishMessage(channel, "ADMIN_BINDING", JSON.stringify(data))
+        }
+        if(received?.event==="DELETE_USER"){
+            const userDel = await received.data.userDel
+            await client.set('userDel',JSON.stringify(userDel))
+
+            // const data={
+            //     event: "GET_USER_LIST",
+            //     data:{
+            //         userList:userList
+            //     }
+            // }
+            // await publishMessage(channel, "ADMIN_BINDING", JSON.stringify(data))
+        }
         if(received.service==='rbac'){
             console.log('rbac from admin',data.content.toString())
-            const client = createClient({ url: "redis://default:pyFDvQLFTafTwKZ4QuVTYynBWDrjxcE3@redis-11938.c15.us-east-1-2.ec2.redns.redis-cloud.com:11938" })
-            await client.connect()
-            await client.del('rbacresult')
+            
             await client.set('rbacresult', data.content.toString())
             console.log('from admin')
         }

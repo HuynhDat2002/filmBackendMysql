@@ -105,3 +105,18 @@ export const sendOTP = async (req: CustomRequest, res: Response, next: NextFunct
         metadata: await otpService.sendOTP(req.body)
     }).send(res)
 }
+export const getUserList = async (req: CustomRequest, res: Response, next: NextFunction) => {
+    new successResponse.SuccessResonse({
+        message: "Get User List Successfully",
+        metadata: await accessService.getUserList()
+    }).send(res)
+}
+
+
+export const deleteUser = async (req: CustomRequest, res: Response, next: NextFunction) => {
+    const userId = req.params.id as string
+    new successResponse.SuccessResonse({
+        message: "Delete User Successfully",
+        metadata: await accessService.deleteUser({userId:userId})
+    }).send(res)
+}

@@ -8,6 +8,7 @@ import * as config from '@/configs/messageBroker.config'
 import amqplib from 'amqplib'
 import { errorResponse } from '@/cores'
 import { createClient } from 'redis'
+import { prisma } from '@/db/prisma.init'
 
 const convertToObjectId = (id:any)=>{
     return new Types.ObjectId(id)
@@ -104,12 +105,43 @@ const updateNestedObjectParser = (obj:any)=>{
             console.log('received data from user')
             console.log(data.content.toString())
             const received = JSON.parse(data.content.toString())
+            if(received?.event==="GET_USER_LIST"){
+                const userList = await prisma.user.findMany()
+                const data={
+                    event: "GET_USER_LIST",
+                    data:{
+                        userList:userList
+                    }
+                }
+                await publishMessage(channel, "ADMIN_BINDING", JSON.stringify(data))
+            }
+           if(received?.event==="DELETE_USER"){
+                const userId = received?.data?.userId as string
+                console.log('userid from user:', userId)
+                const userList = await prisma.user.findMany()
+                let userdel = {}
+                if(userList.length>0){
+
+                    const userDel = await prisma.user.delete({
+                        where:{
+                            id:userId
+                        }
+                    })
+                    userdel=userDel
+                }
+                const data={
+                    event: "DELETE_USER",
+                    data:{
+                        userDel:userdel
+                    }
+                }
+                await publishMessage(channel, "ADMIN_BINDING", JSON.stringify(data))
+
+            }
             if(received.service==='rbac'){
                 console.log('rbac from user',data.content.toString())
                 const client = createClient({ url: "redis://default:pyFDvQLFTafTwKZ4QuVTYynBWDrjxcE3@redis-11938.c15.us-east-1-2.ec2.redns.redis-cloud.com:11938" })
                 await client.connect()
-            await client.del('rbacresult')
-
                 await client.set('rbacresult', data.content.toString())
                 console.log('from user')
             }

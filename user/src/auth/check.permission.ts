@@ -19,16 +19,19 @@ const sendRBACRequest = async (message: { action: string, resource: string, role
     const channel = await createChannel()
    
     await publishMessage(channel, config.RBAC_BINDING_KEY, JSON.stringify(message) )
-    setTimeout(() => {
-
-    }, 2000)
+   
     
     const client = createClient({ url: "redis://default:pyFDvQLFTafTwKZ4QuVTYynBWDrjxcE3@redis-11938.c15.us-east-1-2.ec2.redns.redis-cloud.com:11938" })
     await client.connect()
-    const result:{service:string,status:string} = JSON.parse(await client.get('rbacresult') as string)
-    if(result){
-        client.del('rbacresult')
-    }
+    let result:{service:string,status:string} = JSON.parse(await client.get('rbacresult') as string)
+    setTimeout(async() => {
+        if(result){
+            await client.del('rbacresult')
+        }
+    }, 2000)
+   if(result===null){
+    result= JSON.parse(await client.get('rbacresult') as string)
+   }
   
     console.log('redis result from user',result)
     return result

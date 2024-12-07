@@ -84,7 +84,6 @@ const subscribeMessage =  async (channel:amqplib.Channel,service:any)=>{
         const received = JSON.parse(data.content.toString())
         console.log('typeopreceive',typeof received)
         if(!received.service){
-
             service.SubscribeEvents(data.content.toString())
         }
         if(received.service==='rbac'){

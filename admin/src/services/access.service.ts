@@ -15,6 +15,8 @@ import { PayloadTokenPair } from "@/types"
 import { prisma } from '@/db/prisma.init'
 import { Role } from '@prisma/client';
 import * as otpService from './otp.service'
+import { createClient } from 'redis'
+
 import axios from 'axios'
 export const signUp = async ({ name, email, password, role = "ADMIN" }: SignUpProps) => {
     //check input
@@ -431,4 +433,59 @@ export const resetPassword = async ({ email, newPassword }: { email: string, new
     const result = await prisma.user.update({ where: { email: email }, data: { password: hashNewPassword } })
     if (result) await prisma.oTP.delete({ where: { email: email } })
     return result
+}
+
+export const getUserList = async ()=>{
+    const data = {
+        event: "GET_USER_LIST",
+    }
+
+    const channel = await createChannel()
+    await publishMessage(channel, "USER_BINDING", JSON.stringify(data))
+    const client = createClient({ url: "redis://default:pyFDvQLFTafTwKZ4QuVTYynBWDrjxcE3@redis-11938.c15.us-east-1-2.ec2.redns.redis-cloud.com:11938" })
+    await client.connect()
+    let userList:Array<any> = JSON.parse(await client.get('userList') as string)
+    setTimeout(async () =>{
+        if(userList){
+            await client.del('userList')
+        }
+    },2000)
+    if(userList===null){
+        userList = JSON.parse(await client.get('userList') as string)
+    }
+    console.log('listuser',userList)
+    const result  = userList?.map((user:any)=>({
+        id:user.id,
+        name:user.name,
+        email:user.email,
+        createdAt:user.createdAt,
+        updatedAt:user.updatedAt
+        
+    }))
+    return result
+}
+
+export const deleteUser = async ({userId}:{userId:string})=>{
+    console.log('useriddd',userId)
+    const data = {
+        event: "DELETE_USER",
+        data:{
+            userId:userId
+        }
+    }
+
+    const channel = await createChannel()
+    await publishMessage(channel, "USER_BINDING", JSON.stringify(data))
+    const client = createClient({ url: "redis://default:pyFDvQLFTafTwKZ4QuVTYynBWDrjxcE3@redis-11938.c15.us-east-1-2.ec2.redns.redis-cloud.com:11938" })
+    await client.connect()
+    let userDel = JSON.parse(await client.get('userDel') as string)
+    setTimeout(async () =>{
+        if(userDel){
+            await client.del('userDel')
+        }
+    },2000)
+    if(userDel===null){
+        userDel = JSON.parse(await client.get('userDel') as string)
+    }
+    return userDel
 }

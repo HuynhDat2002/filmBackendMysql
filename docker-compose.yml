@@ -200,6 +200,8 @@ services:
       dockerfile: Dockerfile
     image: tdat/nextjs:1.0.0
     restart: always
+    expose:
+      - 3000
     deploy:
       replicas: 3
     # networks:
@@ -221,7 +223,6 @@ services:
   
   nginx-proxy:
     image: tdat/nginx:1.0.0 # owasp/modsecurity-crs:nginx #reverse-proxy # owasp/modsecurity-crs:nginx 
-    user: "root"
     container_name: nginx-backend
     # build:
     #   dockerfile: Dockerfile

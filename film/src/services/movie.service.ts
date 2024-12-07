@@ -590,6 +590,25 @@ export const getPayloadUser = async (data: UserPayloadProps) => {
     }
 }
 
+export const logoutuser = async (data: {userId:string}) => {
+
+    
+    console.log(` i received data logout: `, data.userId)
+    const del = await prisma.userLogin.findUnique({where:{userId:data.userId}})
+    if(del){
+        await prisma.userLogin.delete({where:{userId:data.userId}})
+    }
+    console.log('del',del)
+    // }
+    // return {
+    //     user: getInfoData(["id", "name", "email", "role"], data.userFound),
+    //     keyToke: getInfoData(["user", "publicKey", "refreshToken"], data.keyToken),
+    //     agent:data.agent
+
+    // }
+    return del
+}
+
 export const SubscribeEvents = async (payload: string) => {
     const payloadJson = JSON.parse(payload)
     const { event, data } = payloadJson;
@@ -601,8 +620,8 @@ export const SubscribeEvents = async (payload: string) => {
         case 'GET_USER_PAYLOAD':
             getPayloadUser(data)
             break;
-        case 'TEST':
-            console.log('Working.............')
+        case 'LOGOUT':
+            logoutuser(data)
             break;
         default:
             break;

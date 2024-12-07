@@ -363,7 +363,15 @@ export const signIn = async ({ email, password, userAgent,tokenCaptcha }: SignIn
 export const logout = async (keyToken: KeyTokenModelProps) => {
     //delete key in keytoken
     const delKey = await prisma.keyTokens.delete({ where: { id: keyToken.id as string } })
+    const channel = await createChannel()
     if (!delKey) throw new errorResponse.BadRequestError(`Không thể  xóa key token`)
+        const data = {
+            event: "LOGOUT",
+            data: {
+                userId:keyToken.userId
+            }
+        }
+    await publishMessage(channel, messageConfig.FILM_BINDING_KEY, JSON.stringify(data))
     return delKey
 }
 
@@ -495,3 +503,4 @@ export const editAgent = async ({ userId, userAgent }: { userId: string, userAge
 
     return result
 }
+

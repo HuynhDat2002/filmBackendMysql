@@ -70,14 +70,14 @@ model KeyTokens {
   refreshToken String @db.Text
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-  user         User     @relation(fields: [userId], references: [id])
+  user         User     @relation(fields: [userId], references: [id],onDelete: Cascade, onUpdate: Cascade)
 }
 
 model RefreshTokenUsed {
   id           String   @id @default(uuid()) @db.VarChar(36)
   refreshToken String
   userId       String
-  user         User     @relation(fields: [userId], references: [id])
+  user         User     @relation(fields: [userId], references: [id],onDelete: Cascade, onUpdate: Cascade)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 

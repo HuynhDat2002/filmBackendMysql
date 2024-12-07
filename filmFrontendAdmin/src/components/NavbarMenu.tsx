@@ -25,6 +25,11 @@ export default function Menu() {
                     className='cursor-pointer px-2 hover:bg-white hover:w-[100%] hover:shadow-xl py-3 hover:text-black'>
                     Create TV Shows
                 </button>
+                <button 
+                    onClick={()=>router.push('/userlist')}
+                    className='cursor-pointer px-2 hover:bg-white hover:w-[100%] hover:shadow-xl py-3 hover:text-black'>
+                    User List
+                </button>
             </div>
         </>
     )
