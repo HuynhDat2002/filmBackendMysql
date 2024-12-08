@@ -53,7 +53,6 @@ services:
     build:
       context: ./rbac
       dockerfile: Dockerfile
-    # container_name: rbac
     restart: always
     image: tdat/rbac:1.0.0
     deploy:
@@ -87,7 +86,6 @@ services:
     build:
       context: ./film
       dockerfile: Dockerfile
-    # container_name: film
     restart: always
     deploy:
       replicas: 3
@@ -124,7 +122,6 @@ services:
     build:
       context: ./user
       dockerfile: Dockerfile
-    # container_name: user
     restart: always
     image: tdat/user:1.0.0
     deploy:
@@ -244,6 +241,8 @@ services:
       - ./proxy/coreruleset:/etc/modsecurity.d/owasp-crs
       - ./proxy/crs-setup.conf:/etc/nginx/owasp-modsecurity-crs-3.0.2/crs-setup.conf
       - ./proxy/.htpasswd:/etc/nginx/.htpasswd
+      - ./proxy/cert/selfsigned.crt:/etc/ssl/certs/selfsigned.crt
+      - ./proxy/cert/selfsigned.key:/etc/ssl/certs/selfsigned.key
     # networks:
     #   - backend-network
 
