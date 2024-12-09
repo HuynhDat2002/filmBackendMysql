@@ -1,3 +1,4 @@
+// 6LfXO5QqAAAAADU5UPm71o7LmuIhN-K5_M3Ztez0
 'use client'
 import React, { useState, useEffect } from "react";
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, Input, Checkbox, Link, Spinner } from "@nextui-org/react";
@@ -40,10 +41,9 @@ export default function Login({ isOpen, onClose, openSignUp, openForgot,openVeri
         },
         validationSchema: schema,
         onSubmit: async (value) => {
-            await  dispatch(checkDevice({email:formik.values.email,password:formik.values.password}))
+            await  dispatch(checkDevice({email:formik.values.email,password:formik.values.password,tokenCaptcha:tokenCaptcha}))
         },
     });
-
     useEffect(() => {
         if(user.isLogin){
             if (user.isSuccess ) {onClose();window.location.reload()}

@@ -48,17 +48,6 @@ export const grantAccess = async (action: string, resource: string, role: string
             { role: 'SUPERVISOR', resource: 'admin', action: 'delete:any', attributes: '*' },
             { role: 'SUPERVISOR', resource: 'admin', action: 'read:any', attributes: '*' }
         ]
-        // const rlObject = {
-        //     SUPERVISOR: {
-        //         comment: {
-        //             'create:any': ['*'],
-        //             'read:any': ['*'],
-        //             'update:any': ['*'],
-        //             'delete:any': ['*']
-        //         }
-        //     },
-        // }
-
         // const rl = await roleList({})
         console.log('action', action)
         console.log('resource', resource)

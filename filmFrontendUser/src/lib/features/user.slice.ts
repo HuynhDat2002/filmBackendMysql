@@ -144,7 +144,7 @@ export const editUser = createAsyncThunk(
 
 export const checkDevice = createAsyncThunk(
   "user/checkDevice",
-  async (data:{email:string,password:string}, thunkAPI) => {
+  async (data:{email:string,password:string,tokenCaptcha:string}, thunkAPI) => {
     try {
       return await userService.checkDevice(data);
     } catch (error) {

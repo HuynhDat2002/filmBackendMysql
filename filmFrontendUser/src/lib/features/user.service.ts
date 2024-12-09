@@ -79,11 +79,11 @@ export const logIn = async (data: LoginValueProps) => {
     }
 }
 
-export const checkDevice = async (data: {email:string,password:string}) => {
+export const checkDevice = async (data: {email:string,password:string,tokenCaptcha:string}) => {
     try {
         console.log('data check',data)
         await localStorage.setItem('email', data.email);
-        const response = await axiosUser.post(`/checkDevice`, {email:data.email,password:data.password});
+        const response = await axiosUser.post(`/checkDevice`, {email:data.email,password:data.password,tokenCaptcha:data.tokenCaptcha});
         // await localStorage.setItem('user', JSON.stringify(response.data.metadata));
         await updateAxiosUserInstance();  // Update the axios instance with new token
         await updateAxiosUserInstanceFilm()

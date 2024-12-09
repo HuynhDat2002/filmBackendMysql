@@ -58,7 +58,8 @@ export interface SignInProps{
 export interface CheckDevice{
     email:string,
     password:string,
-    userAgent:string
+    userAgent:string,
+    tokenCaptcha:string
 
   
 }

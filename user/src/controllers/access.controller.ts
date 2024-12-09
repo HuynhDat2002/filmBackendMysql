@@ -29,7 +29,7 @@ export const checkDevice = async (req: CustomRequest, res: Response, next: NextF
     // });
     new successResponse.SuccessResonse({
         message: "Check device",
-        metadata: await accessService.checkDevice({email:req.body.email,password:req.body.password,userAgent})
+        metadata: await accessService.checkDevice({email:req.body.email,password:req.body.password,userAgent,tokenCaptcha:req.body.tokenCaptcha})
     }).send(res)
 }
 

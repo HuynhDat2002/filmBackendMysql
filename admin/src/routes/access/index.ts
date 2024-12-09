@@ -29,7 +29,6 @@ accessRouter.get('/getUser',checkPermission("readOwn","admin"),asyncHandler(acce
 accessRouter.post('/logout',checkPermission("readOwn","admin"),asyncHandler(accessController.logOut))
 accessRouter.patch('/changePassword',checkPermission("updateOwn","admin"),asyncHandler(accessController.changePassword))
 accessRouter.patch('/editUser',checkPermission("updateOwn","admin"),asyncHandler(accessController.editUser))
-
 export default accessRouter 
 
 

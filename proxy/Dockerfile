@@ -7,8 +7,7 @@ RUN rm /etc/nginx/nginx.conf
 RUN apt-get update && apt-get install -y openssl
 
 # Generate the self-signed certificate
-COPY ./cert/selfsigned.crt /etc/ssl/certs/selfsigned.crt;
-COPY ./cert/selfsigned.key /etc/ssl/certs/selfsigned.key;
+
 
 
 
@@ -92,7 +91,7 @@ tar -xzvf v3.0.2.tar.gz && \
 mv owasp-modsecurity-crs-3.0.2 /etc/nginx
 
 RUN chmod 777 /etc/nginx/owasp-modsecurity-crs-3.0.2
-RUN rm /etc/nginx/owasp-modsecurity-crs-3.0.2/crs-setup.conf
+# RUN rm /etc/nginx/owasp-modsecurity-crs-3.0.2/crs-setup.conf
 COPY crs-setup.conf /etc/nginx/owasp-modsecurity-crs-3.0.2/crs-setup.conf
 # # Sao chép và thiết lập cấu hình CRS
 # RUN cd /etc/nginx/owasp-modsecurity-crs-3.0.2 && \
@@ -100,9 +99,11 @@ COPY crs-setup.conf /etc/nginx/owasp-modsecurity-crs-3.0.2/crs-setup.conf
 COPY ./modsec/main.conf /etc/nginx/modsec/main.conf
 COPY ./.htpasswd /etc/nginx/.htpasswd
 
+COPY ./cert/selfsigned.crt /etc/ssl/certs/selfsigned.crt;
+COPY ./cert/selfsigned.key /etc/ssl/certs/selfsigned.key;
 # Đảm bảo rằng chứng chỉ SSL tồn tại và có quyền truy cập đúng
-RUN chmod 777 /etc/ssl/certs/selfsigned.crt
-RUN chmod 777 /etc/ssl/certs/selfsigned.key
+# RUN chmod 777 /etc/ssl/certs/selfsigned.crt
+# RUN chmod 777 /etc/ssl/certs/selfsigned.key
 
 # # Cấu hình lại Nginx để sử dụng SSL
 # RUN sed -i 's|ssl_certificate .*|ssl_certificate /etc/ssl/certs/selfsigned.crt;|' /etc/nginx/nginx.conf

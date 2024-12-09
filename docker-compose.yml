@@ -17,8 +17,8 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
-    # networks:
-    #   - backend-network
+    networks:
+      - backend-network
 
   # prisma:
   #   image: prismagraphql/prisma:1.34
@@ -46,8 +46,8 @@ services:
     ports:
       - '5672:5672'
       - '5671:5671'
-    # networks:
-    #   - backend-network
+    networks:
+      - backend-network
  
   rbac:
     build:
@@ -79,8 +79,8 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
-    # networks:
-    #   - backend-network
+    networks:
+      - backend-network
 
   film:
     build:
@@ -112,8 +112,8 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
-    # networks:
-    #   - backend-network
+    networks:
+      - backend-network
 
   
 
@@ -148,8 +148,8 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
-    # networks:
-    #   - backend-network
+    networks:
+      - backend-network
 
 
 
@@ -187,8 +187,8 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
-    # networks:
-    #   - backend-network
+    networks:
+      - backend-network
 
   nextjs:
     # container_name: nextjs-frontend
@@ -201,8 +201,8 @@ services:
       - 3000
     deploy:
       replicas: 3
-    # networks:
-    #   - backend-network
+    networks:
+      - backend-network
 
   nextjs-admin:
     # container_name: nextjs-frontend
@@ -215,15 +215,36 @@ services:
       - 3001
     deploy:
       replicas: 3
-    # networks:
-    #   - backend-network
-  
+    networks:
+      - backend-network
+
+  # duckdns:
+  #   image: lscr.io/linuxserver/duckdns:latest
+  #   container_name: duckdns
+  #   network_mode: host
+  #   restart: always
+  #   environment:
+  #     - TZ=Asia/Ho_Chi_Minh
+  #     - SUBDOMAINS=navyfilm.duckdns.org
+  #     - TOKEN=678d7a2e-db77-4e18-8933-1648dd12a342
+  #     - UPDATE_IP=192.168.1.7
+  #     - LOG_FILE=true
+
+  # certbot:
+  #   image: certbot/certbot:latest
+  #   container_name: certbot
+  #   volumes:
+  #     - ./certbot/conf:/etc/letsencrypt
+  #     - ./certbot/www:/var/www/certbot
+  #   command: certonly --webroot -w /var/www/certbot  --force-renewal --email hltdat2002@gmail.com -d navyfilm.xyz --agree-tos
+      
+
   nginx-proxy:
-    image: tdat/nginx:1.0.0 # owasp/modsecurity-crs:nginx #reverse-proxy # owasp/modsecurity-crs:nginx 
+    # image: tdat/nginx:1.0.0 # owasp/modsecurity-crs:nginx #reverse-proxy # owasp/modsecurity-crs:nginx 
     container_name: nginx-backend
-    # build:
-    #   dockerfile: Dockerfile
-    #   context: ./proxy
+    build:
+      dockerfile: Dockerfile
+      context: ./proxy
     depends_on:
       - film
       - user
@@ -231,6 +252,7 @@ services:
       - rbac  
       - nextjs
       - nextjs-admin
+      # - certbot
     ports:
       - 443:443
     volumes:
@@ -243,11 +265,11 @@ services:
       - ./proxy/.htpasswd:/etc/nginx/.htpasswd
       - ./proxy/cert/selfsigned.crt:/etc/ssl/certs/selfsigned.crt
       - ./proxy/cert/selfsigned.key:/etc/ssl/certs/selfsigned.key
-    # networks:
-    #   - backend-network
-
+    networks:
+      - backend-network
 
  
+   
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.10.2
@@ -259,8 +281,8 @@ services:
       - "9200:9200"
     volumes:
       - esdata:/usr/share/elasticsearch/data
-    # networks:
-    #   - backend-network
+    networks:
+      - backend-network
 
 
 
@@ -280,8 +302,8 @@ services:
     ports:
       - "5044:5044"
       - "9600:9600"
-    # networks:
-    #   - backend-network
+    networks:
+      - backend-network
 
 
 
@@ -295,14 +317,14 @@ services:
       - "5601:5601"
     depends_on:
       - elasticsearch
-    # networks:
-    #   - backend-network
+    networks:
+      - backend-network
 
 
 
-# networks:
-#   backend-network:
-#     driver: bridge  
+networks:
+  backend-network:
+    driver: bridge  
 
 volumes:
   esdata:
