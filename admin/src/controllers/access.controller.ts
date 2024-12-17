@@ -120,3 +120,11 @@ export const deleteUser = async (req: CustomRequest, res: Response, next: NextFu
         metadata: await accessService.deleteUser({userId:userId})
     }).send(res)
 }
+
+export const deleteMovie = async (req: CustomRequest, res: Response, next: NextFunction) => {
+    const userId = req.params.id as string
+    new successResponse.SuccessResonse({
+        message: "Delete Film Successfully",
+        metadata: await accessService.deleteUser({userId:userId})
+    }).send(res)
+}

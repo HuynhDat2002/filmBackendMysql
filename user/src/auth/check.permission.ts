@@ -8,6 +8,7 @@ import { successResponse } from '@/cores'
 import { Request, Response, NextFunction } from 'express'
 import { createClient } from 'redis'
 import { CustomRequest } from '@/types'
+import { clientRedis } from '@/utils'
 const publishMessage = async (channel: amqplib.Channel, binding_key: string, message: string) => {
 
     await channel.publish(config.EXCHANGE_NAME, binding_key, Buffer.from(message))
@@ -16,25 +17,33 @@ const publishMessage = async (channel: amqplib.Channel, binding_key: string, mes
 
 //subscribe messages
 const sendRBACRequest = async (message: { action: string, resource: string, role: string, service: string }) => {
-    const channel = await createChannel()
-   
-    await publishMessage(channel, config.RBAC_BINDING_KEY, JSON.stringify(message) )
-   
-    
-    const client = createClient({ url: "redis://default:pyFDvQLFTafTwKZ4QuVTYynBWDrjxcE3@redis-11938.c15.us-east-1-2.ec2.redns.redis-cloud.com:11938" })
+    const channel = await createChannel() as amqplib.Channel
+    const client = await clientRedis()
     await client.connect()
-    let result:{service:string,status:string} = JSON.parse(await client.get('rbacresult') as string)
-    setTimeout(async() => {
-        if(result){
-            await client.del('rbacresult')
+    await client.del("rbacresult");
+    await publishMessage(channel, config.RBAC_BINDING_KEY, JSON.stringify(message) )
+    // let result:{service:string,status:string} =await JSON.parse(await client.get('rbacresult') as string)
+    
+     // Poll for the result in Redis
+    const pollForResult = async () => {
+        const start = Date.now();
+        while (Date.now() - start < 5000) {
+            const result = await client.get("rbacresult");
+            if (result) {
+                return JSON.parse(result);
+            }
+            await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait for `interval` ms
         }
-    }, 2000)
-   if(result===null){
-    result= JSON.parse(await client.get('rbacresult') as string)
-   }
-  
+        throw new Error("Timeout waiting for RBAC result from Redis");
+    };
+    const result = await pollForResult();
+//    if(result===null){
+//     result= JSON.parse(await client.get('rbacresult') as string)
+//    }
+    
     console.log('redis result from user',result)
     return result
+
 }
 
 // }

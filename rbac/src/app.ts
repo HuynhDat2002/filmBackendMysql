@@ -9,6 +9,7 @@ import router from '@/routes'
 import { subscribeMessage } from './utils'
 import { createChannel } from './utils'
 import { connectDB } from './db/prisma.init'
+import amqplib from 'amqplib'
 const app:Application  = express()
 
 
@@ -32,7 +33,7 @@ const userApp = async (app:express.Express)=>{
     connectDB()
     //checking overload
     checkOverload()
-    const channel =await createChannel()
+    const channel =await createChannel() as amqplib.Channel
     await subscribeMessage(channel)
     app.use('/rbac/',router)
     

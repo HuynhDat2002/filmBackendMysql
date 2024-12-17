@@ -7,6 +7,7 @@ import { errorResponse } from '@/cores';
 import { createClient } from 'redis'
 import * as regex from '@/middlewares/regex'
 import { prisma } from '@/db/prisma.init';
+import {clientRedis} from '@/utils'
 const transporter = nodemailer.createTransport({
     service: "gmail",
     host: "smtp.gmail.email",
@@ -87,7 +88,7 @@ export const sendOTP = async ({ name, email, password }: { name: string, email: 
 
     const result = await sendOTPVerifyEmail({ email })
     if (result) {
-        const client = createClient({ url: "redis://default:pyFDvQLFTafTwKZ4QuVTYynBWDrjxcE3@redis-11938.c15.us-east-1-2.ec2.redns.redis-cloud.com:11938" })
+        const client = await clientRedis()
         await client.connect()
         if(await client.get('userSign')){
             await client.del('userSign')

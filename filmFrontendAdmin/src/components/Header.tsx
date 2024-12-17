@@ -60,27 +60,29 @@ export default function Header({isOpenMenu,setIsOpenMenu}:{isOpenMenu:boolean,se
     console.log('isLogin',isLogged)
     return (
         <>
-            <header className="px-4 py-4 bg-ctBlue-header relative" >
+            <header className="px-4 py-4 bg-ctBlue-header relative " >
                 <div className="flex flex-row text-white">
                     <div className="flex-1 flex justify-start items-center gap-4">
 
                         <div className="flex items-center">
                             <button className=" rounded-lg p-1" onClick={handleOpenMenu}>
                                 <Image
-                                    src="/menu.png"
+                                    src="/adminpage/menu.png"
                                     width={24}
                                     height={24}
                                     alt=""
                                 />
+                                {/* <img src="/adminpage/menu.png" alt="Menu" width="24" height="24" /> */}
                             </button>
                         </div>
                         <div className="flex flex-row gap-2 cursor-pointer" onClick={() => router.push("/")}>
                             <Image
-                                src="/logo-film.png"
+                                src="/adminpage/logo-film.png"
                                 width={24}
                                 height={24}
                                 alt=""
                             />
+                            {/* <img src="/logo-film.png" alt="Logo Film" width="24" height="24" /> */}
                             <p className="font-bold text-xl text-center">Navy</p>
                         </div>
                     </div>

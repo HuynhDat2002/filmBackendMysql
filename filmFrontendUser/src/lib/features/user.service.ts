@@ -115,6 +115,7 @@ export const logout = async () => {
 
         const response = await axiosUser.post(`/logout`);
         await localStorage.removeItem("user");
+        await localStorage.removeItem('userinfo')
         await updateAxiosUserInstance();  // Update the axios instance after removing token
         await updateAxiosUserInstanceFilm()
         return response.data;

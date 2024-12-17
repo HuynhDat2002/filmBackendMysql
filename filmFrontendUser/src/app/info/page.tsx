@@ -3,10 +3,11 @@ import { useAppDispatch, useAppSelector } from "../../lib/hooks"
 import React, { useEffect, useState } from "react"
 
 import { FilmIcon, MonitorIcon } from "@iconicicons/react"
-
+import { checkLogin } from "../../lib/features/user.slice"
 import * as yup from 'yup'
 import { editUser } from '../../lib/features/user.slice'
 import { useFormik } from "formik"
+import SuccessEdit from "@/components/SuccessEdit"
 import { Button, Input, Checkbox, Link, Spinner } from "@nextui-org/react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {useRouter} from 'next/navigation'
@@ -18,7 +19,16 @@ const router = useRouter()
   const tvs: any = useAppSelector((state) => state.tvReducer.tvs.metadata)
   const user: any = useAppSelector((state) => state.userReducer) 
   const userinfo: { user: { id: string, email: string, name: string } } = typeof window !== "undefined" ? (JSON.parse(  localStorage.getItem('userinfo') as string) ? JSON.parse(localStorage.getItem('userinfo') as string) :  { user: { id: "", email: "", name: "" } } ) : { user: { id: "", email: "", name: "" } }
+  const [isSuccess, setIsSuccess] = useState(false)
+  useEffect(() => {
+
+    dispatch(checkLogin())
+    
+}, [])
+  
   useEffect(()=>{
+    if (user.isSuccess && user.isEdit) setIsSuccess(true)
+      if(user.isError && user.isCheck) router.push(`/`)
   },user.isLoading)
 
   let schema = yup.object().shape({
@@ -58,6 +68,7 @@ const router = useRouter()
   console.log(`emailll`, userinfo)
 
   return (
+    <>
     <div className="mt-5">
       <div className=" mx-auto w-[100%] mb-5">
         <form onSubmit={formik.handleSubmit} >
@@ -114,5 +125,9 @@ const router = useRouter()
         </form>
       </div>
     </div>
+      {isSuccess &&
+        <SuccessEdit isOpen={isSuccess} onClose={() => setIsSuccess(false)} />
+      }
+      </>
   )
 }

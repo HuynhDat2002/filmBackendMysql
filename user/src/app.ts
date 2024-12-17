@@ -10,6 +10,8 @@ import { subscribeMessage } from './utils'
 import { createChannel } from './utils'
 import { accessService } from './services'
 import { connectDB } from './db/prisma.init'
+import amqplib from 'amqplib'
+import { clientRedis } from './utils'
 const app:Application  = express()
 
 
@@ -35,8 +37,7 @@ const userApp = async (app:express.Express)=>{
     checkOverload()
 
     //create channel
-    const channel = await createChannel();
-    
+    const channel = await createChannel() as amqplib.Channel
     // subscribe message
      await subscribeMessage(channel)
     
@@ -57,7 +58,7 @@ const userApp = async (app:express.Express)=>{
         return res.status(status).json({
             status:status,
             message:status !== 500 ? error.message : "Internal Server Error",
-            stack:error.stack
+            // stack:error.stack
         })
     })
     

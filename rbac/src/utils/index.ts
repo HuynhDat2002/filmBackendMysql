@@ -9,6 +9,7 @@ import * as config from '@/configs/messageBroker.config'
 import amqplib from 'amqplib'
 import { grantAccess } from '@/middlewares/rbac.middleware'
 import * as regex from '@/middlewares/regex'
+import { createClient } from 'redis'
 const convertToObjectId = (id: any) => {
     return new Types.ObjectId(id)
 }
@@ -57,14 +58,45 @@ const updateNestedObjectParser = (obj: any) => {
 
 //create a channel
 const createChannel = async () => {
+    console.log('ms',config.MSG_QUEUE_URL)
+    for (let i =0;i<10;i++){
+        try{
+            const connection = await amqplib.connect(config.MSG_QUEUE_URL)
+            const channel = await connection.createChannel()
+            console.log('Connect to rabbitmq successfully')
+            break;
+        }
+        catch(err){
+            console.error('Failed to connect to rabbitmq',err)
+            await new Promise(resolve=>setTimeout(resolve,3000))
+        }
+    }
     const connection = await amqplib.connect(config.MSG_QUEUE_URL)
     const channel = await connection.createChannel()
-    await channel.assertExchange(config.EXCHANGE_NAME, 'direct', {
-        durable: true
+    await channel.assertExchange(config.EXCHANGE_NAME,'direct',{
+      durable: true
     })
-    return channel
+     return channel
 }
+export const clientRedis = async ()=>{
+    console.log('ms',config.MSG_QUEUE_URL)
+    for (let i =0;i<6;i++){
+        try{
+            const client = createClient({ url: "redis://redis-film:6379" })
+            console.log('Connect to redis successfully')
+            break;
+        }
+        catch(err){
+            console.error('Failed to connect to redis',err)
+            await new Promise(resolve=>setTimeout(resolve,3000))
+        }
+    }
+    const client = createClient({ url: "redis://redis-film:6379" })
 
+   
+     return client
+  }
+  
 
 //publish messages
 const publishMessage = async (channel: amqplib.Channel, binding_key: string, message: string) => {
@@ -96,7 +128,7 @@ const subscribeMessage = async (channel: amqplib.Channel) => {
             if (message.service === "film") {
                 await publishMessage(channel,"FILM_BINDING", JSON.stringify({service:"rbac",status:grant === true ? "success" : "denied"}))
             }
-            
+            channel.ack(data)
         }
     },{
         noAck:false

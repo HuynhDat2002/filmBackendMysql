@@ -160,7 +160,7 @@ export default function Login({ isOpen, onClose, openSignUp, openForgot,openVeri
                                         </Link>
                                     </div>
                                     <ReCAPTCHA
-                                        sitekey="6LfXO5QqAAAAADU5UPm71o7LmuIhN-K5_M3Ztez0"
+                                        sitekey="6LcTMZcqAAAAAAYpYV-BoPjawYsv7_uJutvjVSF0"
                                         onChange={handleCaptchaChange}
                                     />
                                     {isLoading &&

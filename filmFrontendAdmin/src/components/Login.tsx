@@ -160,7 +160,7 @@ export default function Login({ isOpen, onClose, openSignUp, openForgot,openVeri
                                         </Link>
                                     </div>
                                     <ReCAPTCHA
-                                        sitekey="6LfXO5QqAAAAADU5UPm71o7LmuIhN-K5_M3Ztez0"
+                                        sitekey="6LcTMZcqAAAAAAYpYV-BoPjawYsv7_uJutvjVSF0"
                                         onChange={handleCaptchaChange}
                                     />
                                     {isLoading &&
@@ -168,17 +168,9 @@ export default function Login({ isOpen, onClose, openSignUp, openForgot,openVeri
                                         
                                      }  
                                 </ModalBody>
-                                <ModalFooter className="flex flex-row">
-                                    <Button className="text-gray-500 hover:text-ctBlue-logo flex basis-1/2 px-1" type="button" onClick={openSignUp}>
+                                <ModalFooter className="flex flex-row justify-center">
 
-                                        <FontAwesomeIcon icon={faRightToBracket} className="pr-2" />
-                                        <span className="text-center">Sign Up</span>
-
-                                    </Button>
-                                    <Button color="danger" variant="flat" onPress={onClose} className="basis1/4">
-                                        Close
-                                    </Button>
-                                    <Button className="bg-ctBlue-header text-white basis-1/4" type="submit">
+                                    <Button className="bg-ctBlue-header flex  text-white basis-1/4" type="submit">
                                         Sign in
                                     </Button>
 

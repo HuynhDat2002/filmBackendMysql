@@ -10,6 +10,8 @@ import { subscribeMessage } from './utils'
 import { createChannel } from './utils'
 import { accessService } from './services'
 import { connectDB } from './db/prisma.init'
+import amqplib from 'amqplib'
+import { clientRedis } from './utils'
 import { subscribeMessageRBAC } from './auth/check.permission'
 const app:Application  = express()
 
@@ -37,10 +39,9 @@ const adminApp = async (app:express.Express)=>{
     checkOverload()
 
     //create channel
-    const channel = await createChannel();
-    
+    const channel = await createChannel() as amqplib.Channel
    // subscribe message
-    await subscribeMessage(channel)
+    await subscribeMessage(channel) 
     // await subscribeMessageRBAC(channel)
     app.use('/admin/',router)
     

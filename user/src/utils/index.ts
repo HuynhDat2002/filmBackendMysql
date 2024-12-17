@@ -57,32 +57,46 @@ const updateNestedObjectParser = (obj:any)=>{
 // ----------------------message broker-------------------------
 
 //create a channel
- const createChannel = async () : Promise<amqplib.Channel>=>{
-    let retries = 3
-    while (retries>0){
-
+ const createChannel = async ()=>{
+    console.log('ms',config.MSG_QUEUE_URL)
+    for (let i =0;i<10;i++){
         try{
-            console.log(config.MSG_QUEUE_URL)
-            const connection = await amqplib.connect("amqps://manhlcbi:4RaEAOXMu4G3hABsnlRwZ8-1OMl83JOS@octopus.rmq3.cloudamqp.com/manhlcbi")
+            const connection = await amqplib.connect(config.MSG_QUEUE_URL)
             const channel = await connection.createChannel()
-            await channel.assertExchange(config.EXCHANGE_NAME,'direct',{
-              durable: true
-            })
             console.log('Connect to rabbitmq successfully')
-            return channel
+            break;
         }
-        catch (error){
-            console.log(`Loi ket noi rabbitmq`)
-            console.log(error)
-            retries -=1;
-            if(retries===0) throw new errorResponse.BadRequestError('Ket noi rabbitmq that bai')
+        catch(err){
+            console.error('Failed to connect to rabbitmq',err)
             await new Promise(resolve=>setTimeout(resolve,3000))
-
         }
     }
-    throw new errorResponse.BadRequestError('Không thể tạo kênh kết nối RabbitMQ');
+    const connection = await amqplib.connect(config.MSG_QUEUE_URL)
+    const channel = await connection.createChannel()
+    await channel.assertExchange(config.EXCHANGE_NAME,'direct',{
+      durable: true
+    })
+     return channel
   }
   
+  export const clientRedis = async ()=>{
+    console.log('ms',config.MSG_QUEUE_URL)
+    for (let i =0;i<6;i++){
+        try{
+            const client = createClient({ url: "redis://redis-film:6379" })
+            console.log('Connect to redis successfully')
+            break;
+        }
+        catch(err){
+            console.error('Failed to connect to redis',err)
+            await new Promise(resolve=>setTimeout(resolve,3000))
+        }
+    }
+    const client = createClient({ url: "redis://redis-film:6379" })
+
+   
+     return client
+  }
   
   //publish messages
    const publishMessage = async (channel:amqplib.Channel,binding_key:string,message:string)=>{
@@ -140,7 +154,7 @@ const updateNestedObjectParser = (obj:any)=>{
             }
             if(received.service==='rbac'){
                 console.log('rbac from user',data.content.toString())
-                const client = createClient({ url: "redis://default:pyFDvQLFTafTwKZ4QuVTYynBWDrjxcE3@redis-11938.c15.us-east-1-2.ec2.redns.redis-cloud.com:11938" })
+                const client = await clientRedis()
                 await client.connect()
                 await client.set('rbacresult', data.content.toString())
                 console.log('from user')

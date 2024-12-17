@@ -83,6 +83,10 @@ export default function MovieDetail() {
             setType(tv.tv.metadata.type[0].toUpperCase() + tv.tv.metadata.type.slice(1))
             setEpisodeCurrent(tv.tv.metadata?.episodes[0].video)
             setEpisodeTotal(tv.tv.metadata.episodes)
+            setEpisodeTotal(prev=>{
+                const newData = [...prev]
+                return newData.sort((a:any,b:any)=> a.slug.localeCompare(b.slug))
+            })
             setQuality(tv.tv.metadata.quality)
             setView(tv.tv.metadata.view)
             setPoster(tv.tv.metadata.poster_url)

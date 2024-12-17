@@ -15,7 +15,7 @@ export default function FilmList(tab: any) {
   const movies: any = useAppSelector((state) => state.movieReducer.movies.metadata)
   const tvs: any = useAppSelector((state) => state.tvReducer.tvs.metadata)
   const user: any = useAppSelector((state) => state.userReducer)
-
+  const movieState = useAppSelector(state=>state.movieReducer)
 
   useEffect(() => {
     // Gọi hành động getMovies khi component được mount
@@ -24,7 +24,9 @@ export default function FilmList(tab: any) {
     dispatch(getAllTV(1));
 
   }, [user]);
-
+  useEffect(() =>{
+    if(movieState.isSuccess && movieState.isDelete) {dispatch(getMovies(1));}
+  },[movieState])
   const renderCategoryIcon = (category: string) => {
     if (category === 'movie') {
       return <FilmIcon className="pl-1 text-base" />

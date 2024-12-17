@@ -22,7 +22,7 @@ export default function Home() {
 
   type Key = string | number
   return (
-    <main className="relative">
+    <main className="relative ">
       <div className="flex-col">
 
         <Tabs

@@ -20,38 +20,8 @@ import { ratingModel } from '@/models/rating.model'
 import { UserPayloadProps } from '@/types'
 import * as regex from '@/middlewares/regex'
 import { prisma } from '@/db/prisma.init'
-// const redis = require('redis');
+import { clientRedis } from '@/utils'
 
-
-// const redisClient = redis.createClient({
-//     host: 'redis',
-//     port: 6379
-//   });
-// type MovieData = {
-//     movie: {
-//         name: string;
-//         slug: string;
-//         origin_name: string;
-//         contain: string;
-//         poster_url: string;
-//         thumb_url: string;
-//         trailer: string;
-//         time: string;
-//         lang: string;
-//         year: number;
-//         actor: string;
-//         director: string;
-//         category: string;
-//         country: string;
-//         quality: string;
-//         episode_current: string;
-//     };
-//     episodes: Array<{
-//         server_data: Array<{
-//             link_embed: string;
-//         }>
-//     }>;
-// };
 const isAllowedURL = async (url: string) => {
     const allowedUrls = [
         {
@@ -231,17 +201,39 @@ export const deleteMovie = async (movieId: string) => {
     //check input
     const isValidId2 = await movieId.match(regex.idRegex)
     if (isValidId2 === null) throw new errorResponse.BadRequestError('Film Id không hợp lệ')
-    await prisma.actor.deleteMany({ where: { movie: { some: { movieId: movieId } } } })
-    await prisma.director.deleteMany({ where: { movie: { some: { movieId: movieId } } } })
-    await prisma.category.deleteMany({ where: { movie: { some: { movieId: movieId } } } })
-    await prisma.country.deleteMany({ where: { movie: { some: { movieId: movieId } } } })
+    
+    // lay danh sach lien quan
+    const actors = await prisma.actor.findMany({ where: { movie: { some: { movieId: movieId } } } })
+    const directors = await prisma.director.findMany({ where: { movie: { some: { movieId: movieId } } } })
+    const categories = await prisma.category.findMany({ where: { movie: { some: { movieId: movieId } } } })
+    const countries = await prisma.country.findMany({ where: { movie: { some: { movieId: movieId } } } })
+
+    // xoa movie
     const movie = await prisma.movie.findUnique({ where: { id: movieId } })
     if (!movie) throw new errorResponse.BadRequestError(`Cannot find movie`)
     const movieDeleted = await prisma.movie.delete({ where: { id: movieId } })
-
+    if (!movieDeleted) throw new errorResponse.BadRequestError(`Cannot delete movie`)
+    
+    for (const actor of actors){
+        const movieFound = await prisma.movie.findMany({where:{actor:{some:{actorId:actor.id}}}})
+        if(movieFound.length===0) await prisma.actor.delete({where:{id:actor.id}})
+    }   
+    for (const category of categories) {
+        const movieFound = await prisma.movie.findMany({where:{category:{some:{categoryId:category.id}}}})
+        if(movieFound.length===0) await prisma.category.delete({where:{id:category.id}})
+    } 
+    for (const director of directors){
+        const movieFound = await prisma.movie.findMany({where:{director:{some:{directorId:director.id}}}})
+        if(movieFound.length===0) await prisma.director.delete({where:{id:director.id}})
+    } 
+    for (const country of countries){
+        const movieFound = await prisma.movie.findMany({where:{country:{some:{countryId:country.id}}}})
+        if(movieFound.length===0) await prisma.country.delete({where:{id:country.id}})
+    } 
 
     return movieDeleted
 }
+
 
 export const getMovie = async (movieId: string) => {
     //check input
@@ -307,7 +299,6 @@ export const getMovie = async (movieId: string) => {
 
     return movieUpdateView
 }
-
 
 export const ratingMovie = async ({ filmId, userId, rating }: RatingProps) => {
     //check input
@@ -440,9 +431,6 @@ export const getAllMovie = async (query: QueryProps) => {
         movie = await prisma.movie.findMany({
             where: {
                 name: {
-                    search: query.query
-                },
-                origin_name: {
                     contains: query.query
                 }
             },
@@ -479,9 +467,6 @@ export const getAllMovie = async (query: QueryProps) => {
         movie = await prisma.movie.findMany({
             where: {
                 name: {
-                    contains: query.query
-                },
-                origin_name: {
                     contains: query.query
                 }
             },
@@ -532,10 +517,9 @@ export const getPageTotal = async () => {
 // }
 
 export const getPayloadAdmin = async (data: AdminPayloadProps) => {
-    const client = createClient({ url: "redis://default:pyFDvQLFTafTwKZ4QuVTYynBWDrjxcE3@redis-11938.c15.us-east-1-2.ec2.redns.redis-cloud.com:11938" })
+    const client = await clientRedis()
     await client.connect()
-    // await redisClient.on()
-    // await redisClient.connect()
+
 
     console.log(` i received data: `, data.adminFound)
     await client.set('admin', JSON.stringify(data.adminFound))
@@ -549,7 +533,7 @@ export const getPayloadAdmin = async (data: AdminPayloadProps) => {
 
 export const getPayloadUser = async (data: UserPayloadProps) => {
 
-    const client = createClient({ url: "redis://default:pyFDvQLFTafTwKZ4QuVTYynBWDrjxcE3@redis-11938.c15.us-east-1-2.ec2.redns.redis-cloud.com:11938" })
+    const client = await clientRedis()
 
     await client.connect()
     // await client.on()
@@ -559,25 +543,25 @@ export const getPayloadUser = async (data: UserPayloadProps) => {
     // await client.set('user', JSON.stringify(data.userFound))
     // await client.set('keyTokenUser', JSON.stringify(data.keyToken))
     // await client.set('agent', JSON.stringify(data.agent))
-    if(await prisma.userLogin.findUnique({where:{userId:data.userFound.id as string}})){
+    if (await prisma.userLogin.findUnique({ where: { userId: data.userFound.id as string } })) {
         await prisma.userLogin.update({
-            where:{
-                userId:data.userFound.id
+            where: {
+                userId: data.userFound.id
             },
-            data:{
-                user:JSON.stringify(data.userFound),
-                keyToken:JSON.stringify(data.keyToken),
-                agent:JSON.stringify(data.agent)
+            data: {
+                user: JSON.stringify(data.userFound),
+                keyToken: JSON.stringify(data.keyToken),
+                agent: JSON.stringify(data.agent)
             }
         })
     }
-    else{
+    else {
         await prisma.userLogin.create({
-            data:{
-                userId:data.userFound.id as string,
-                user:JSON.stringify(data.userFound),
-                keyToken:JSON.stringify(data.keyToken),
-                agent:JSON.stringify(data.agent)
+            data: {
+                userId: data.userFound.id as string,
+                user: JSON.stringify(data.userFound),
+                keyToken: JSON.stringify(data.keyToken),
+                agent: JSON.stringify(data.agent)
             }
         })
 
@@ -585,20 +569,20 @@ export const getPayloadUser = async (data: UserPayloadProps) => {
     return {
         user: getInfoData(["id", "name", "email", "role"], data.userFound),
         keyToke: getInfoData(["user", "publicKey", "refreshToken"], data.keyToken),
-        agent:data.agent
+        agent: data.agent
 
     }
 }
 
-export const logoutuser = async (data: {userId:string}) => {
+export const logoutuser = async (data: { userId: string }) => {
 
-    
+
     console.log(` i received data logout: `, data.userId)
-    const del = await prisma.userLogin.findUnique({where:{userId:data.userId}})
-    if(del){
-        await prisma.userLogin.delete({where:{userId:data.userId}})
+    const del = await prisma.userLogin.findUnique({ where: { userId: data.userId } })
+    if (del) {
+        await prisma.userLogin.delete({ where: { userId: data.userId } })
     }
-    console.log('del',del)
+    console.log('del', del)
     // }
     // return {
     //     user: getInfoData(["id", "name", "email", "role"], data.userFound),

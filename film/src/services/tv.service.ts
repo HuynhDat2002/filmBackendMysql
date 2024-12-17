@@ -406,9 +406,6 @@ export const getAllTV = async (query: QueryProps) => {
             where: {
                 name: {
                     contains: query.query
-                },
-                origin_name: {
-                    contains: query.query
                 }
             },
             include: {
@@ -445,9 +442,6 @@ export const getAllTV = async (query: QueryProps) => {
         tv = await prisma.tV.findMany({
             where: {
                 name: {
-                    contains: query.query
-                },
-                origin_name: {
                     contains: query.query
                 }
             },

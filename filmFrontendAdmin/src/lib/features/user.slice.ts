@@ -152,15 +152,52 @@ export const checkDevice = createAsyncThunk(
     }
   }
 );
+export const userList = createAsyncThunk(
+  "user/userList",
+  async (_, thunkAPI) => {
+    try {
+      return await userService.getUserList();
+    } catch (error) {
+      throw thunkAPI.rejectWithValue(error);
+    }
+  }
+);
+
+export const deleteUser = createAsyncThunk(
+  "user/deleteUser",
+  async (data:{userId:string}, thunkAPI) => {
+    try {
+      return await userService.deleteUser(data);
+    } catch (error) {
+      throw thunkAPI.rejectWithValue(error);
+    }
+  }
+);
+
 const initialState = {
   user: {
     user: {
-      _id: "",
+      id: "",
 
     },
     tokens: ""
   },
-  
+  userList:{
+    metadata:[
+      {
+        id: "",
+        name: "",
+        email: "",
+        status: "",
+        createdAt: "",
+        updatedAt: "",
+        failedLogin: 0,
+        timeLock: "",
+
+      }
+    ]
+  },
+  isUserList:false,
   isError: false,
   isSuccess: false,
   isLoading: false,
@@ -178,7 +215,7 @@ const initialState = {
   isCheckDevice:false,
   isVerifySign:false,
   isVerifyDevice:false,
-
+  isDeleteUser:false,
   message: {message:""} ,
 }
 
@@ -193,6 +230,80 @@ export const user = createSlice({
   extraReducers: (builder) => {
 
     builder
+    .addCase(deleteUser.pending, (state) => {
+      state.isLoading = true;
+      state.isForgot = false
+      state.isCheck=false
+        state.isLogin = false
+        state.isLogout = false
+        state.isVerify = false
+        state.isReset = false
+        state.isSign = false
+        state.isSendOTP=false
+        state.isChangePassword=false
+        state.isGetUser=false
+        state.isEdit=false
+        state.isCheckDevice=false
+        state.isVerifyDevice=false
+        state.isVerifySign=false
+        state.isDeleteUser=false
+        state.isUserList=false
+    })
+    .addCase(deleteUser.fulfilled, (state, action) => {
+      state.isError = false;
+      state.isSuccess = true;
+      state.user = action.payload;
+      state.isCheck=false;
+      state.isLoading=false
+      state.isDeleteUser=true
+
+    })
+    .addCase(deleteUser.rejected, (state, action) => {
+      state.isLoading = false;
+      state.isError = true;
+      state.isSuccess = false;
+      state.isCheck=false;
+      state.isDeleteUser=true
+
+      state.message = action.payload as any;
+    })
+    .addCase(userList.pending, (state) => {
+      state.isLoading = true;
+      state.isForgot = false
+      state.isCheck=false
+        state.isLogin = false
+        state.isLogout = false
+        state.isVerify = false
+        state.isReset = false
+        state.isSign = false
+        state.isSendOTP=false
+        state.isChangePassword=false
+        state.isGetUser=false
+        state.isEdit=false
+        state.isCheckDevice=false
+        state.isVerifyDevice=false
+        state.isVerifySign=false
+        state.isUserList=false
+    })
+    .addCase(userList.fulfilled, (state, action) => {
+      state.isError = false;
+      state.isSuccess = true;
+      state.userList = action.payload;
+      state.isCheck=false;
+      state.isLoading=false
+      state.isUserList=true
+      state.isGetUser=false
+
+    })
+    .addCase(userList.rejected, (state, action) => {
+      state.isLoading = false;
+      state.isError = true;
+      state.isSuccess = false;
+      state.isCheck=false;
+      state.isUserList=true
+
+      state.message = action.payload as any;
+    })
       .addCase(checkLogin.pending, (state) => {
         state.isLoading = true;
         state.isForgot = false

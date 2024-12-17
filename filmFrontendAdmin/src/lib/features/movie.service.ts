@@ -83,6 +83,18 @@ export const createMovie = async (data:{urlEmbed:string})=>{
         return response.data;
     }
     catch (error:any){
-        throw error
+        throw error.response.data
+    }
+}
+
+export const deleteMovie = async (data:{id:string})=>{
+    try{
+        await updateAxiosUserInstanceFilm()
+        const response = await axios.delete(`/movie/deleteMovie/${data.id}`);
+        console.log(response.data)
+        return response.data;
+    }
+    catch (error:any){
+        throw error.response.data
     }
 }

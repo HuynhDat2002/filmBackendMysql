@@ -9,6 +9,7 @@ import { errorResponse } from '@/cores'
 import { PayloadTokenPair } from '@/types'
 import { movieService } from '@/services'
 import { createClient } from 'redis'
+import { clientRedis } from '@/utils'
 import * as regex from '@/middlewares/regex'
 import { prisma } from '@/db/prisma.init'
 const HEADER = {
@@ -50,7 +51,7 @@ export const authenticationAdmin = asyncHandler(async (req: CustomRequest, res: 
     const isValidId = userId.match(regex.idRegex)
     if (isValidId === null) throw new errorResponse.AuthFailureError(`Định dạng Id không đúng`)
 
-    const client = createClient({ url: "redis://default:pyFDvQLFTafTwKZ4QuVTYynBWDrjxcE3@redis-11938.c15.us-east-1-2.ec2.redns.redis-cloud.com:11938" })
+    const client = await clientRedis()
     await client.connect()
     const keyTokenAdmin = JSON.parse(await client.get('keyTokenAdmin') as string)
     const userInfo = JSON.parse(await client.get('admin') as string)
@@ -92,8 +93,8 @@ export const authentication = asyncHandler(async (req: CustomRequestUser, res: R
     const userId: string = req.headers[HEADER.CLIENT_ID] as string
     if (!userId) throw new errorResponse.AuthFailureError("Bạn cần phải đăng nhập trước.")
    
-    const client = createClient({ url: "redis://default:pyFDvQLFTafTwKZ4QuVTYynBWDrjxcE3@redis-11938.c15.us-east-1-2.ec2.redns.redis-cloud.com:11938" })
-    await client.connect()
+    // const client = await clientRedis()
+    // await client.connect()
     // const keyToken = JSON.parse(await client.get('keyTokenUser') as string)
     // const userInfo = JSON.parse(await client.get('user') as string)
     // const agent = JSON.parse(await client.get('agent') as string)

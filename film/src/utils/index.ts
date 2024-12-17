@@ -55,6 +55,19 @@ const updateNestedObjectParser = (obj:any)=>{
 
 //create a channel
 const createChannel = async ()=>{
+    console.log('ms',config.MSG_QUEUE_URL)
+    for (let i =0;i<6;i++){
+        try{
+            const connection = await amqplib.connect(config.MSG_QUEUE_URL)
+            const channel = await connection.createChannel()
+            console.log('Connect to rabbitmq successfully')
+            break;
+        }
+        catch(err){
+            console.error('Failed to connect to rabbitmq',err)
+            await new Promise(resolve=>setTimeout(resolve,1000))
+        }
+    }
     const connection = await amqplib.connect(config.MSG_QUEUE_URL)
     const channel = await connection.createChannel()
     await channel.assertExchange(config.EXCHANGE_NAME,'direct',{
@@ -63,6 +76,25 @@ const createChannel = async ()=>{
     return channel
 }
 
+export const clientRedis = async ()=>{
+    console.log('ms',config.MSG_QUEUE_URL)
+    for (let i =0;i<6;i++){
+        try{
+            const client = createClient({ url: "redis://redis-film:6379" })
+            console.log('Connect to redis successfully')
+            break;
+        }
+        catch(err){
+            console.error('Failed to connect to redis',err)
+            await new Promise(resolve=>setTimeout(resolve,3000))
+        }
+    }
+    const client = createClient({ url: "redis://redis-film:6379" })
+
+   
+     return client
+  }
+  
 
 //publish messages
 const publishMessage = async (channel:amqplib.Channel,binding_key:string,message:string)=>{
@@ -73,8 +105,6 @@ const publishMessage = async (channel:amqplib.Channel,binding_key:string,message
 //subscribe messages
 
 const subscribeMessage =  async (channel:amqplib.Channel,service:any)=>{
-
-
   const appQueue  = await channel.assertQueue(config.QUEUE_NAME)
   channel.bindQueue(appQueue.queue,config.EXCHANGE_NAME,config.FILM_BINDING_KEY)
   channel.consume(appQueue.queue,async (data:any)=>{
@@ -88,7 +118,7 @@ const subscribeMessage =  async (channel:amqplib.Channel,service:any)=>{
         }
         if(received.service==='rbac'){
             console.log('rbac',data.content.toString())
-            const client = createClient({ url: "redis://default:pyFDvQLFTafTwKZ4QuVTYynBWDrjxcE3@redis-11938.c15.us-east-1-2.ec2.redns.redis-cloud.com:11938" })
+            const client = await clientRedis()
             await client.connect()
             await client.set('rbacresult', data.content.toString())
             console.log('aaaaa')

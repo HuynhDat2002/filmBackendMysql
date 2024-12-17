@@ -3,7 +3,7 @@ import axios from 'axios';
 import { LoginValueProps, SignUpValueProps } from '@/types'
 import { updateAxiosUserInstanceFilm, updateAxiosUserInstance } from '@/utils/axiosConfig';
 interface Token {
-    user: { _id: string };
+    user: { id: string };
     tokens: string;
 }
 
@@ -12,7 +12,7 @@ export const getToken = (): Token => {
         return JSON.parse(localStorage.getItem("user") as string) as Token;
     }
     return {
-        user: { _id: "" },
+        user: {id: ""},
         tokens: ""
     };
 };
@@ -34,6 +34,37 @@ export const getToken = (): Token => {
 
 let axiosUser = updateAxiosUserInstance()
 
+export const getUserList = async () => {
+    try {
+       updateAxiosUserInstance();  // Update the axios instance with new token
+       await updateAxiosUserInstanceFilm()
+        const response = await axiosUser.get(`/getUserList`);
+        // await localStorage.setItem('user', JSON.stringify(response.data.metadata));
+        return response.data;
+    }
+    catch (error: any) {
+        console.log(`error getuser`, error)
+        throw error.response.data
+    }
+
+
+}
+
+export const deleteUser = async (data:{userId:string}) => {
+    try {
+       updateAxiosUserInstance();  // Update the axios instance with new token
+       await updateAxiosUserInstanceFilm()
+        const response = await axiosUser.delete(`/deleteUser/${data.userId}`);
+        // await localStorage.setItem('user', JSON.stringify(response.data.metadata));
+        return response.data;
+    }
+    catch (error: any) {
+        console.log(`error delete user`, error.response.data)
+        throw error.response.data
+    }
+
+}
+
 export const checkDevice = async (data: {email:string,password:string}) => {
     try {
         console.log('data check',data)
@@ -45,10 +76,9 @@ export const checkDevice = async (data: {email:string,password:string}) => {
         return response.data;
     }
     catch (error: any) {
-        console.log(`error login`, error.response.data)
-        throw error.response.data
+        console.log(`error check`, error)
+        throw error
     }
-
 }
 
 const getEmail = (): string => {

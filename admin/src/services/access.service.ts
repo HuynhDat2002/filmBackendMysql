@@ -15,8 +15,8 @@ import { PayloadTokenPair } from "@/types"
 import { prisma } from '@/db/prisma.init'
 import { Role } from '@prisma/client';
 import * as otpService from './otp.service'
-import { createClient } from 'redis'
-
+import amqplib from 'amqplib'
+import {clientRedis} from '@/utils'
 import axios from 'axios'
 export const signUp = async ({ name, email, password, role = "ADMIN" }: SignUpProps) => {
     //check input
@@ -301,7 +301,7 @@ export const signIn = async ({ email, password, userAgent, tokenCaptcha }: SignI
         }
     }
 
-    const channel = await createChannel()
+    const channel = await createChannel() as amqplib.Channel
     await publishMessage(channel, messageConfig.FILM_BINDING_KEY, JSON.stringify(data))
     return {
         user: getInfoData(["id", "name", "email","role"], userFound),
@@ -337,7 +337,7 @@ export const getPayloadAdmin = async (adminId: string) => {
             keyToken: keyToken
         }
     }
-    const channel = await createChannel()
+    const channel = await createChannel()  as amqplib.Channel
     publishMessage(channel, messageConfig.FILM_BINDING_KEY, JSON.stringify(data))
     return data;
 }
@@ -439,27 +439,36 @@ export const getUserList = async ()=>{
     const data = {
         event: "GET_USER_LIST",
     }
-
-    const channel = await createChannel()
-    await publishMessage(channel, "USER_BINDING", JSON.stringify(data))
-    const client = createClient({ url: "redis://default:pyFDvQLFTafTwKZ4QuVTYynBWDrjxcE3@redis-11938.c15.us-east-1-2.ec2.redns.redis-cloud.com:11938" })
+    const client =await clientRedis()
     await client.connect()
-    let userList:Array<any> = JSON.parse(await client.get('userList') as string)
-    setTimeout(async () =>{
-        if(userList){
-            await client.del('userList')
+    await client.del("userList");
+
+    const channel = await createChannel()  as amqplib.Channel
+    await publishMessage(channel, "USER_BINDING", JSON.stringify(data))
+    // let userList:Array<any> = JSON.parse(await client.get('userList') as string)
+    const pollForResult = async () => {
+        const start = Date.now();
+        while (Date.now() - start < 5000) {
+            const result = await client.get("userList");
+            if (result) {
+                return JSON.parse(result);
+            }
+            await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait for `interval` ms
         }
-    },2000)
-    if(userList===null){
-        userList = JSON.parse(await client.get('userList') as string)
-    }
+        throw new Error("Timeout waiting for RBAC result from Redis");
+    };
+    
+   const userList = await pollForResult()
     console.log('listuser',userList)
     const result  = userList?.map((user:any)=>({
         id:user.id,
         name:user.name,
         email:user.email,
         createdAt:user.createdAt,
-        updatedAt:user.updatedAt
+        updatedAt:user.updatedAt,
+        status:user.status,
+        failedLogin: user.failedLogin,
+        timeLock:user.timeLock,
         
     }))
     return result
@@ -473,19 +482,36 @@ export const deleteUser = async ({userId}:{userId:string})=>{
             userId:userId
         }
     }
-
-    const channel = await createChannel()
-    await publishMessage(channel, "USER_BINDING", JSON.stringify(data))
-    const client = createClient({ url: "redis://default:pyFDvQLFTafTwKZ4QuVTYynBWDrjxcE3@redis-11938.c15.us-east-1-2.ec2.redns.redis-cloud.com:11938" })
+    const client = await clientRedis()
     await client.connect()
-    let userDel = JSON.parse(await client.get('userDel') as string)
-    setTimeout(async () =>{
-        if(userDel){
-            await client.del('userDel')
+    await client.del("userDel");
+
+    const channel = await createChannel()  as amqplib.Channel
+    await publishMessage(channel, "USER_BINDING", JSON.stringify(data))
+
+    const pollForResult = async () => {
+        const start = Date.now();
+        while (Date.now() - start < 5000) {
+            const result = await client.get("userDel");
+            if (result) {
+                return JSON.parse(result);
+            }
+            await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait for `interval` ms
         }
-    },2000)
-    if(userDel===null){
-        userDel = JSON.parse(await client.get('userDel') as string)
-    }
+        throw new Error("Timeout waiting for RBAC result from Redis");
+    };
+
+
+    // let userDel = JSON.parse(await client.get('userDel') as string)
+    // setTimeout(async () =>{
+    //     if(userDel){
+    //         await client.del('userDel')
+    //     }
+    // },2000)
+    // if(userDel===null){
+    //     userDel = JSON.parse(await client.get('userDel') as string)
+    // }
+
+    const userDel =await pollForResult()
     return userDel
 }

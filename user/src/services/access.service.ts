@@ -14,7 +14,9 @@ import * as messageConfig from '@/configs/messageBroker.config'
 import * as regex from '@/middlewares/regex'
 import { otpService } from '.'
 import { prisma } from '@/db/prisma.init'
+import amqplib from 'amqplib'
 import _ from 'lodash'
+import { clientRedis } from '@/utils'
 import axios from 'axios';
 import { notifyAccountLocked } from './otp.service'
 type dataSign = {
@@ -25,7 +27,7 @@ type dataSign = {
 
 export const signUp = async () => {
     // get data from redis
-    const client = createClient({ url: "redis://default:pyFDvQLFTafTwKZ4QuVTYynBWDrjxcE3@redis-11938.c15.us-east-1-2.ec2.redns.redis-cloud.com:11938" })
+    const client = await clientRedis()
     await client.connect()
     const data: dataSign = JSON.parse(await client.get('userSign') as string) ? JSON.parse(await client.get('userSign') as string) : { name: "", email: "", password: "" }
     const { name, email, password } = data
@@ -41,7 +43,11 @@ export const signUp = async () => {
     if (isValidPassword === null) throw new errorResponse.BadRequestError('Mật khẩu không hợp lệ! Mật khẩu phải có ít nhất 1 chữ hoa, một ký tự đặc biệt và có độ dài từ 8-32 ký tự')
 
 
-    const userFound = await prisma.user.findUnique({ where: { email: email } });
+    const userFound = await prisma.user.findUnique({ 
+        where: { 
+            email: email 
+        } 
+    });
     if (userFound) throw new errorResponse.BadRequestError("Tài khoản đã tồn tại");
 
     //checkVerify
@@ -137,50 +143,50 @@ export const checkDevice = async ({ email, password, userAgent,tokenCaptcha }: C
     if (!userFound) throw new errorResponse.AuthFailureError(`Tài khoản không tồn tại`)
     
            
-    // //check how many times login error
-    // if(userFound.timeLock && userFound.timeLock as Date>=new Date()) throw new errorResponse.AuthFailureError(`Tai khoan cua ban da bi khoa trong vong 1p. Hay thu lai sau!`)
+    //check how many times login error
+    if(userFound.timeLock && userFound.timeLock as Date>=new Date()) throw new errorResponse.AuthFailureError(`Tai khoan cua ban da bi khoa trong vong 1p. Hay thu lai sau!`)
    
-    // //compare password
-    // const checkPassword = await bcrypt.compare(password, userFound.password)
-    // // if (!checkPassword) throw new errorResponse.AuthFailureError(`Mật khẩu không trùng khớp`)
-    //     if (!checkPassword) {
-    //         let failedTimes = await userFound.failedLogin
-    //         let lockUntil = await userFound.timeLock as Date
-    //         failedTimes +=1
-    //         if(failedTimes >4) {
-    //             await prisma.user.update({
-    //                 where:{
-    //                     id:userFound.id
-    //                 },
-    //                 data:{
-    //                     failedLogin:0,
-    //                     timeLock: new Date(Date.now() + 60*1000)
-    //                 }
-    //             })
-    //             await notifyAccountLocked({email:userFound.email})
-    //             throw new errorResponse.AuthFailureError(`Tai khoan cua ban da bi khoa trong vong 1p. Hay thu lai sau!`)
+    //compare password
+    const checkPassword = await bcrypt.compare(password, userFound.password)
+    // if (!checkPassword) throw new errorResponse.AuthFailureError(`Mật khẩu không trùng khớp`)
+        if (!checkPassword) {
+            let failedTimes = await userFound.failedLogin
+            let lockUntil = await userFound.timeLock as Date
+            failedTimes +=1
+            if(failedTimes >4) {
+                await prisma.user.update({
+                    where:{
+                        id:userFound.id
+                    },
+                    data:{
+                        failedLogin:0,
+                        timeLock: new Date(Date.now() + 60*1000)
+                    }
+                })
+                await notifyAccountLocked({email:userFound.email})
+                throw new errorResponse.AuthFailureError(`Tai khoan cua ban da bi khoa trong vong 1p. Hay thu lai sau!`)
     
-    //         }
-    //         await prisma.user.update({
-    //             where:{
-    //                 id:userFound.id
-    //             },
-    //             data:{
-    //                 failedLogin:failedTimes,
-    //             }
-    //         })
-    //         throw new errorResponse.AuthFailureError(`Mật khẩu không trùng khớp. Ban con ${5-failedTimes} lan thu`)
-    //     }
+            }
+            await prisma.user.update({
+                where:{
+                    id:userFound.id
+                },
+                data:{
+                    failedLogin:failedTimes,
+                }
+            })
+            throw new errorResponse.AuthFailureError(`Tai khoan hoac mat khau khong dung`)
+        }
     
-    //     await prisma.user.update({
-    //         where:{
-    //             id:userFound.id
-    //         },
-    //         data:{
-    //             failedLogin:0,
-    //             timeLock: null
-    //         }
-    //     })
+        await prisma.user.update({
+            where:{
+                id:userFound.id
+            },
+            data:{
+                failedLogin:0,
+                timeLock: null
+            }
+        })
     // check device
 
     const userAgents = userFound.userAgent.map(ua => ua.agentId);
@@ -237,12 +243,12 @@ export const signIn = async ({ email, password, userAgent,tokenCaptcha }: SignIn
     if (isValidEmail === null) throw new errorResponse.BadRequestError('Email không hợp lệ')
     const isValidPassword = await password.match(regex.passwordRegex)
     if (isValidPassword === null) throw new errorResponse.BadRequestError('Mật khẩu không hợp lệ!')
-
+        
     //captcha
-    const captcha = await verifyTokenCaptcha(tokenCaptcha)
-    console.log('captcha',captcha)
-    if(!captcha) throw new errorResponse.AuthFailureError('Ban chua xac minh captcha')
-    if(captcha.success===false) throw new errorResponse.AuthFailureError(`${captcha.message}`)
+    // const captcha = await verifyTokenCaptcha(tokenCaptcha)
+    // console.log('captcha',captcha)
+    // if(!captcha) throw new errorResponse.AuthFailureError('Ban chua xac minh captcha')
+    // if(captcha.success===false) throw new errorResponse.AuthFailureError(`${captcha.message}`)
 
    
 
@@ -252,7 +258,7 @@ export const signIn = async ({ email, password, userAgent,tokenCaptcha }: SignIn
     console.log('typeof email', typeof email)
     const userFound = await prisma.user.findUnique({ where: { email: email }, include: { userAgent: true } })
 
-    if (!userFound) throw new errorResponse.AuthFailureError(`Tài khoản không tồn tại`)
+    if (!userFound) throw new errorResponse.AuthFailureError(`Tai khoan hoac mat khau khong dung`)
     console.log('password', userFound.password)
 
        
@@ -287,7 +293,7 @@ export const signIn = async ({ email, password, userAgent,tokenCaptcha }: SignIn
                 failedLogin:failedTimes,
             }
         })
-        throw new errorResponse.AuthFailureError(`Mật khẩu không trùng khớp. Ban con ${5-failedTimes} lan thu`)
+        throw new errorResponse.AuthFailureError(`Tai khoan hoac mat khau khong dung`)
     }
 
     await prisma.user.update({
@@ -395,7 +401,7 @@ export const signIn = async ({ email, password, userAgent,tokenCaptcha }: SignIn
             agent: agent
         }
     }
-    const channel = await createChannel()
+    const channel = await createChannel() as amqplib.Channel
     await publishMessage(channel, messageConfig.FILM_BINDING_KEY, JSON.stringify(data))
     return {
         user: getInfoData(["id","name","role"], userFound),
@@ -408,7 +414,7 @@ export const signIn = async ({ email, password, userAgent,tokenCaptcha }: SignIn
 export const logout = async (keyToken: KeyTokenModelProps) => {
     //delete key in keytoken
     const delKey = await prisma.keyTokens.delete({ where: { id: keyToken.id as string } })
-    const channel = await createChannel()
+    const channel = await createChannel() as amqplib.Channel
     if (!delKey) throw new errorResponse.BadRequestError(`Không thể  xóa key token`)
         const data = {
             event: "LOGOUT",

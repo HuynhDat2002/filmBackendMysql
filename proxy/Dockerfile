@@ -52,7 +52,7 @@ RUN git clone --depth 1 -b v3/master --single-branch https://github.com/SpiderLa
 # Clone the ModSecurity-nginx connector repository
 RUN git clone --depth 1 https://github.com/SpiderLabs/ModSecurity-nginx.git 
 
-# Download and extract NGINX 1.13.1
+# Download and extract NGINX
 RUN wget http://nginx.org/download/nginx-1.27.3.tar.gz \
     && tar zxvf nginx-1.27.3.tar.gz \
     && rm nginx-1.27.3.tar.gz \
