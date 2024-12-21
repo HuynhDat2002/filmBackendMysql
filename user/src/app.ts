@@ -17,7 +17,7 @@ const app:Application  = express()
 
 const userApp = async (app:express.Express)=>{
     const corsOptions = {
-        origin: ['http://localhost:3000','http://localhost:3001'], // Cho phép truy cập từ origin này
+        origin: ['https://localhost/','https://localhost/adminpage'], // Cho phép truy cập từ origin này
         methods: ["GET,HEAD,PUT,PATCH,POST,DELETE"],
         credentials: true, // Cho phép sử dụng credentials mode
       };

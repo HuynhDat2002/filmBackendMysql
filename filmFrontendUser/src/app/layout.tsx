@@ -9,7 +9,6 @@ import "@fortawesome/fontawesome-svg-core/styles.css";
 import { config } from "@fortawesome/fontawesome-svg-core";
 import '@smastrom/react-rating/style.css'
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { GoogleReCaptchaProvider } from 'react-google-recaptcha-v3';
 import { Suspense } from 'react'
 config.autoAddCss = false;
 
@@ -30,24 +29,24 @@ export default function RootLayout({
 
   return (
     <StoreProvider>
-     
 
-        <html lang="en">
-          <body className={inter.className}>
-            <Header />
-            <div className="">
-{/* <GoogleReCaptchaProvider reCaptchaKey="6LcJEnAqAAAAANHBtZwgCHDob75w_potmRxZ9xa0"> */}
-              <div className="w-[90%] xl:w-[75%] flex justify-center items-center  mx-auto  shadow-2xl ">
+
+      <html lang="en">
+         <body className={inter.className}>
+          <Header />
+          <div className="">
+            {/* <GoogleReCaptchaProvider reCaptchaKey="6LcJEnAqAAAAANHBtZwgCHDob75w_potmRxZ9xa0"> */}
+            <div className="w-[90%] xl:w-[75%] flex justify-center items-center  mx-auto  shadow-2xl ">
               <Suspense fallback={<SearchBarFallback />}>
                 {children}
-                </Suspense>
-              </div>
-{/* </GoogleReCaptchaProvider> */}
+              </Suspense>
             </div>
+            {/* </GoogleReCaptchaProvider> */}
+          </div>
 
-          </body>
-        </html>
-  
+        </body>
+      </html>
+
     </StoreProvider>
   );
 }

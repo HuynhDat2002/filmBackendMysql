@@ -1,17 +1,15 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    webpack(config) {
-        config.resolve.fallback = {
-    
-          // if you miss it, all the other options in fallback, specified
-          // by next.js will be dropped.
-          ...config.resolve.fallback,  
-    
-          fs: false, // the solution
-        };
-        
-        return config;
-      },
+  webpack(config, { isServer }) {
+    if (!isServer) {
+      // Vô hiệu hóa module Node.js như fs cho frontend
+      config.resolve.fallback = {
+        fs: false,
+        path: false,
+      };
+    }
+    return config;
+  },
  
 };
 

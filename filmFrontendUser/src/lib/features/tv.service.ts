@@ -1,9 +1,9 @@
-import { base_url, updateAxiosUserInstanceFilm } from '../../utils/axiosConfig';
+import {  updateAxiosUserInstanceFilm } from '../../utils/axiosConfig';
 
-let axios = updateAxiosUserInstanceFilm()
 export const getAllTV = async (page:number) => {
     try {
         console.log('get al tv')
+        let axios =await updateAxiosUserInstanceFilm()
         const response = await axios.get(`/tv/getAllTV?page=${page}`);
         console.log(response.data)
         return response.data;
@@ -16,6 +16,7 @@ export const getAllTV = async (page:number) => {
 
 export const search = async (data: { query: string, page: string }) => {
     try {
+        let axios =await updateAxiosUserInstanceFilm()
 
         const response = await axios.get(`/tv/getAllTV?query=${data.query}&page=${data.page}`);
         console.log(response.data)
@@ -29,6 +30,8 @@ export const search = async (data: { query: string, page: string }) => {
 export const getA = async (data: {id:string}) => {
     try {
         console.log('tv get a',data)
+        let axios =await updateAxiosUserInstanceFilm()
+
         const response = await axios.get(`/tv/getTV/${data.id}`);
         console.log(response.data)
         return response.data;
@@ -42,7 +45,8 @@ export const getA = async (data: {id:string}) => {
 
 export const ratingTV = async (data:{filmId:string,rating:number})=>{
     try{
-        updateAxiosUserInstanceFilm()
+        let axios =await updateAxiosUserInstanceFilm()
+
         const response = await axios.patch(`/tv/ratingTV`,{filmId:data.filmId,rating:data.rating});
         console.log(response.data)
         return response.data;
@@ -54,7 +58,7 @@ export const ratingTV = async (data:{filmId:string,rating:number})=>{
 
 export const getRatings = async (data:{filmId:string})=>{
     try{
-        updateAxiosUserInstanceFilm()
+        let axios =await updateAxiosUserInstanceFilm()
 
         const response = await axios.get(`/tv/getRatings/${data.filmId}`);
         console.log(response.data)
@@ -67,7 +71,7 @@ export const getRatings = async (data:{filmId:string})=>{
 
 export const getPageTotal = async ()=>{
     try{
-        updateAxiosUserInstanceFilm()
+        let axios =await updateAxiosUserInstanceFilm()
 
         const response = await axios.get(`/tv/getPageTotal`);
         console.log(response.data)

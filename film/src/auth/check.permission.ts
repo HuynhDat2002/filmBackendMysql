@@ -70,7 +70,6 @@ export const checkPermission = (action: string, resource: string) => {
         catch (error) {
             next(error)
         }
-
     }
 }
 

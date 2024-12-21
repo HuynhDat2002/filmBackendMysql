@@ -19,7 +19,7 @@ const app:Application  = express()
 const adminApp = async (app:express.Express)=>{
 
     const corsOptions = {
-        origin: ['http://localhost:3000','http://localhost:3001'], // Cho phép truy cập từ origin này
+        origin: ['https://localhost','https://localhost/adminpage',"https://www.google.com"], // Cho phép truy cập từ origin này
         methods: ["GET,HEAD,PUT,PATCH,POST,DELETE"],
         credentials: true, // Cho phép sử dụng credentials mode
       };
@@ -57,8 +57,7 @@ const adminApp = async (app:express.Express)=>{
         const status:number = error.status || 500;
         return res.status(status).json({
             status:status,
-            message:error.message,
-            stack:error.stack
+            message:status !== 500 ? error.message : "Internal Server Error",
         })
     })
     

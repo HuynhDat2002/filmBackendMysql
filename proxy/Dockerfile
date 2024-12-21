@@ -12,6 +12,8 @@ RUN apt-get update && apt-get install -y openssl
 
 
 USER root
+RUN chmod -R 755 /var/log/nginx && \
+    chown -R root:root /var/log/nginx
 
 # # Install ModSecurity (build from source)
 # RUN git clone https://github.com/SpiderLabs/ModSecurity.git /opt/ModSecurity \

@@ -43,7 +43,6 @@ services:
     networks:
       - backend-network
     
- 
   rbac:
     build:
       context: ./rbac
@@ -51,7 +50,7 @@ services:
     restart: always
     image: tdat/rbac:1.0.0
     deploy:
-      replicas: 1
+      replicas: 3
     environment:
       - DB_PORT=3306
       - DB_HOST=db-mysql
@@ -85,7 +84,7 @@ services:
       dockerfile: Dockerfile
     restart: always
     deploy:
-      replicas: 1
+      replicas: 3
     image: tdat/film:1.0.0
     environment:
       - DB_PORT=3306
@@ -124,7 +123,7 @@ services:
     restart: always
     image: tdat/user:1.0.0
     deploy:
-      replicas: 1
+      replicas: 3
     environment:
       - DB_PORT=3306
       - DB_HOST=db-mysql
@@ -164,7 +163,7 @@ services:
     restart: always
     image: tdat/admin:1.0.0
     deploy:
-      replicas: 1
+      replicas: 3
     environment:
       - DB_PORT=3306
       - DB_HOST=db-mysql
@@ -204,7 +203,7 @@ services:
     expose:
       - 3000
     deploy:
-      replicas: 1
+      replicas: 3
     networks:
       - backend-network
 
@@ -218,7 +217,7 @@ services:
     expose:
       - 3001
     deploy:
-      replicas: 1
+      replicas: 3
     networks:
       - backend-network
 
@@ -238,9 +237,9 @@ services:
   #   image: certbot/certbot:latest
   #   container_name: certbot
   #   volumes:
-  #     - ./certbot/conf:/etc/letsencrypt
-  #     - ./certbot/www:/var/www/certbot
-  #   command: certonly --webroot -w /var/www/certbot  --force-renewal --email hltdat2002@gmail.com -d navyfilm.xyz --agree-tos
+  #     - ./certbot/www/:/var/www/certbot/:rw
+  #     - ./certbot/conf/:/etc/letsencrypt/:rwv
+  #   command: certonly --standalone -w /var/www/certbot  --force-renewal --email hltdat2002@gmail.com -d navyfilm.xyz --agree-tos
       
 
   nginx-proxy:
@@ -269,11 +268,10 @@ services:
       - ./proxy/.htpasswd:/etc/nginx/.htpasswd
       - ./proxy/cert/selfsigned.crt:/etc/ssl/certs/selfsigned.crt
       - ./proxy/cert/selfsigned.key:/etc/ssl/certs/selfsigned.key
+      # - ./certbot/www/:/var/www/certbot/:ro
     networks:
       - backend-network
 
- 
-   
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.10.2
@@ -299,7 +297,7 @@ services:
       - TZ=Asia/Ho_Chi_Minh  # Đặt múi giờ của hệ thống
     volumes:
       - ./logstash/pipeline:/usr/share/logstash/pipeline
-      - /var/log/nginx:/var/log/nginx:ro
+      - /var/log/nginx:/var/log/nginx:rw
       - ./logstash/csv:/usr/share/logstash/csv
     depends_on:
       - elasticsearch

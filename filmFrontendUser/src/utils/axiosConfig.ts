@@ -2,8 +2,10 @@
 import axios from "axios";
 import { NextApiRequest, NextApiResponse } from "next";
 import https from "https";
-
-export const base_url = "https://localhost/film/api"
+// import path from 'path';
+// import fs from 'fs';
+import type { InferGetServerSidePropsType, GetServerSideProps } from 'next'
+const base_url = "https://localhost/film/api"
 const base_url_user = "https://localhost/user/api"
 
 
@@ -32,6 +34,14 @@ interface Token {
 //     };
 // };
 
+// export const getServerSideProps = (async () => {
+//     // Fetch data from external API
+//     const filePath = path.join(process.cwd(), 'selfsigned.crt')
+//     const content = fs.readFileSync(filePath, 'utf-8');
+//     // Pass data to the page via props
+//     return { props: { content } }
+//   }) satisfies GetServerSideProps<{ content: string }>
+
 export const getToken = (): Token => {
     if (typeof window !== "undefined") {
         const user = localStorage.getItem("user") as string;
@@ -43,12 +53,11 @@ export const getToken = (): Token => {
 };
 
 
-const createAxiosUserInstance = (token: Token) => {
+const createAxiosUserInstance =async (token: Token) => {
     return axios.create({
+        
         baseURL: base_url_user,
-    //     httpsAgent: new https.Agent({
-    //         rejectUnauthorized: false, // Bỏ qua xác thực SSL
-    //    }),
+  
         withCredentials: true,
         headers: {
             'x-client-id': token.user.id || '',
@@ -58,12 +67,16 @@ const createAxiosUserInstance = (token: Token) => {
     });
 };
 
-const createAxiosUserInstanceFilm = (token: Token) => {
+const createAxiosUserInstanceFilm =async (token: Token) => {
+    
+
+
     return axios.create({
-        baseURL: base_url,
         // httpsAgent: new https.Agent({
-        //      rejectUnauthorized: false, // Bỏ qua xác thực SSL
+        //     ca: cert, 
         // }),
+        baseURL: base_url,
+  
         withCredentials: true,
         headers: {
             'x-client-id': token.user.id || '',
@@ -75,13 +88,13 @@ const createAxiosUserInstanceFilm = (token: Token) => {
 
 
 
-export const updateAxiosUserInstance = () => {
-    const axiosUser = createAxiosUserInstance(getToken());
+export const updateAxiosUserInstance =async () => {
+    const axiosUser =await createAxiosUserInstance(getToken());
     return axiosUser
 };
 
-export const updateAxiosUserInstanceFilm = () => {
-    const axios = createAxiosUserInstanceFilm(getToken());
+export const updateAxiosUserInstanceFilm =async () => {
+    const axios =await createAxiosUserInstanceFilm(getToken());
     // console.log('cert',certResponse)
     return axios
 };

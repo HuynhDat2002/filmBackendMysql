@@ -4,7 +4,7 @@ import { LoginValueProps, SignUpValueProps } from '../../types'
 import { updateAxiosUserInstanceFilm, updateAxiosUserInstance } from '../../utils/axiosConfig';
 import { NextRequest, NextResponse, userAgent } from 'next/server'
 interface Token {
-    user: { _id: string };
+    user: { id: string };
     tokens: string;
 }
 
@@ -13,7 +13,7 @@ export const getToken = (): Token => {
         return JSON.parse(localStorage.getItem("user") as string) as Token;
     }
     return {
-        user: { _id: "" },
+        user: { id: "" },
         tokens: ""
     };
 };
@@ -33,7 +33,6 @@ export const getToken = (): Token => {
 // };
 
 
-let axiosUser = updateAxiosUserInstance()
 
 
 
@@ -45,12 +44,13 @@ const getEmail = (): string => {
 
 export const checkLogin = async () => {
     try {
-        await updateAxiosUserInstance()
+let axiosUser =await updateAxiosUserInstance()
+
         const response = await axiosUser.post(`/checkLogin`);
         return response.data;
     }
     catch (error: any) {
-        console.log(`error login`, error.response.data)
+        console.log(`error check login`, error)
         throw error.response.data
     }
 
@@ -67,6 +67,7 @@ export function middleware(request: NextRequest) {
 export const logIn = async (data: LoginValueProps) => {
     try {
         console.log('data login',data)
+let axiosUser =await updateAxiosUserInstance()
         const response = await axiosUser.post(`/signIn`, {email:data.email,password:data.password,tokenCaptcha:data.tokenCaptcha});
         await localStorage.setItem('user', JSON.stringify(response.data.metadata));
         await updateAxiosUserInstance();  // Update the axios instance with new token
@@ -82,6 +83,8 @@ export const logIn = async (data: LoginValueProps) => {
 export const checkDevice = async (data: {email:string,password:string,tokenCaptcha:string}) => {
     try {
         console.log('data check',data)
+let axiosUser =await updateAxiosUserInstance()
+
         await localStorage.setItem('email', data.email);
         const response = await axiosUser.post(`/checkDevice`, {email:data.email,password:data.password,tokenCaptcha:data.tokenCaptcha});
         // await localStorage.setItem('user', JSON.stringify(response.data.metadata));
@@ -99,6 +102,8 @@ export const checkDevice = async (data: {email:string,password:string,tokenCaptc
 
 export const signUp = async () => {
     try {
+let axiosUser =await updateAxiosUserInstance()
+
         const response = await axiosUser.post(`/signUp`);
         console.log('dataaa', response.data)
         await localStorage.setItem('user', JSON.stringify(response.data.metadata));
@@ -112,6 +117,7 @@ export const signUp = async () => {
 }
 export const logout = async () => {
     try {
+        let axiosUser =await updateAxiosUserInstance()
 
         const response = await axiosUser.post(`/logout`);
         await localStorage.removeItem("user");
@@ -129,6 +135,7 @@ export const logout = async () => {
 
 export const forgotPassword = async (data: { email: string }) => {
     try {
+        let axiosUser =await updateAxiosUserInstance()
 
         const response = await axiosUser.post(`/forgotPassword`, data);
        await localStorage.setItem('email', data.email)
@@ -143,6 +150,8 @@ export const forgotPassword = async (data: { email: string }) => {
 
 export const verify = async (data: { otp: string }) => {
     try {
+let axiosUser =await updateAxiosUserInstance()
+
         const email = await getEmail()
         const response = await axiosUser.post(`/verifyOTP`, {
             email: email,
@@ -159,6 +168,8 @@ export const verify = async (data: { otp: string }) => {
 
 export const resetPassword = async (data: { password: string, confirmPassword: string }) => {
     try {
+let axiosUser =await updateAxiosUserInstance()
+
         const email = getEmail()
         const response = await axiosUser.post(`/resetPassword`, {
             email: email,
@@ -178,6 +189,8 @@ export const resetPassword = async (data: { password: string, confirmPassword: s
 
 export const sendOTP = async (data: { name: string, email: string, password: string }) => {
     try {
+let axiosUser =await updateAxiosUserInstance()
+
         const response = await axiosUser.post(`/sendOTP`, data);
         localStorage.setItem('email', data.email)
 
@@ -192,7 +205,8 @@ export const sendOTP = async (data: { name: string, email: string, password: str
 
 export const changePassword = async (data: { password: string, newPassword: string }) => {
     try {
-        await updateAxiosUserInstance()
+let axiosUser =await updateAxiosUserInstance()
+
         const response = await axiosUser.post(`/changePassword`, data);
        await updateAxiosUserInstanceFilm()
         return response.data;
@@ -206,7 +220,8 @@ export const changePassword = async (data: { password: string, newPassword: stri
 
 export const getUser = async () => {
     try {
-      await  updateAxiosUserInstance()
+      let axiosUser =await updateAxiosUserInstance()
+
         const response = await axiosUser.get(`/getUser`);
         if (localStorage.getItem('userinfo')) {
             await localStorage.removeItem('userinfo')
@@ -224,7 +239,8 @@ export const getUser = async () => {
 
 export const editUser = async (data: { name: string }) => {
     try {
-        await updateAxiosUserInstance()
+        let axiosUser =await updateAxiosUserInstance()
+
         const response = await axiosUser.patch(`/editUser`, data);
         if (localStorage.getItem('userinfo')) await localStorage.removeItem('userinfo')
 
