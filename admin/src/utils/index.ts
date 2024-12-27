@@ -8,6 +8,7 @@ import {Types} from 'mongoose'
 import * as config from '@/configs/messageBroker.config'
 import amqplib from 'amqplib'
 import { createClient } from 'redis'
+import fs from 'fs'
 
 const convertToObjectId = (id:any)=>{
     return new Types.ObjectId(id)
@@ -57,10 +58,11 @@ const updateNestedObjectParser = (obj:any)=>{
 
 //create a channel
  const createChannel = async ()=>{
+  
     console.log('ms',config.MSG_QUEUE_URL)
     for (let i =0;i<6;i++){
         try{
-            const connection = await amqplib.connect(config.MSG_QUEUE_URL)
+            const connection = await amqplib.connect(config.MSG_QUEUE_URL);
             const channel = await connection.createChannel()
             console.log('Connect to rabbitmq successfully')
             break;

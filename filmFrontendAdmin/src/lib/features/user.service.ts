@@ -77,7 +77,7 @@ export const checkDevice = async (data: {email:string,password:string}) => {
     }
     catch (error: any) {
         console.log(`error check`, error)
-        throw error
+        throw error.response.data
     }
 }
 
