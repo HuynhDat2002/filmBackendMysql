@@ -80,7 +80,7 @@ export const authentication = asyncHandler(async (req: CustomRequestUser, res: R
     console.log('headers authentication', req.headers)
 
     const userId: string = req.headers[HEADER.CLIENT_ID] as string
-    if (!userId) throw new errorResponse.AuthFailureError("Bạn cần phải đăng nhập trước.")
+    if (!userId) throw new errorResponse.AuthFailureError("You need to login")
    
     // const client = await clientRedis()
     // await client.connect()
@@ -89,7 +89,7 @@ export const authentication = asyncHandler(async (req: CustomRequestUser, res: R
     // const agent = JSON.parse(await client.get('agent') as string)
 
     const userLogin  = await prisma.userLogin.findUnique({where:{userId:userId}})
-    if(!userLogin) throw new errorResponse.AuthFailureError('Bạn cần phải đăng nhập trước')
+    if(!userLogin) throw new errorResponse.AuthFailureError('You need to login')
     const keyToken = JSON.parse(userLogin.keyToken as string)
     const userInfo = JSON.parse(userLogin.user as string)
     const agent = JSON.parse(userLogin.agent as string)
@@ -97,16 +97,16 @@ export const authentication = asyncHandler(async (req: CustomRequestUser, res: R
     console.log('userlogininfo',userInfo)
     console.log('agent',agent)
 
-    const userAgents = agent.map((ua:any) => ua.userAgent.agent)
-    if (!userAgents.includes(req.headers["user-agent"])) throw new errorResponse.BadRequestError(`Ban dang dang nhap tren thiet bi moi`)
+    // const userAgents = agent.map((ua:any) => ua.userAgent.agent)
+    // if (!userAgents.includes(req.headers["user-agent"])) throw new errorResponse.BadRequestError(`You are logging in from a different device`)
 
     //2. check key store
-    if (userId !== keyToken.userId) throw new errorResponse.NotFound("không tìm thấy  user trong key store")
-    if (userId !== userInfo.id) throw new errorResponse.NotFound("Ban hay dang nhap truoc")
+    if (userId !== keyToken.userId) throw new errorResponse.NotFound("This userId not found")
+    if (userId !== userInfo.id) throw new errorResponse.NotFound("You need to login")
 
     //check userId
     const isValidId = userId.match(regex.idRegex)
-    if (isValidId === null) throw new errorResponse.AuthFailureError(`Định dạng Id không đúng`)
+    if (isValidId === null) throw new errorResponse.AuthFailureError(`The id format is incorrect`)
 
     //3. verify token
     const accessToken = req.headers[HEADER.AUTHORIZATION] as string

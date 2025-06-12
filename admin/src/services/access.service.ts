@@ -214,40 +214,40 @@ export const signIn = async ({ email, password, userAgent, tokenCaptcha }: SignI
         }
     })
     //check device
-    const userAgents = userFound.userAgent.map((ua: any) => ua.agentId);
-    console.log('userAgents', userAgents)
-    let getUserAgentId = await prisma.userAgent.findFirst({ where: { agent: userAgent } })
-    console.log('getuseragentid', getUserAgentId)
-    if (!getUserAgentId) getUserAgentId = { id: "", agent: "" }
-    if (!userAgents.includes(getUserAgentId.id as string)) {
-        //check verify
-        const checkVerified = await prisma.oTP.findUnique({ where: { email: email } })
-        if (!checkVerified) throw new errorResponse.BadRequestError('Bạn đang đăng nhập trên thiết bị mới, hãy xác minh bằng email trước')
-        if (!checkVerified.verified) throw new errorResponse.BadRequestError('Bạn đang đăng nhập trên thiết bị mới, hãy xác minh bằng email trước')
-        const expires = checkVerified.expiresAt as any
-        if (expires < Date.now()) throw new errorResponse.BadRequestError(`OTP đã hết hạn`)
-        const newAgent = await prisma.userOnAgent.create({
-            data: {
-                userAgent: {
-                    connectOrCreate: {
-                        where: {
-                            agent: userAgent
-                        },
-                        create: {
-                            agent: userAgent
-                        }
-                    }
-                },
-                user: {
-                    connect: {
-                        id: userFound.id as string
-                    }
-                }
-            }
-        })
-        console.log('newAgent', newAgent)
-        if (newAgent) await prisma.oTP.delete({ where: { email: email } })
-    }
+    // const userAgents = userFound.userAgent.map((ua: any) => ua.agentId);
+    // console.log('userAgents', userAgents)
+    // let getUserAgentId = await prisma.userAgent.findFirst({ where: { agent: userAgent } })
+    // console.log('getuseragentid', getUserAgentId)
+    // if (!getUserAgentId) getUserAgentId = { id: "", agent: "" }
+    // if (!userAgents.includes(getUserAgentId.id as string)) {
+    //     //check verify
+    //     const checkVerified = await prisma.oTP.findUnique({ where: { email: email } })
+    //     if (!checkVerified) throw new errorResponse.BadRequestError('Bạn đang đăng nhập trên thiết bị mới, hãy xác minh bằng email trước')
+    //     if (!checkVerified.verified) throw new errorResponse.BadRequestError('Bạn đang đăng nhập trên thiết bị mới, hãy xác minh bằng email trước')
+    //     const expires = checkVerified.expiresAt as any
+    //     if (expires < Date.now()) throw new errorResponse.BadRequestError(`OTP đã hết hạn`)
+    //     const newAgent = await prisma.userOnAgent.create({
+    //         data: {
+    //             userAgent: {
+    //                 connectOrCreate: {
+    //                     where: {
+    //                         agent: userAgent
+    //                     },
+    //                     create: {
+    //                         agent: userAgent
+    //                     }
+    //                 }
+    //             },
+    //             user: {
+    //                 connect: {
+    //                     id: userFound.id as string
+    //                 }
+    //             }
+    //         }
+    //     })
+    //     console.log('newAgent', newAgent)
+    //     if (newAgent) await prisma.oTP.delete({ where: { email: email } })
+    // }
     //create publickey and privatekey for accesstoken and refreshtoken
     // const publicKey: string = crypto.randomBytes(64).toString("hex");
     // const privateKey: string = crypto.randomBytes(64).toString("hex");

@@ -38,13 +38,12 @@ const userApp = async (app:express.Express)=>{
 
     //create channel
     const channel = await createChannel() as amqplib.Channel
+
     // subscribe message
      await subscribeMessage(channel)
     
     app.use('/user/',router)
-    app.get('/user/hello',(req:Request,res:Response)=>{
-        res.status(200).json({message:`helllo`})
-    })
+   
     //handling error notfound
     app.use((req:Request,res:Response,next:NextFunction)=>{
         const error:any = new Error('Not found')
@@ -57,8 +56,8 @@ const userApp = async (app:express.Express)=>{
         const status:number = error.status || 500;
         return res.status(status).json({
             status:status,
-            message:status !== 500 ? error.message : "Internal Server Error",
-            // stack:error.stack
+            message:error.message,
+            stack:error.stack
         })
     })
     

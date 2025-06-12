@@ -14,8 +14,8 @@ const transporter = nodemailer.createTransport({
     port: 535,
     secure: false, // Use `true` for port 465, `false` for all other ports
     auth: {
-        user: "htldat2002@gmail.com",
-        pass: "ifoaammmzukpfuev",
+        user: "hltdat2002@gmail.com",
+        pass: "evkb fzkp snbm rgqw",
     },
 });
 
@@ -23,7 +23,7 @@ export const sendOTPEmail = async (mailOption: any) => {
     return await transporter.sendMail(mailOption);
 }
 
-export const sendOTPVerifyEmail = async ({ email }: { email: string }) => {
+export const sendOTPVerifyEmail = async (email :string ) => {
     const isValidEmail = await email.match(regex.emailRegex)
     if (isValidEmail === null) throw new Error('Email is invalid')
     //     const foundUser = await otpModel.findOne({email:email})
@@ -86,7 +86,8 @@ export const sendOTP = async ({ name, email, password }: { name: string, email: 
     const isValidPassword = await password.match(regex.passwordRegex)
     if (isValidPassword === null) throw new errorResponse.BadRequestError('Mật khẩu không hợp lệ! Mật khẩu phải có ít nhất 1 chữ hoa, một ký tự đặc biệt và có độ dài từ 8-32 ký tự')
 
-    const result = await sendOTPVerifyEmail({ email })
+    console.log('sentotp')
+    const result = await sendOTPVerifyEmail(email)
     if (result) {
         const client = await clientRedis()
         await client.connect()
@@ -116,7 +117,7 @@ export const verifyOTP = async ({ email, otp }: VerifyOTPProps) => {
 export const resendOTP = async ({ email }: { email: string }) => {
     const foundOTP = await prisma.oTP.findUnique({where:{ email: email }})
     if (foundOTP) await prisma.oTP.delete({where:{ email: email }})
-    const resend = await sendOTPVerifyEmail({ email });
+    const resend = await sendOTPVerifyEmail( email );
     console.log('resend', resend)
     return resend;
 

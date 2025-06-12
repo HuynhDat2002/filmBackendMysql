@@ -125,12 +125,13 @@ export const signUp = async () => {
     }
 }
 
-export const checkDevice = async ({ email, password, userAgent,tokenCaptcha }: CheckDevice) => {
+export const checkDevice = async ({ email, password, userAgent,tokenCaptcha="" }: CheckDevice) => {
     //captcha
-      const captcha = await verifyTokenCaptcha(tokenCaptcha)
-      console.log('captcha',captcha)
-      if(!captcha) throw new errorResponse.AuthFailureError('Ban chua xac minh captcha')
-      if(captcha.success===false) throw new errorResponse.AuthFailureError(`${captcha.message}`)
+    //   const captcha = await verifyTokenCaptcha(tokenCaptcha)
+    //   console.log('captcha',captcha)
+    //   if(!captcha) throw new errorResponse.AuthFailureError('Ban chua xac minh captcha')
+    //   if(captcha.success===false) throw new errorResponse.AuthFailureError(`${captcha.message}`)
+    
     //check input
     const isValidEmail = await email.match(regex.emailRegex)
     if (isValidEmail === null) throw new errorResponse.BadRequestError('Email không hợp lệ')
@@ -192,7 +193,7 @@ export const checkDevice = async ({ email, password, userAgent,tokenCaptcha }: C
     const userAgents = userFound.userAgent.map(ua => ua.agentId);
     const getUserAgentId = await prisma.userAgent.findFirst({ where: { agent: userAgent } })
     if (!userAgents.includes(getUserAgentId?.id as string)) {
-        await otpService.sendOTPVerifyEmail({ email })
+        await otpService.sendOTPVerifyEmail(email )
         console.log('sent', email)
         throw new errorResponse.BadRequestError('Ban dang dang nhap tren thiet bi moi, hay nhap ma OTP!')
     }
@@ -438,7 +439,7 @@ export const forgotPassword = async ({ email }: { email: string }) => {
     console.log('userrrr', foundUser)
 
     //send otp to email
-    return await otpService.sendOTPVerifyEmail({ email })
+    return await otpService.sendOTPVerifyEmail(email )
 }
 
 export const resetPassword = async ({ email, newPassword }: { email: string, newPassword: string }) => {

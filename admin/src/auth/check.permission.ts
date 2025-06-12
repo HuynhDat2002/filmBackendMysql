@@ -54,7 +54,6 @@ const sendRBACRequest = async (message: { action: string, resource: string, role
     await client.connect()
     await client.del("rbacresult");
     await publishMessage(channel, config.RBAC_BINDING_KEY, JSON.stringify(message) )
-    // let result:{service:string,status:string} =await JSON.parse(await client.get('rbacresult') as string)
     
      // Poll for the result in Redis
     const pollForResult = async () => {
@@ -83,9 +82,9 @@ export const checkPermission = (action: string, resource: string) => {
 
             try{
                 const role = req.user?.role as string
-                console.log('userrole',role)
+                
                 const rbacResponse = await sendRBACRequest({ action: action, resource: resource, role: role, service: "admin" })
-                console.log('rbacresponse',rbacResponse)
+                
                 if (!rbacResponse) throw new errorResponse.AuthFailureError('You dont have permission to do this!')
             
                 if (rbacResponse.status !== "success") throw new errorResponse.AuthFailureError('You dont have permission to do this!')

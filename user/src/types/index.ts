@@ -52,7 +52,7 @@ export interface SignInProps{
     email:string,
     password:string,
     userAgent:string,
-    tokenCaptcha:string
+    tokenCaptcha?:string
   
 }
 export interface CheckDevice{

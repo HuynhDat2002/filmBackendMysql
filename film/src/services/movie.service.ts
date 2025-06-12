@@ -43,6 +43,7 @@ const isAllowedURL = async (url: string) => {
     return check
 
 }
+
 export const createMovie = async (urlEmbed: { urlEmbed: string }) => {
 
     //kiểm tra url hợp lệ
@@ -70,15 +71,7 @@ export const createMovie = async (urlEmbed: { urlEmbed: string }) => {
             uploadImages(movie.movie.poster_url, `${movie.movie.slug}-poster`, 'movie')
         ]);
     }
-    // if (hostname.includes("phimapi")) {
-    //     thumb_url = await uploadImages(movie.movie.poster_url, `${movie.movie.slug}-thumb`, 'movie')
-    //     poster_url = await uploadImages(movie.movie.thumb_url, `${movie.movie.slug}-poster`, 'movie')
-    // }
-    // else{
-
-    //     thumb_url = await uploadImages(movie.movie.thumb_url, `${movie.movie.slug}-thumb`, 'movie')
-    //     poster_url = await uploadImages(movie.movie.poster_url, `${movie.movie.slug}-poster`, 'movie')
-    // }
+   
     const $ = cheerio.load(movie.movie.content);
     const content = $.text();
 
@@ -233,7 +226,6 @@ export const deleteMovie = async (movieId: string) => {
 
     return movieDeleted
 }
-
 
 export const getMovie = async (movieId: string) => {
     //check input
@@ -512,9 +504,6 @@ export const getPageTotal = async () => {
     }
 }
 
-// export const filterMoive = async (payload: FilterPayloadProps) => {
-
-// }
 
 export const getPayloadAdmin = async (data: AdminPayloadProps) => {
     const client = await clientRedis()

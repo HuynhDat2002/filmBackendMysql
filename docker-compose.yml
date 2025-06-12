@@ -1,51 +1,146 @@
 version: '3.8'
 services:
-
-  
-  db-mysql:
+  mysql-film:
     image: mysql:8
-    container_name: mysql-server
     restart: always
+    environment:
+      MYSQL_USER: film_user
+      MYSQL_PASSWORD: trongdatfilm
+      MYSQL_ROOT_PASSWORD: rootfilm
+      MYSQL_DATABASE: filmdb
     volumes:
-      - my-db:/var/lib/mysql
-    environment:
-      MYSQL_ROOT_PASSWORD: trongdat1335
+      - mysql-film:/var/lib/mysql
     ports:
-      - 3308:3306
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
+      - "3308:3306"
+    networks:
+      - backend-network
+    deploy:
+      mode: replicated
+      replicas: 1
+
+  film:
+    build:
+      context: ./film
+      dockerfile: Dockerfile
+    restart: always
+    deploy:
+      replicas: 1
+    environment:
+      - REDIS_HOST=redis-film
+      - REDIS_PORT=6379
+    depends_on:
+      - mysql-film
+      - redis-film
+    env_file:
+      - ./film/.env
+    expose:
+      - 5003
+    volumes:
+      - .:/app/
     networks:
       - backend-network
 
-  redis-film:
-    image: redis:latest
-    container_name: redis-film
+  mysql-admin:
+    image: mysql:8
+    restart: always
+    environment:
+      MYSQL_USER: admin_user
+      MYSQL_PASSWORD: trongdatadmin
+      MYSQL_ROOT_PASSWORD: rootadmin
+      MYSQL_DATABASE: admindb
+    volumes:
+      - mysql-admin:/var/lib/mysql
     ports:
-      - '6379:6379'
-    command: redis-server --save 20 1 --loglevel warning
-    volumes: 
-      - redis:/data
+      - "3309:3306"
+    networks:
+      - backend-network
+    deploy:
+      mode: replicated
+      replicas: 1
+
+  admin:
+    build:
+      context: ./admin
+      dockerfile: Dockerfile
+    restart: always
+    deploy:
+      replicas: 1
+    environment:
+      - REDIS_HOST=redis-film
+      - REDIS_PORT=6379
+    depends_on:
+      - mysql-admin
+      - rabbitmq
+      - redis-film
+      # - "redis"
+    volumes:
+      - .:/app/
+    env_file:
+      - ./admin/.env
+    expose:
+      - 5002
     networks:
       - backend-network
 
-  rabbitmq-film:
-    image: rabbitmq:4-management
-    container_name: rabbitmq
-    ports:
-      - '5672:5672'
-      - "15672:15672"
+  mysql-user:
+    image: mysql:8
+    restart: always
     environment:
-      RABBITMQ_DEFAULT_USER: trongdat
-      RABBITMQ_DEFAULT_PASS: abc123456
-    # volumes:
-    #   - ./certs:/etc/rabbitmq/certs
-    #   - ./rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+      MYSQL_USER: user_user
+      MYSQL_PASSWORD: trongdatuser
+      MYSQL_ROOT_PASSWORD: rootuser
+      MYSQL_DATABASE: userdb
+    volumes:
+      - mysql-user:/var/lib/mysql
+    ports:
+      - "3310:3306"
     networks:
       - backend-network
-    
+    deploy:
+      mode: replicated
+      replicas: 1
+
+  user:
+    build:
+      context: ./user
+      dockerfile: Dockerfile
+    restart: always
+    deploy:
+      replicas: 1
+    environment:
+      - REDIS_HOST=redis-film
+      - REDIS_PORT=6379
+    depends_on:
+      - mysql-user
+      - redis-film
+      - rabbitmq
+    volumes:
+      - .:/app
+    env_file:
+      - ./user/.env
+    expose:
+      - 5000
+    networks:
+      - backend-network
+
+  mysql-rbac:
+    image: mysql:8
+    restart: always
+    environment:
+      MYSQL_USER: rbac_user
+      MYSQL_PASSWORD: trongdatrbac
+      MYSQL_ROOT_PASSWORD: rootrbac
+      MYSQL_DATABASE: rbacdb
+    volumes:
+      - mysql-rbac:/var/lib/mysql
+    ports:
+      - "3311:3306"
+    networks:
+      - backend-network
+    deploy:
+      mode: replicated
+      replicas: 1
+
   rbac:
     build:
       context: ./rbac
@@ -53,22 +148,15 @@ services:
     restart: always
     image: tdat/rbac:1.0.0
     deploy:
-      replicas: 3
+      replicas: 1
     environment:
-      - DB_PORT=3306
-      - DB_HOST=db-mysql
-      - DB_USER=root
-      - DB_PASSWORD=trongdat1335
-      - DB_NAME=rbacdb
-      - DATABASE_URL=mysql://root:trongdat1335@db-mysql:3306/rbacdb
       - REDIS_HOST=redis-film
       - REDIS_PORT=6379
     depends_on:
-      - db-mysql
+      - mysql-rbac
       - redis-film
     volumes:
       - .:/app
-      - /app/rbac/node_modules
     env_file:
       - ./rbac/.env
     expose:
@@ -81,120 +169,29 @@ services:
     networks:
       - backend-network
 
-  film:
-    build:
-      context: ./film
-      dockerfile: Dockerfile
-    restart: always
-    deploy:
-      replicas: 3
-    image: tdat/film:1.0.0
-    environment:
-      - DB_PORT=3306
-      - DB_HOST=db-mysql
-      - DB_USER=root
-      - DB_PASSWORD=trongdat1335
-      - DB_NAME=filmdb
-      - DATABASE_URL=mysql://root:trongdat1335@db-mysql:3306/filmdb
-      - REDIS_HOST=redis-film
-      - REDIS_PORT=6379
-    depends_on:
-      - db-mysql
-      - redis-film
-    volumes:
-      - .:/app
-      - /app/film/node_modules
-    env_file:
-      - ./film/.env
-    expose:
-      - 5003
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
-    networks:
-      - backend-network
-
   
-
-
-  user:
-    build:
-      context: ./user
-      dockerfile: Dockerfile
-    restart: always
-    image: tdat/user:1.0.0
-    deploy:
-      replicas: 3
-    environment:
-      - DB_PORT=3306
-      - DB_HOST=db-mysql
-      - DB_USER=root
-      - DB_PASSWORD=trongdat1335
-      - DB_NAME=userdb
-      - DATABASE_URL=mysql://root:trongdat1335@db-mysql:3306/userdb
-      - REDIS_HOST=redis-film
-      - REDIS_PORT=6379
-    depends_on:
-      - db-mysql
-      - redis-film
-    volumes:
-      - .:/app
-      - /app/user/node_modules
-    env_file:
-      - ./user/.env
-    expose:
-      - 5000
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
+  redis-film:
+    image: redis:latest
+    container_name: redis-film
+    ports:
+      - '6379:6379'
+    command: redis-server --save 20 1 --loglevel warning
+    volumes: 
+      - redis:/data
     networks:
       - backend-network
 
 
-
-
-
-  admin:
-    build:
-      context: ./admin
-      dockerfile: Dockerfile
-    # container_name: admin
-    restart: always
-    image: tdat/admin:1.0.0
-    deploy:
-      replicas: 3
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - '5672:5672'
+      - "15672:15672"
     environment:
-      - DB_PORT=3306
-      - DB_HOST=db-mysql
-      - DB_USER=root
-      - DB_PASSWORD=trongdat1335
-      - DB_NAME=admindb
-      - DATABASE_URL=mysql://root:trongdat1335@db-mysql:3306/admindb
-      - REDIS_HOST=redis-film
-      - REDIS_PORT=6379
-    depends_on:
-      - db-mysql
-      - rabbitmq-film
-      - redis-film
-      # - "redis"
-    volumes:
-      - .:/app/
-      - /app/admin/node_modules
-    env_file:
-      - ./admin/.env
-    expose:
-      - 5002
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
+      RABBITMQ_DEFAULT_USER: trongdat
+      RABBITMQ_DEFAULT_PASS: abc123456
     networks:
-      - backend-network
+      - backend-network   
 
   nextjs:
     # container_name: nextjs-frontend
@@ -206,7 +203,7 @@ services:
     expose:
       - 3000
     deploy:
-      replicas: 3
+      replicas: 1
     networks:
       - backend-network
 
@@ -220,30 +217,10 @@ services:
     expose:
       - 3001
     deploy:
-      replicas: 3
+      replicas: 1
     networks:
       - backend-network
 
-  # duckdns:
-  #   image: lscr.io/linuxserver/duckdns:latest
-  #   container_name: duckdns
-  #   network_mode: host
-  #   restart: always
-  #   environment:
-  #     - TZ=Asia/Ho_Chi_Minh
-  #     - SUBDOMAINS=navyfilm.duckdns.org
-  #     - TOKEN=678d7a2e-db77-4e18-8933-1648dd12a342
-  #     - UPDATE_IP=192.168.1.7
-  #     - LOG_FILE=true
-
-  # certbot:
-  #   image: certbot/certbot:latest
-  #   container_name: certbot
-  #   volumes:
-  #     - ./certbot/www/:/var/www/certbot/:rw
-  #     - ./certbot/conf/:/etc/letsencrypt/:rwv
-  #   command: certonly --standalone -w /var/www/certbot  --force-renewal --email hltdat2002@gmail.com -d navyfilm.xyz --agree-tos
-      
 
   nginx-proxy:
     # image: tdat/nginx:1.0.0 # owasp/modsecurity-crs:nginx #reverse-proxy # owasp/modsecurity-crs:nginx 
@@ -253,12 +230,11 @@ services:
       context: ./proxy
     depends_on:
       - film
-      - user
-      - admin
-      - rbac  
+      # - user
+      # - admin
+      # - rbac  
       - nextjs
       - nextjs-admin
-      # - certbot
     ports:
       - 443:443
     volumes:
@@ -282,8 +258,13 @@ services:
     restart: always
     environment:
       - discovery.type=single-node
+      - xpack.security.enabled=false
+      - xpack.security.transport.ssl.enabled=false
+      - node.name=elasticsearch
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
     ports:
-      - "9200:9200"
+      - "9300:9200"
     volumes:
       - esdata:/usr/share/elasticsearch/data
     networks:
@@ -334,7 +315,13 @@ networks:
 volumes:
   esdata:
     driver: local
-  my-db:
+  mysql-film:
+    external: true
+  mysql-admin:
+    external: true
+  mysql-user:
+    external: true
+  mysql-rbac:
     external: true
   redis:
     driver: local

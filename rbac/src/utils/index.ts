@@ -61,8 +61,7 @@ const createChannel = async () => {
     console.log('ms',config.MSG_QUEUE_URL)
     for (let i =0;i<10;i++){
         try{
-            const connection = await amqplib.connect(config.MSG_QUEUE_URL)
-            const channel = await connection.createChannel()
+           await amqplib.connect(config.MSG_QUEUE_URL,{frameMax:131072})
             console.log('Connect to rabbitmq successfully')
             break;
         }
@@ -71,7 +70,7 @@ const createChannel = async () => {
             await new Promise(resolve=>setTimeout(resolve,3000))
         }
     }
-    const connection = await amqplib.connect(config.MSG_QUEUE_URL)
+    const connection = await amqplib.connect(config.MSG_QUEUE_URL,{frameMax:131072})
     const channel = await connection.createChannel()
     await channel.assertExchange(config.EXCHANGE_NAME,'direct',{
       durable: true
