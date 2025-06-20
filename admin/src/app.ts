@@ -57,7 +57,8 @@ const adminApp = async (app:express.Express)=>{
         const status:number = error.status || 500;
         return res.status(status).json({
             status:status,
-            message:status !== 500 ? error.message : "Internal Server Error",
+            message:error.message,
+            stack:error.stack
         })
     })
     

@@ -86,7 +86,7 @@ const handleError=()=>{
                         <>
                             <form onSubmit={formik.handleSubmit}>
 
-                                <ModalHeader className="flex flex-col gap-1">Sign up</ModalHeader>
+                                <ModalHeader className="flex flex-col gap-1">Đăng ký</ModalHeader>
                                 <ModalBody>
                                 {isError &&
                                         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl relative mt-3" role="alert">
@@ -101,8 +101,8 @@ const handleError=()=>{
                                             <FontAwesomeIcon icon={faUser} className="text-2xl text-default-400 pointer-events-none flex-shrink-0" />
                                             // <MailIcon className="text-2xl text-default-400 pointer-events-none flex-shrink-0" />
                                         }
-                                        label="Name"
-                                        placeholder="Enter your name"
+                                        label="Tên"
+                                        placeholder="Nhập tên"
                                         variant="bordered"
                                         name="name"
                                         onChange={formik.handleChange}
@@ -119,7 +119,7 @@ const handleError=()=>{
                                         }
                                         label="Email"
                                         type="email"
-                                        placeholder="Enter your email"
+                                        placeholder="Nhập email"
                                         variant="bordered"
                                         name="email"
                                         onChange={formik.handleChange}
@@ -134,8 +134,8 @@ const handleError=()=>{
                                             <FontAwesomeIcon icon={faLock} className="text-2xl text-default-400 pointer-events-none flex-shrink-0" />
 
                                         }
-                                        label="Password"
-                                        placeholder="Enter your password"
+                                        label="Mật khẩu"
+                                        placeholder="Nhập mật khẩu"
                                         type="password"
                                         variant="bordered"
                                         value={formik.values.password}
@@ -152,8 +152,8 @@ const handleError=()=>{
                                             <FontAwesomeIcon icon={faLock} className="text-2xl text-default-400 pointer-events-none flex-shrink-0" />
 
                                         }
-                                        label="ConfirmPassword"
-                                        placeholder="Enter your confirm password"
+                                        label="Xác minh mật khẩu"
+                                        placeholder="Nhập lại mật khẩu"
                                         type="password"
                                         variant="bordered"
                                         value={formik.values.confirmPassword}
@@ -175,16 +175,16 @@ const handleError=()=>{
                                     <Button className="text-gray-500 hover:text-ctBlue-logo flex basis-1/2 px-1"  type="button" onClick={openLogin}>
 
                                         <FontAwesomeIcon icon={faRightToBracket} className="pr-2" />
-                                        <span className="text-center">Login Now</span>
+                                        <span className="text-center">Đăng nhập</span>
 
                                     </Button>
 
 
                                     <Button color="danger" variant="flat" onPress={onClose} type="button" className="basis1/4">
-                                        Close
+                                        Đóng
                                     </Button>
                                     <Button className="bg-ctBlue-header text-white basis-1/4" type="submit">
-                                        Sign up
+                                        Đăng ký
                                     </Button>
 
 

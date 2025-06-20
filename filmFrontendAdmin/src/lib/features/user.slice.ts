@@ -174,7 +174,7 @@ export const deleteUser = createAsyncThunk(
   }
 );
 
-const initialState = {
+export const initialState = {
   user: {
     user: {
       id: "",

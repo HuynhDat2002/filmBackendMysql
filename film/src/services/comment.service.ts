@@ -7,11 +7,8 @@
 */
 
 import { CreateCommentProps } from "@/types";
-import { commentModel } from "@/models/comments.model";
 import * as errorResponse from "@/cores/error.response";
 import * as regex from "@/middlewares/regex";
-import { movieModel } from "@/models/movie.model";
-import { tvModel } from "@/models/tv.model";
 import DOMPurify from "isomorphic-dompurify";
 import { prisma } from "@/db/prisma.init";
 export const createComment = async ({
@@ -57,30 +54,18 @@ export const createComment = async ({
     // })
 
     // check film exist
-    const movie = await prisma.movie.findUnique({ where: { id: filmId } });
-    if (!movie) {
-        const tv = await prisma.tV.findUnique({ where: { id: filmId } });
-        if (!tv) throw new errorResponse.BadRequestError(`FilmId doesn\'t exists`);
-    }
+    const film = await prisma.film.findUnique({ where: { id: filmId } });
 
     // create comment
     const comment = await prisma.comment.create({
         data: {
-            ...(movie
-                ? {
-                    comment_movie: {
-                        connect: {
-                            id: filmId,
-                        },
-                    },
-                }
-                : {
-                    comment_tv: {
-                        connect: {
-                            id: filmId,
-                        },
-                    },
-                }),
+
+            comment_film: {
+                connect: {
+                    id: filmId,
+                },
+            },
+
             comment_user: {
                 create: {
                     userId: user.id,
@@ -112,7 +97,7 @@ export const createComment = async ({
         const leftValue = parentComment.comment_left;
         await prisma.comment.updateMany({
             where: {
-                ...(movie ? { comment_movieId: filmId } : { comment_tvId: filmId }),
+                comment_filmId: filmId ,
                 comment_left: { gt: rightValue },
             },
             data: {
@@ -124,7 +109,7 @@ export const createComment = async ({
         })
         await prisma.comment.updateMany({
             where: {
-                ...(movie ? { comment_movieId: filmId } : { comment_tvId: filmId }),
+                comment_filmId: filmId ,
                 comment_right: { gte: rightValue },
             },
             data: {
@@ -149,7 +134,7 @@ export const createComment = async ({
 
         const maxRightValue = await prisma.comment.findFirst({
             where: {
-                ...(movie ? { comment_movieId: filmId } : { comment_tvId: filmId }),
+               comment_filmId: filmId ,
             },
             select: {
                 comment_right: true
@@ -183,15 +168,14 @@ export const getCommentByParentId = async ({ filmId = "", parentCommentId = "", 
     // if(parentCommentId){
     const parent = await prisma.comment.findUnique({ where: { id: parentCommentId } })
     if (!parent) throw new errorResponse.NotFound("Comment parent not found")
-    const movie = await prisma.movie.findUnique({ where: { id: filmId } });
-    if (!movie) {
-        const tv = await prisma.tV.findUnique({ where: { id: filmId } });
-        if (!tv) throw new errorResponse.BadRequestError(`FilmId doesn\'t exists`);
+    const film = await prisma.film.findUnique({ where: { id: filmId } });
+    if (!film) {
+       throw new errorResponse.BadRequestError("Không thể tìm thấy phim này")
     }
     console.log('parent', parent)
     const comments = await prisma.comment.findMany({
         where: {
-            ...(movie ? { comment_movieId: filmId } : { comment_tvId: filmId }),
+            comment_filmId: filmId ,
             comment_left: {
                 gt: parent.comment_left
             },
@@ -208,8 +192,7 @@ export const getCommentByParentId = async ({ filmId = "", parentCommentId = "", 
             id: true,
             createdAt: true,
             updatedAt: true,
-            comment_movieId: true,
-            comment_tvId: true
+            comment_filmId: true,
         },
         orderBy: {
             comment_left: "asc"
@@ -232,10 +215,9 @@ export const deleteComment = async ({
     const isValidId2 = await filmId.match(regex.idRegex)
     if (isValidId2 === null) throw new errorResponse.BadRequestError('Film Id không hợp lệ')
 
-    let movie = await prisma.movie.findUnique({ where: { id: filmId } })
-    if (!movie) {
-        let tv = await prisma.tV.findUnique({ where: { id: filmId } })
-        if (!tv) throw new errorResponse.BadRequestError('Id film không đúng')
+    let film = await prisma.film.findUnique({ where: { id: filmId } })
+    if (!film) {
+       throw new errorResponse.BadRequestError("Không thể tìm thấy phim này")
     }
 
     //1.xac dinh gia tri left va right
@@ -247,7 +229,7 @@ export const deleteComment = async ({
         if (comment.comment_user.role === "SUPERVISOR") throw new errorResponse.AuthFailureError("Bạn không có quyền xóa comment này")
         if (comment.comment_user.role === "ADMIN" && comment.comment_user?.userId !== userId) throw new errorResponse.AuthFailureError("Bạn không có quyền xóa comment này")
     }
-    if(user.role==="USER"){
+    if (user.role === "USER") {
         if (comment.comment_user?.userId !== userId) throw new errorResponse.AuthFailureError("Bạn không có quyền xóa comment này")
     }
 
@@ -260,7 +242,7 @@ export const deleteComment = async ({
     const commentChild = await prisma.comment.findMany({
         where: {
             comment_left: { gte: leftValue, lte: rightValue },
-            ...(movie ? { comment_movieId: filmId } : { comment_tvId: filmId }),
+            comment_filmId: filmId,
 
         }
     })
@@ -318,7 +300,7 @@ export const deleteComment = async ({
 
     await prisma.comment.updateMany({
         where: {
-            ...(movie ? { comment_movieId: filmId } : { comment_tvId: filmId }),
+            comment_filmId: filmId,
             comment_right: { gt: rightValue }
         },
         data: {
@@ -330,7 +312,7 @@ export const deleteComment = async ({
 
     await prisma.comment.updateMany({
         where: {
-            ...(movie ? { comment_movieId: filmId } : { comment_tvId: filmId }),
+           comment_filmId: filmId ,
             comment_left: { gt: rightValue }
         },
         data: {
@@ -347,16 +329,13 @@ export const getAllCommentByFilm = async ({ filmId }: { filmId: string }) => {
     //check input
     const isValidId = await filmId.match(regex.idRegex)
     if (isValidId === null) throw new errorResponse.BadRequestError('Film Id không hợp lệ')
-    let movie = await prisma.movie.findUnique({ where: { id: filmId } })
-    if (!movie) {
-        let tv = await prisma.tV.findUnique({ where: { id: filmId } })
-        if (!tv) throw new errorResponse.BadRequestError('Id film không đúng')
-    }
-    const comments = await prisma.comment.findMany({ where: { ...(movie ? { comment_movieId: filmId } : { comment_tvId: filmId }) },include:{comment_user:true} })
+    let film = await prisma.film.findUnique({ where: { id: filmId } })
+    
+    const comments = await prisma.comment.findMany({ where: { comment_filmId: filmId }})
     return comments;
 }
 
-export const editComment = async({
+export const editComment = async ({
     userId = "", commentId = "", filmId = "", content = ""
 }) => {
     //check input
@@ -369,11 +348,7 @@ export const editComment = async({
 
     const cleanContent = DOMPurify.sanitize(content);
 
-    let movie = await prisma.movie.findUnique({ where: { id: filmId } })
-    if (!movie) {
-        let tv = await prisma.tV.findUnique({ where: { id: filmId } })
-        if (!tv) throw new errorResponse.BadRequestError('Id film không đúng')
-    }
+    let film = await prisma.film.findUnique({ where: { id: filmId } })
     const comment = await prisma.comment.findUnique({ where: { id: commentId }, include: { comment_user: true } })
     if (!comment) throw new errorResponse.NotFound("Comment not exists")
     if (comment.comment_user?.userId !== userId) throw new errorResponse.AuthFailureError("Bạn không có quyền chỉnh sửa comment này")

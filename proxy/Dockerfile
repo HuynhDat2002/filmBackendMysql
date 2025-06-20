@@ -11,7 +11,7 @@ RUN apt-get update && apt-get install -y openssl
 
 
 
-USER root
+# USER root
 RUN chmod -R 755 /var/log/nginx && \
     chown -R root:root /var/log/nginx
 
@@ -58,7 +58,7 @@ COPY ./modsecurity.conf /etc/nginx/modsec/modsecurity.conf
 
 COPY nginx.conf /etc/nginx/nginx.conf
 
-USER root
+# USER root
 # Cài đặt các công cụ cần thiết
 
 # Tải xuống và giải nén OWASP ModSecurity CRS

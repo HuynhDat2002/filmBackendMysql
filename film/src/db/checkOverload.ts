@@ -1,6 +1,5 @@
 'use strict'
 
-import mongoose from "mongoose"
 import os from 'os'
 import process from "process"
 import {prisma} from './prisma.init'

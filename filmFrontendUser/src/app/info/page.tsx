@@ -1,7 +1,7 @@
 'use client'
 import { useAppDispatch, useAppSelector } from "../../lib/hooks"
 import React, { useEffect, useState } from "react"
-
+import { initialState } from '../../lib/features/user.slice';
 import { FilmIcon, MonitorIcon } from "@iconicicons/react"
 import { checkLogin } from "../../lib/features/user.slice"
 import * as yup from 'yup'
@@ -15,21 +15,25 @@ import { faRightToBracket, faEnvelope, faUser, faTimesCircle } from '@fortawesom
 export default function FilmList(tab: any) {
 const router = useRouter()
   const dispatch = useAppDispatch()
-  const movies: any = useAppSelector((state) => state.movieReducer.movies.metadata)
-  const tvs: any = useAppSelector((state) => state.tvReducer.tvs.metadata)
-  const user: any = useAppSelector((state) => state.userReducer) 
-  const userinfo: { user: { id: string, email: string, name: string } } = typeof window !== "undefined" ? (JSON.parse(  localStorage.getItem('userinfo') as string) ? JSON.parse(localStorage.getItem('userinfo') as string) :  { user: { id: "", email: "", name: "" } } ) : { user: { id: "", email: "", name: "" } }
+  const [userInfo, setUserInfo] = useState<{ user: { id: "", email: "", name: "" } }>({ user: { id: "", email: "", name: "" } })
+  const user: typeof initialState = useAppSelector((state) => state.userReducer) 
   const [isSuccess, setIsSuccess] = useState(false)
   useEffect(() => {
 
     dispatch(checkLogin())
-    
+    setUserInfo(()=>{
+
+      if (typeof window !== "undefined") {
+      return JSON.parse(  localStorage.getItem('userinfo') as string) || { user: { id: "", email: "", name: "" } }
+      }
+    }
+    )
 }, [])
   
   useEffect(()=>{
-    if (user.isSuccess && user.isEdit) setIsSuccess(true)
-      if(user.isError && user.isCheck) router.push(`/`)
-  },user.isLoading)
+    if (user?.isSuccess && user?.isEdit) setIsSuccess(true)
+      if(user?.isError && user?.isCheck) router.push(`/`)
+  },[user?.isLoading])
 
   let schema = yup.object().shape({
     email: yup
@@ -50,22 +54,8 @@ const router = useRouter()
       dispatch(editUser({name:value.name}))
     },
   });
-  const renderCategoryIcon = (category: string) => {
-    if (category === 'movie') {
-      return <FilmIcon className="pl-1 text-base" />
-    } else {
-      return <MonitorIcon className="pl-1 text-base" />
-    }
-  }
-
-  const renderCategoryText = (category: string) => {
-    if (category === 'movie') {
-      return 'Movie'
-    } else {
-      return 'TV Shows'
-    }
-  }
-  console.log(`emailll`, userinfo)
+ 
+  console.log(`emailll`, userInfo)
 
   return (
     <>
@@ -86,7 +76,7 @@ const router = useRouter()
               name="email"
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
-              defaultValue={userinfo.user?.email}
+              defaultValue={userInfo?.user?.email}
               isReadOnly
               className="text-gray-600"
 
@@ -103,7 +93,7 @@ const router = useRouter()
               name="name"
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
-              defaultValue={userinfo.user?.name}
+              defaultValue={userInfo?.user?.name}
 
             />
             {formik.touched.name && formik.errors.name ? (

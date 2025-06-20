@@ -1,6 +1,6 @@
 'use strict'
 
-import * as movieService from './movie.service'
-import * as tvService from './tv.service'
+import * as filmService from './film.service'
 import * as commentService from './comment.service'
-export {movieService,tvService,commentService}
+export * from './elasticsearch.service'
+export {filmService,commentService}

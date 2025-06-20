@@ -1,3 +1,4 @@
+'use client'
 import React,{useEffect} from "react";
 import { useAppDispatch,useAppSelector } from "../lib/hooks";
 import { logout } from "../lib/features/user.slice";

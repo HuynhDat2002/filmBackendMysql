@@ -4,15 +4,18 @@ import cookieParser from 'cookie-parser'
 import helmet from 'helmet'
 import compression from 'compression'
 import cors from 'cors'
-import instanceMongodb from '@/db/init.mongodb'
 import checkOverload from '@/db/checkOverload'
 import router from '@/routes'
 import { createChannel } from './utils'
 import { subscribeMessage } from './utils'
-import {movieService} from '@/services'
+import {filmService} from '@/services'
 import { connectDB } from './db/prisma.init'
 import amqplib from 'amqplib'
 import { clientRedis } from './utils'
+import { AppEventListener } from './utils/AppEventListener'
+import { ElasticSearchService } from '@/services'
+import { Client } from '@elastic/elasticsearch'
+
 const movieApp = async (app: express.Express) => {
 
 
@@ -36,10 +39,29 @@ const movieApp = async (app: express.Express) => {
     //checking overload
     checkOverload()
 
+    
+    // listen event elasticsearch
+    const elasticSearchService = new ElasticSearchService()
+    AppEventListener.instance.listen(elasticSearchService)
+    // const waitForElasticsearch= async ( retries = 10, delay = 3000)=> {
+    //     const client = new Client({node: process.env.ELASTICSEARCH_URL});
+    //     for (let i = 0; i < retries; i++) {
+    //         try {
+    //             await client.info();
+    //             console.log("Elasticsearch is ready");
+    //         } catch (err) {
+    //             console.log(`Elasticsearch not ready. Retry ${i + 1}/${retries}`);
+    //             await new Promise((res) => setTimeout(res, delay));
+    //         }
+    //     }
+    //     return false
+    // }
+    // await waitForElasticsearch()
+
     //create channel
     const channel = await createChannel() as amqplib.Channel
     // subscribe message
-    await subscribeMessage(channel, movieService)
+    await subscribeMessage(channel, filmService)
     // await subscribeMessageRBAC(channel)
 
     app.use('/film/', router)
@@ -56,8 +78,8 @@ const movieApp = async (app: express.Express) => {
         const status: number = error.status || 500;
         return res.status(status).json({
             status: status,
-            message:  status !== 500 ? error.message : "Internal Server Error",
-            // stack: error.stack
+            message:   error.message,
+            stack: error.stack
         })
     })
 

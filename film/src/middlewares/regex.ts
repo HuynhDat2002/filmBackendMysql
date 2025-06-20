@@ -11,4 +11,4 @@ export const accessRegex = /^[a-zA-Z\d._-]*$/g
 
 export const pageRegex = /^[\d]*$/g
 
-export const queryRegex = /^[\d\w%\s]*$/g
+export const queryRegex = /^[\d\w%\s\p{L}]*$/gu

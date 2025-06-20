@@ -77,7 +77,7 @@ export default function ForgotPassword({ isOpen, onClose, openLogin, openVerify 
                         <>
                             <form onSubmit={formik.handleSubmit}>
 
-                                <ModalHeader className="flex flex-col gap-1">Forgot Password</ModalHeader>
+                                <ModalHeader className="flex flex-col gap-1">Quên mật khẩu</ModalHeader>
                                 <ModalBody>
                                     <p className="text-gray-700">Hãy nhập địa chỉ email của bạn để lấy lại mật khẩu</p>
                                     {isError &&
@@ -95,7 +95,7 @@ export default function ForgotPassword({ isOpen, onClose, openLogin, openVerify 
                                         }
                                         label="Email"
                                         type="email"
-                                        placeholder="Enter your email"
+                                        placeholder="Nhập email"
                                         variant="bordered"
                                         name="email"
                                         onChange={formik.handleChange}
@@ -121,10 +121,10 @@ export default function ForgotPassword({ isOpen, onClose, openLogin, openVerify 
 
                                     </Button>
                                     <Button color="danger" variant="flat" onPress={onClose} type="button" className="basis1/4">
-                                        Close
+                                        Đóng
                                     </Button>
                                     <Button className="bg-ctBlue-header text-white basis-1/4" type="submit">
-                                        Send
+                                        Gửi
                                     </Button>
 
 

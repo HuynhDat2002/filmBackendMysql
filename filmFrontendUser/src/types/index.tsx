@@ -63,8 +63,7 @@ export interface CommentProps{
     comment_content: string,
     comment_parentId: string,
     comment_user:any,
-    comment_movieId:string,
-    comment_tvId:string,
+    comment_filmId:string,
     id:string,
     createdAt:any,
     updatedAt:any

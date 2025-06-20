@@ -104,7 +104,7 @@ export interface KeyTokenAdminProps {
     refreshTokenUsed: Array<string>
 }
 
-export interface MovieData {
+export interface FilmData {
     movie: {
         name: string;
         slug: string;
@@ -116,15 +116,23 @@ export interface MovieData {
         time: string;
         lang: string;
         year: number;
+        type:string;
         actor: Array<string>;
         director: Array<string>;
         category: Array<{id:string,name:string,slug:string}>;
         country: Array<{id:string,name:string,slug:string}>;
         quality: string;
         episode_current: string;
+        episode_total?: string
     };
     episodes: Array<{
         server_data: Array<{
+            link_m3u8: string;
+        }>
+    }> | Array<{
+        server_data: Array<{
+            name: string,
+            slug: string,
             link_m3u8: string;
         }>
     }>;
@@ -160,13 +168,17 @@ export interface TVData {
     }>;
 };
 
-export interface UpdateMovieProps {
-    movieId: string,
-    payload: MovieData
+export interface UpdateFilmProps {
+    filmId: string,
+    payload: {
+        type:string,
+        name:string,
+        year:number
+    }
 }
 export interface QueryProps {
-    query?: string,
-    page?: string
+    query: string,
+    page: number
 }
 
 export interface FilterPayloadProps {

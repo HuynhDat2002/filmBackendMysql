@@ -152,10 +152,10 @@ export const checkDevice = createAsyncThunk(
     }
   }
 );
-const initialState = {
+export const initialState = {
   user: {
     user: {
-      _id: "",
+      id: "",
 
     },
     tokens: ""

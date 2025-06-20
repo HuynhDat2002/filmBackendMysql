@@ -17,111 +17,70 @@ datasource db {
 model Actor {
   id   String        @id @default(uuid()) @db.VarChar(36)
   name String @unique
-  movie ActorOnMovie[] 
-  tv ActorOnTV[] 
+  film ActorOnFilm[] 
 }
 
-model ActorOnMovie {
+model ActorOnFilm {
 
   actor   Actor  @relation(fields: [actorId], references: [id],onDelete: Cascade, onUpdate: Cascade)
   actorId String @db.VarChar(36)
 
-  movie  Movie @relation(fields: [movieId], references: [id],onDelete: Cascade, onUpdate: Cascade)
-  movieId String @db.VarChar(36)
-  @@id([movieId,actorId])
+  film  Film @relation(fields: [filmId], references: [id],onDelete: Cascade, onUpdate: Cascade)
+  filmId String @db.VarChar(36)
+  @@id([filmId,actorId])
 }
-
-model ActorOnTV {
-  actor   Actor  @relation(fields: [actorId], references: [id],onDelete: Cascade, onUpdate: Cascade)
-  actorId String @db.VarChar(36)
-
-  tv     TV   @relation(fields: [tvId], references: [id],onDelete: Cascade, onUpdate: Cascade)
-  tvId String @db.VarChar(36)
-  @@id([tvId,actorId])
-}
-
 
 model Director {
   id   String           @id @default(uuid()) @db.VarChar(36)
   name String @unique
-  movie DirectorOnMovie[]
-  tv DirectorOnTV[]
+  film DirectorOnFilm[]
 }
 
-model DirectorOnMovie {
+model DirectorOnFilm {
   director   Director @relation(fields: [directorId], references: [id],onDelete: Cascade, onUpdate: Cascade)
   directorId String   @db.VarChar(36)
 
-  movie  Movie @relation(fields: [movieId], references: [id],onDelete: Cascade, onUpdate: Cascade)
-  movieId String @db.VarChar(36)
-  @@id([movieId,directorId])
+  film  Film @relation(fields: [filmId], references: [id],onDelete: Cascade, onUpdate: Cascade)
+  filmId String @db.VarChar(36)
+  @@id([filmId,directorId])
 
-}
-
-model DirectorOnTV {
-  director   Director @relation(fields: [directorId], references: [id],onDelete: Cascade, onUpdate: Cascade)
-  directorId String   @db.VarChar(36)
-
-  tv  TV @relation(fields: [tvId], references: [id],onDelete: Cascade, onUpdate: Cascade)
-  tvId String @db.VarChar(36)
-  @@id([tvId,directorId])
 }
 
 model Category {
   id   String           @id @default(uuid()) @db.VarChar(36)
   name String @unique
   slug String
-  movie CategoryOnMovie[] 
-  tv CategoryOnTV[] 
+  film CategoryOnFilm[] 
 }
 
-model CategoryOnMovie {
+model CategoryOnFilm {
   
   category   Category @relation(fields: [categoryId], references: [id],onDelete: Cascade, onUpdate: Cascade)
   categoryId String   @db.VarChar(36)
-   movie  Movie @relation(fields: [movieId], references: [id],onDelete: Cascade, onUpdate: Cascade)
-  movieId String @db.VarChar(36)
-  @@id([movieId,categoryId])
+   film  Film @relation(fields: [filmId], references: [id],onDelete: Cascade, onUpdate: Cascade)
+  filmId String @db.VarChar(36)
+  @@id([filmId,categoryId])
 
 }
 
-
-model CategoryOnTV {
-  
-  category   Category @relation(fields: [categoryId], references: [id],onDelete: Cascade, onUpdate: Cascade)
-  categoryId String   @db.VarChar(36)
-   tv  TV @relation(fields: [tvId], references: [id],onDelete: Cascade, onUpdate: Cascade)
-  tvId String @db.VarChar(36)
-  @@id([tvId,categoryId])
-
-}
 
 model Country {
   id   String          @id @default(uuid()) @db.VarChar(36)
   name String @unique
   slug String
-  movie CountryOnMovie[] 
-  tv CountryOnTV[]
+  film CountryOnFilm[] 
 }
 
-model CountryOnMovie { 
+model CountryOnFilm { 
   country   Country @relation(fields: [countryId], references: [id],onDelete: Cascade, onUpdate: Cascade)
   countryId String  @db.VarChar(36)
-  movie  Movie @relation(fields: [movieId], references: [id],onDelete: Cascade, onUpdate: Cascade)
-  movieId String @db.VarChar(36)
-  @@id([movieId,countryId])
+  film  Film @relation(fields: [filmId], references: [id],onDelete: Cascade, onUpdate: Cascade)
+  filmId String @db.VarChar(36)
+  @@id([filmId,countryId])
 }
 
-model CountryOnTV {
-  country   Country @relation(fields: [countryId], references: [id],onDelete: Cascade, onUpdate: Cascade)
-  countryId String  @db.VarChar(36)
-   tv  TV @relation(fields: [tvId], references: [id],onDelete: Cascade, onUpdate: Cascade)
-  tvId String @db.VarChar(36)
-  @@id([tvId,countryId])
-}
-
-//----------Movie----------------
-model Movie {
+//----------Film----------------
+model Film {
   id              String           @id @default(uuid()) @db.VarChar(36)
   name            String
   slug            String
@@ -134,44 +93,17 @@ model Movie {
   lang            String
   year            Int
   view            Int              @default(0)
-  actor           ActorOnMovie[]
-  director        DirectorOnMovie[]
-  category        CategoryOnMovie[]
-  country         CountryOnMovie[]
+  actor           ActorOnFilm[]
+  director        DirectorOnFilm[]
+  category        CategoryOnFilm[]
+  country         CountryOnFilm[]
   quality         String
   episode_current String
   video           String           @default("")
   type            String           @default("movie")
-  rating          Rating?      
-  comment Comment[]        
-  @@fulltext([name])
-}
-
-//----------TV----------------
-model TV {
-  id              String           @id @default(uuid()) @db.VarChar(36)
-  name            String
-  slug            String
-  origin_name     String
-  content         String           @db.Text
-  poster_url      String
-  thumb_url       String
-  trailer         String
-  time            String
-  lang            String
-  year            Int
-  view            Int @default(0)
-  actor           ActorOnTV[]
-  director        DirectorOnTV[]
-  category        CategoryOnTV[]
-  country         CountryOnTV[]
-
-  quality         String
-  episode_current String
-  episode_total   Int
+  episode_total   Int               @default(1)
   episodes        Episodes[]
-  type            String           @default("tv")
-  rating          Rating?   
+  rating          Rating?      
   comment Comment[]        
   @@fulltext([name])
 }
@@ -181,8 +113,8 @@ model Episodes {
   name  String
   slug  String
   video String
-  tv    TV     @relation(fields: [tvId], references: [id],onDelete: Cascade, onUpdate: Cascade)
-  tvId  String @db.VarChar(36)
+  film    Film     @relation(fields: [filmId], references: [id],onDelete: Cascade, onUpdate: Cascade)
+  filmId  String @db.VarChar(36)
 }
 
 //----------------RATING----------------
@@ -204,10 +136,9 @@ model Rating {
   id            String        @id @default(uuid()) @db.VarChar(36)
   ratings       User_Rating[]
   ratingAverage Float           @default(0.0)
-  movieId        String?        @db.VarChar(36) @unique
-  movie Movie? @relation(fields: [movieId],references: [id],onDelete: Cascade, onUpdate: Cascade)
-  tvId        String?        @db.VarChar(36)  @unique
-  tv TV? @relation(fields: [tvId],references: [id],onDelete: Cascade, onUpdate: Cascade)
+  filmId        String?        @db.VarChar(36) @unique
+  film Film? @relation(fields: [filmId],references: [id],onDelete: Cascade, onUpdate: Cascade)
+ 
 }
 
 // ---------------COMMENT------------------
@@ -222,10 +153,8 @@ model CommentUser {
 
 model Comment {
   id               String       @id @default(uuid()) @db.VarChar(36)
-  comment_movie Movie? @relation(fields: [comment_movieId],references:[id])
-  comment_movieId  String?       @db.VarChar(36)
-  comment_tv TV? @relation(fields: [comment_tvId],references:[id])
-  comment_tvId String?       @db.VarChar(36)
+  comment_film Film? @relation(fields: [comment_filmId],references:[id])
+  comment_filmId  String?       @db.VarChar(36)
   comment_user     CommentUser @relation(fields: [comment_user_id],references: [id],onDelete: Cascade, onUpdate: Cascade)
   comment_user_id String @db.VarChar(36)
   comment_content  String       @db.Text

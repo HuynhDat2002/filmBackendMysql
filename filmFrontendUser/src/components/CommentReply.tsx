@@ -11,7 +11,6 @@ export default function CommentReply({ place = "Hãy viết bình luận của b
   const [message, setMessage] = useState("");
   const [messageError, setMessageError] = useState("")
   const dispatch = useAppDispatch()
-  const movie: any = useAppSelector((state) => state.movieReducer)
   const params = useParams<{ id: string }>()
   const commentState = useAppSelector((state) => state.commentReducer)
   const [isError, setError] = useState(false)

@@ -3,7 +3,7 @@ import { useAppDispatch, useAppSelector } from "@/lib/hooks"
 import React, { useEffect, useState } from "react"
 
 import { FilmIcon, MonitorIcon } from "@iconicicons/react"
-
+import { initialState as userState}  from "@/lib/features/user.slice"
 import * as yup from 'yup'
 import { editUser } from '@/lib/features/user.slice'
 import { useFormik } from "formik"
@@ -14,12 +14,15 @@ import { faRightToBracket, faEnvelope, faUser, faTimesCircle } from '@fortawesom
 export default function FilmList(tab: any) {
 const router = useRouter()
   const dispatch = useAppDispatch()
+  const [userInfo, setUserInfo] = useState<{ user: { id: "", email: "", name: "" } } >({ user: { id: "", email: "", name: "" } } )
   const movies: any = useAppSelector((state) => state.movieReducer.movies.metadata)
   const tvs: any = useAppSelector((state) => state.tvReducer.tvs.metadata)
-  const user: any = useAppSelector((state) => state.userReducer)
-  const userinfo: { user: { id: string, email: string, name: string } } = typeof window !== "undefined" ? (JSON.parse(  localStorage.getItem('userinfo') as string) ? JSON.parse(localStorage.getItem('userinfo') as string) :  { user: { id: "", email: "", name: "" } } ) : { user: { id: "", email: "", name: "" } }
+  const user: typeof userState = useAppSelector((state) => state.userReducer)
   useEffect(()=>{
-  },user.isLoading)
+    setUserInfo(
+      JSON.parse(  localStorage.getItem('userinfo') as string) || { user: { id: "", email: "", name: "" } } 
+    )
+  },[])
 
   let schema = yup.object().shape({
     email: yup
@@ -55,7 +58,7 @@ const router = useRouter()
       return 'TV Shows'
     }
   }
-  console.log(`emailll`, userinfo)
+  console.log(`emailll`, userInfo)
 
   return (
     <div className="mt-5">
@@ -75,7 +78,7 @@ const router = useRouter()
               name="email"
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
-              defaultValue={userinfo.user?.email}
+              defaultValue={userInfo?.user?.email}
               isReadOnly
               className="text-gray-600"
 
@@ -92,7 +95,7 @@ const router = useRouter()
               name="name"
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
-              defaultValue={userinfo.user?.name}
+              defaultValue={userInfo?.user?.name}
 
             />
             {formik.touched.name && formik.errors.name ? (

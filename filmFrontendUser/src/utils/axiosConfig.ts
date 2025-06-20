@@ -5,8 +5,8 @@ import https from "https";
 // import path from 'path';
 // import fs from 'fs';
 import type { InferGetServerSidePropsType, GetServerSideProps } from 'next'
-const base_url = "https://localhost/film/api"
-const base_url_user = "https://localhost/user/api"
+const base_url = "http://localhost:8080/film/api"
+const base_url_user = "http://localhost:8080/user/api"
 
 
 
@@ -43,12 +43,10 @@ interface Token {
 //   }) satisfies GetServerSideProps<{ content: string }>
 
 export const getToken = (): Token => {
-    if (typeof window !== "undefined") {
         const user = localStorage.getItem("user") as string;
         if (user) {
             return JSON.parse(user) as Token;
         }
-    }
     return { user: { id: "" ,name:"",role:""}, tokens: "" };
 };
 

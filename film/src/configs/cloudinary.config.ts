@@ -7,12 +7,12 @@ cloudinary.config({
 });
 
 
-export const uploadImages = async (url:string,name="",type:string) => {
+export const uploadImages = async (url:string,name="") => {
 
 
     try{
 
-        const image = await cloudinary.uploader.upload(url,{public_id:name,folder: `film/${type}/images`})
+        const image = await cloudinary.uploader.upload(url,{public_id:name,folder: `film/images`})
         console.log('image',image)
         if(image){
     

@@ -36,7 +36,7 @@ export default function RootLayout({
           <Header />
           <div className="">
             {/* <GoogleReCaptchaProvider reCaptchaKey="6LcJEnAqAAAAANHBtZwgCHDob75w_potmRxZ9xa0"> */}
-            <div className="w-[90%] xl:w-[75%] flex justify-center items-center  mx-auto  shadow-2xl ">
+            <div className="w-[100%]  flex justify-center items-center  mx-auto  shadow-2xl bg-background">
               <Suspense fallback={<SearchBarFallback />}>
                 {children}
               </Suspense>

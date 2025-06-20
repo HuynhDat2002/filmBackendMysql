@@ -1,5 +1,4 @@
 'use client'
-import Image from "next/image";
 import SideBar from "../components/Sidebar";
 import clsx from 'clsx'
 import { useState } from 'react'
@@ -25,7 +24,7 @@ export default function Home() {
     <main className="relative">
       <div className="flex-col">
 
-        <Tabs
+        {/* <Tabs
           aria-label="Options"
           selectedKey={selected}
           onSelectionChange={(key: Key) => setSelected(key as string)}
@@ -42,7 +41,7 @@ export default function Home() {
                 'group inline-flex items-center py-4 px-1 border-b-2 font-medium text-sm mr-2 focus:outline-none'
               )}
               title={
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center ">
                   <tab.icon
                     className={clsx(
                       selected === tab.name
@@ -52,14 +51,17 @@ export default function Home() {
                     )}
                     aria-hidden="true"
                   />
-                  {tab.name}
+                  <p className="px-2">
+
+                  {tab.name === 'Movies' ? 'Phim Lẻ' : 'Phim Bộ'}
+                  </p>
                 </div>
               }
             />
 
           ))}
 
-        </Tabs>
+        </Tabs> */}
         <FilmList
           tab={selected}
         />

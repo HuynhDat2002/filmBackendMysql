@@ -1,13 +1,11 @@
 import { configureStore } from '@reduxjs/toolkit'
-import movieReducer from './features/movie.slice'
-import tvReducer, { tv } from './features/tv.slice'
+import filmReducer from './features/film.slice'
 import userReducer from './features/user.slice'
 import commentReducer from './features/comment.slice'
 export const makeStore = () => {
   return configureStore({
     reducer: {
-      movieReducer,
-      tvReducer,
+      filmReducer,
       userReducer,
       commentReducer
     },

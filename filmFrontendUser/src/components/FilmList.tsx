@@ -1,27 +1,23 @@
 import { useAppDispatch, useAppSelector } from "../lib/hooks"
-import React, { useEffect } from "react"
-import { getMovies } from "../lib/features/movie.slice"
+import React, { useEffect,useState } from "react"
+import { getFilms,getPageTotalFilm } from "../lib/features/film.slice"
 import axios from 'axios'
 import FilmCard from './FilmCard'
-import Image from 'next/image'
 import { FilmIcon, MonitorIcon } from "@iconicicons/react"
-import { getAllTV } from "../lib/features/tv.slice"
-import { resetState as resetMovie } from "../lib/features/movie.slice"
-import { resetState as resetTV } from "../lib/features/tv.slice"
-import Page from './Pagination'
+import Pagi from './Pagination'
 export default function FilmList(tab: any) {
 
   const dispatch = useAppDispatch()
-  const movies: any = useAppSelector((state) => state.movieReducer.movies.metadata)
-  const tvs: any = useAppSelector((state) => state.tvReducer.tvs.metadata)
-  const user: any = useAppSelector((state) => state.userReducer)
+  const pageTotal: any = useAppSelector((state) => state.filmReducer.filmLength.metadata)
 
+  const films: any = useAppSelector((state) => state.filmReducer.films.metadata.films)
+  const user: any = useAppSelector((state) => state.userReducer)
+  // const [pageTotal,setPageTotal] = useState<number>(0)
 console.log('film list')
   useEffect(() => {
-    // Gọi hành động getMovies khi component được mount
-    dispatch(getMovies(1));
-    dispatch(getAllTV(1));
-
+    // Gọi hành động getfilms khi component được mount
+    dispatch(getFilms(1));
+    dispatch(getPageTotalFilm())
   }, [user]);
 
   const renderCategoryIcon = (category: string) => {
@@ -36,30 +32,35 @@ console.log('film list')
     if (category === 'movie') {
       return 'Movie'
     } else {
-      return 'TV Shows'
+      return 'Series'
     }
   }
+  // useEffect(() => {
+  //     setPageTotal(filmState.filmLength.metadata)
+  //   // if(filmState.isSuccess && filmState.isGetPageTotal) {
+  //   // }
+  // },[])
+
+  const handleChange = (page: number) => {
+     dispatch(getFilms(page));
+  }
+  console.log('films',pageTotal)
   return (
       <div className="flex flex-col gap-5 min-h-screen">
 
-        <div className=" grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5 items-start">
+        <div className=" grid grid-cols-2 gap-7 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5 items-start">
 
-          {tab.tab === "Movies" && movies.map((movie: any) => (
+          {films.map((film: any) => (
+
             <div
-              key={movie.id}
+              key={film.id}
             >
-              <FilmCard data={movie} />
+              <FilmCard data={film} />
             </div>
-          ))}
-          {tab.tab === "TV Shows" && tvs.map((tv: any) => (
-            <div
-              key={tv.id}
-            >
-              <FilmCard data={tv} />
-            </div>
-          ))}
+          ))
+        }
         </div>
-          <Page type={tab.tab}/>
+          <Pagi total={pageTotal} onPageChange={handleChange}/>
 
       </div>
 

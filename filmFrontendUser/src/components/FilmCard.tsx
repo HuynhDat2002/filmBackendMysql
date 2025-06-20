@@ -13,8 +13,8 @@ export default function FilmCard(data: any) {
       // if(localStorage.getItem('movie')) localStorage.removeItem('movie')
       //   else localStorage.setItem('movie',JSON.stringify(data.data))
       router.push(`/movie/${data.data.id}`)
-    } else if (data.data.type === 'tv') {
-      router.push(`/tv/${data.data.id}`)
+    } else if (data.data.type === 'series') {
+      router.push(`/series/${data.data.id}`)
     }
   }
   const renderCategoryIcon = (category: string) => {
@@ -27,9 +27,9 @@ export default function FilmCard(data: any) {
 
   const renderCategoryText = (category: string) => {
     if (category === 'movie') {
-      return 'Movie'
+      return 'Phim lẻ'
     } else {
-      return 'TV Shows'
+      return 'Phim bộ'
     }
   }
   return (
@@ -37,12 +37,12 @@ export default function FilmCard(data: any) {
 
     <div
       onClick={handleClick}
-      className='w-[183px] h-[349px] border-2  shadow-lg rounded-lg flex flex-col hover:cursor-pointer'
+      className='w-[180px] h-[349px]   rounded-lg flex flex-col hover:cursor-pointer bg-white'
     >
       <div className="w-[180px] h-[237px]">
 
         <Image
-          src={data.data.thumb_url}
+          src={data.data.thumb_url||"/hourglass.png"}
           alt={data.data.name}
           width={154}
           height={231}

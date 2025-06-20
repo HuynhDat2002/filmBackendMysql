@@ -1,7 +1,7 @@
 'use client'
 
 import { createSlice, createAsyncThunk, createAction } from "@reduxjs/toolkit";
-import * as movieService from './movie.service'
+import * as movieService from './film.service'
 import * as commentService from './comment.service'
 
 export const getCommentByFilm = createAsyncThunk(

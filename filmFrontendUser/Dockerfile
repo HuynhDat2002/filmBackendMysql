@@ -15,4 +15,4 @@ COPY --from=builder /app/filmFrontendUser/.next ./.next
 COPY --from=builder /app/filmFrontendUser/node_modules ./node_modules
 COPY --from=builder /app/filmFrontendUser/package.json ./package.json
 
-CMD [ "npm","start" ]
+CMD [ "npm","run","dev" ]

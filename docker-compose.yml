@@ -1,5 +1,65 @@
 version: '3.8'
 services:
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.18.2
+    container_name: elasticsearch
+    restart: always
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - xpack.security.transport.ssl.enabled=false
+      - node.name=elasticsearch
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    networks:
+      - backend-network
+
+
+
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.18.2
+    container_name: logstash
+    restart: always
+    environment:
+      - TZ=Asia/Ho_Chi_Minh  # Đặt múi giờ của hệ thống
+    volumes:
+      - ./logstash/pipeline:/usr/share/logstash/pipeline
+      - /var/log/nginx:/var/log/nginx
+      - ./logstash/csv:/usr/share/logstash/csv
+    depends_on:
+      - elasticsearch
+    ports:
+      - "5044:5044"
+      - "9600:9600"
+    networks:
+      - backend-network
+
+
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.18.2
+    container_name: kibana
+    restart: always
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+    depends_on:
+      - elasticsearch
+    networks:
+      - backend-network
   mysql-film:
     image: mysql:8
     restart: always
@@ -28,9 +88,11 @@ services:
     environment:
       - REDIS_HOST=redis-film
       - REDIS_PORT=6379
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
     depends_on:
       - mysql-film
       - redis-film
+      - elasticsearch
     env_file:
       - ./film/.env
     expose:
@@ -204,6 +266,9 @@ services:
       - 3000
     deploy:
       replicas: 1
+    volumes:
+      - .:/app        # Mount mã nguồn vào container
+      - /app/node_modules  # Ignore node_modules trong host
     networks:
       - backend-network
 
@@ -214,6 +279,9 @@ services:
       dockerfile: Dockerfile
     # image: tdat/nextjs:1.0.0
     restart: always
+    volumes:
+      - .:/app        # Mount mã nguồn vào container
+      - /app/node_modules  # Ignore node_modules trong host
     expose:
       - 3001
     deploy:
@@ -236,7 +304,7 @@ services:
       - nextjs
       - nextjs-admin
     ports:
-      - 443:443
+      - "8080:8080"
     volumes:
       - ./proxy/nginx.conf:/etc/nginx/nginx.conf
       - /var/log/nginx:/var/log/nginx
@@ -252,59 +320,7 @@ services:
       - backend-network
 
 
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.10.2
-    container_name: elasticsearch-digitic
-    restart: always
-    environment:
-      - discovery.type=single-node
-      - xpack.security.enabled=false
-      - xpack.security.transport.ssl.enabled=false
-      - node.name=elasticsearch
-      - bootstrap.memory_lock=true
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-    ports:
-      - "9300:9200"
-    volumes:
-      - esdata:/usr/share/elasticsearch/data
-    networks:
-      - backend-network
-
-
-
-
-  logstash:
-    image: docker.elastic.co/logstash/logstash:7.10.2
-    container_name: logstash
-    restart: always
-    environment:
-      - TZ=Asia/Ho_Chi_Minh  # Đặt múi giờ của hệ thống
-    volumes:
-      - ./logstash/pipeline:/usr/share/logstash/pipeline
-      - /var/log/nginx:/var/log/nginx
-      - ./logstash/csv:/usr/share/logstash/csv
-    depends_on:
-      - elasticsearch
-    ports:
-      - "5044:5044"
-      - "9600:9600"
-    networks:
-      - backend-network
-
-
-
-  kibana:
-    image: docker.elastic.co/kibana/kibana:7.10.2
-    container_name: kibana
-    restart: always
-    environment:
-      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
-    ports:
-      - "5601:5601"
-    depends_on:
-      - elasticsearch
-    networks:
-      - backend-network
+  
 
 
 
