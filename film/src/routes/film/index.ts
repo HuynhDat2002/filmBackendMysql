@@ -9,7 +9,7 @@ const filmRouter = express.Router()
 
 filmRouter.get('/getFilm/:id',asyncHandler(filmController.getFilm))
 filmRouter.get('/getAllFilm',asyncHandler(filmController.getAllFilm))
-filmRouter.get('/getRatings/:id',asyncHandler(filmController.getRatings))
+filmRouter.get('/getRating/:id',asyncHandler(filmController.getRatings))
 filmRouter.get('/getPageTotal',asyncHandler(filmController.getPageTotal))
 filmRouter.patch('/ratingFilm',authentication,checkPermission("readAny","film"),asyncHandler(filmController.ratingFilm))
 filmRouter.get('/getListCategory',asyncHandler(filmController.getListCategory))

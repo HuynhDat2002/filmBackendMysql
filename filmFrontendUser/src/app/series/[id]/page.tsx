@@ -6,7 +6,7 @@ import Image from 'next/image'
 import { useAppDispatch, useAppSelector } from "../../../lib/hooks"
 import { useParams } from 'next/navigation'
 import ReactPlayer from 'react-player'
-import { ratingFilm, getRatings } from "../../../lib/features/film.slice"
+import { ratingFilm, getRating } from "../../../lib/features/film.slice"
 import { faPlay } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { Rating as ReactRating } from '@smastrom/react-rating'
@@ -46,7 +46,7 @@ export default function SeriesDetail() {
     useEffect(() => {
         if (params?.id !== undefined) {
             dispatch(getA({ id: params?.id as string }))
-            dispatch(getRatings({ filmId: params?.id as string }))
+            dispatch(getRating({ filmId: params?.id as string }))
         }
     }, [params])
 
@@ -64,14 +64,14 @@ export default function SeriesDetail() {
 
 
     useEffect(() => {
-        if (film.ratings.metadata) {
-            const userFound = film.ratings.metadata.filter((r: any) => r.userId.toString() === user.user.id.toString())
-            if (userFound.length > 0) {
-                console.log('userFoundddddd', userFound[0].rating)
-                setRating(userFound[0].rating as number)
+        if (film.rating.metadata) {
+            const userFound = film.rating.metadata.ratings.filter((r: any) => r.userRating.userId.toString() === user.user.id.toString())
+            if (userFound.length>0) {
+                console.log('userFoundddddd', userFound)
+                setRating(userFound[0].ratingNumber as number)
             }
         }
-    }, [film.ratings])
+    }, [film.rating])
 
     const handlePlay = (e: any) => {
         e.preventDefault()
@@ -141,7 +141,7 @@ console.log('quality',film.film.metadata.quality)
                         <div className="flex flex-row gap-2 justify-center items-center content-center">
                             <ReactRating style={{ maxWidth: 100 }} value={rating} onChange={handleRating} />
                             <div>
-                                {film.ratings.metadata?.ratingAverage||0}/5
+                                {film.rating.metadata?.ratingAverage||0}/5
                             </div>
                         </div>
                         <div className="flex items-center text-gray-400">

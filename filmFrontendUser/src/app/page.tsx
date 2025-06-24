@@ -22,46 +22,7 @@ export default function Home() {
   type Key = string | number
   return (
     <main className="relative">
-      <div className="flex-col">
-
-        {/* <Tabs
-          aria-label="Options"
-          selectedKey={selected}
-          onSelectionChange={(key: Key) => setSelected(key as string)}
-          className="flex justify-center gap-4 px-0 my-5"
-        >
-
-          {tabs.map((tab) => (
-            <Tab
-              key={tab.name}
-              className={clsx(
-                selected === tab.name
-                  ? 'border-emerald-400 text-emerald-400'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300',
-                'group inline-flex items-center py-4 px-1 border-b-2 font-medium text-sm mr-2 focus:outline-none'
-              )}
-              title={
-                <div className="flex items-center ">
-                  <tab.icon
-                    className={clsx(
-                      selected === tab.name
-                        ? 'text-emerald-400'
-                        : 'text-gray-400 group-hover:text-gray-500',
-                      '-ml-0.5 mr-2 h-5 w-5'
-                    )}
-                    aria-hidden="true"
-                  />
-                  <p className="px-2">
-
-                  {tab.name === 'Movies' ? 'Phim Lẻ' : 'Phim Bộ'}
-                  </p>
-                </div>
-              }
-            />
-
-          ))}
-
-        </Tabs> */}
+      <div className="flex-col mt-10">
         <FilmList
           tab={selected}
         />

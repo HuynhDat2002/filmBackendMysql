@@ -2,8 +2,6 @@
 import axios from "axios";
 import { NextApiRequest, NextApiResponse } from "next";
 import https from "https";
-// import path from 'path';
-// import fs from 'fs';
 import type { InferGetServerSidePropsType, GetServerSideProps } from 'next'
 const base_url = "http://localhost:8080/film/api"
 const base_url_user = "http://localhost:8080/user/api"
@@ -34,13 +32,6 @@ interface Token {
 //     };
 // };
 
-// export const getServerSideProps = (async () => {
-//     // Fetch data from external API
-//     const filePath = path.join(process.cwd(), 'selfsigned.crt')
-//     const content = fs.readFileSync(filePath, 'utf-8');
-//     // Pass data to the page via props
-//     return { props: { content } }
-//   }) satisfies GetServerSideProps<{ content: string }>
 
 export const getToken = (): Token => {
         const user = localStorage.getItem("user") as string;

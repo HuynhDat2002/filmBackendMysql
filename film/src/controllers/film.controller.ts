@@ -63,7 +63,7 @@ export const ratingFilm = async (req:CustomRequestUser,res:Response,next:NextFun
     const userId = req?.user?.id as string || ""
 
     new successResponse.SuccessResonse({
-        message:"Got all movie",
+        message:"Rated film successfully",
         metadata: await filmService.ratingFilm({filmId:req.body.filmId,userId:userId,rating:req.body.rating})
     }).send(res)
 }
@@ -73,7 +73,7 @@ export const getRatings = async (req:CustomRequest,res:Response,next:NextFunctio
     const filmId = req.params.id as string ||""
     new successResponse.SuccessResonse({
         message:"Got all ratings",
-        metadata: await filmService.getRatings({filmId:filmId})
+        metadata: await filmService.getRatingByFilm({filmId:filmId})
     }).send(res)
 }
 

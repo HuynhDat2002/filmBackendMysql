@@ -32,10 +32,10 @@ export default function Search() {
 
     }, [query, page])
 
-    // useEffect(() => {
-    //     setQuery(searchParams?.get('query') as string || '')
-    //     setPage(searchParams?.get('page') as string || '1')
-    // }, [searchParams])
+    useEffect(() => {
+        setQuery(searchParams?.get('query') as string || '')
+        setPage(searchParams?.get('page') as string || '1')
+    }, [searchParams])
 
 
     useEffect(() => {
@@ -60,7 +60,7 @@ export default function Search() {
     return (
         // <div className="w-[90%] xl:w-[80%] flex justify-center items-center  mx-auto mt-10">
         <>
-            <div className="flex flex-col gap-5 min-h-screen mt-10">
+            <div className="flex flex-col gap-5 mt-10 min-h-screen">
 
                 <div className=" grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5 items-start">
 
@@ -79,7 +79,7 @@ export default function Search() {
                 {
                     searchList.length === 0 &&
                     <div
-                        className="flex justify-center items-center my-10 font-bold text-3xl"
+                        className="flex justify-center items-center my-10 font-bold text-3xl text-white"
 
                     >
                         <div>Không tìm thấy kết quả mong muốn!</div>

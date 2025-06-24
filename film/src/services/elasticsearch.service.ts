@@ -3,7 +3,8 @@ import 'dotenv/config'
 import { Client } from '@elastic/elasticsearch'
 import { EventPayload } from '@/utils/AppEventListener'
 import { errorResponse } from '@/cores'
-
+import { getRatingByFilm } from './film.service';
+import { FilmType } from "@/types"
 export class ElasticSearchService {
     private indexName = "film"
     private client: Client
@@ -66,7 +67,7 @@ export class ElasticSearchService {
                                     name: { type: "text" },
                                     slug: { type: "keyword" },
                                     video: { type: "text" },
-                    
+
                                 }
                             },
                             video: { type: "text" },
@@ -110,7 +111,6 @@ export class ElasticSearchService {
 
                             },
                             rating: {
-                                type: "nested",
                                 properties: {
                                     id: { type: "keyword" },
                                     ratingAverage: { type: "float" },
@@ -118,17 +118,40 @@ export class ElasticSearchService {
                                         type: "nested",
                                         properties: {
                                             ratingNumber: { type: "integer" },
-                                            userRating: { 
-                                                type:"nested",
-                                                properties:{
-                                                    id:{type:"keyword"},
-                                                    userId:{type:"keyword"},
+                                            userRating: {
+                                                type: "nested",
+                                                properties: {
+                                                    id: { type: "keyword" },
+                                                    userId: { type: "keyword" },
                                                 }
-                                             },
+                                            },
+                                        }
+                                    }
+                                }
+                            },
+                            comment: {
+                                type: "nested",
+                                properties: {
+                                    id: { type: "keyword" },
+                                    comment_content: { type: "text" },
+                                    comment_left: { type: "integer" },
+                                    comment_right: { type: "integer" },
+                                    comment_parentId: { type: "keyword" },
+                                    isDeleted: { type: "boolean" },
+                                    createdAt: { type: "date" },
+                                    updatedAt: { type: "date" },
+                                    comment_user: {
+                                        properties:{
+                                            id:{type:"keyword"},
+                                            userId:{type:"keyword"},
+                                            name:{type:"text"},
+                                            email:{type:"keyword"},
+                                            role:{type:"keyword"},
                                         }
                                     }
                                 }
                             }
+
                         }
                     }
                 }
@@ -138,7 +161,31 @@ export class ElasticSearchService {
 
     }
 
+    async putMapping() {
+        const result = await this.client.indices.putMapping({
+            index: this.indexName,
+            body: {
+                properties: {
+                    comment: {
+                        type: "nested",
+                        properties: {
+                            id: { type: "keyword" },
+                            comment_content: { type: "text" },
+                            comment_left: { type: "integer" },
+                            comment_right: { type: "integer" },
+                            comment_parentId: { type: "keyword" },
+                            isDeleted: { type: "boolean" },
+                            createdAt: { type: "date" },
+                            updatedAt: { type: "date" },
+                            comment_user: {
 
+                            }
+                        }
+                    }
+                }
+            }
+        })
+    }
     async deleteIndex() {
         await this.client.indices.delete({
             index: 'film'
@@ -155,8 +202,9 @@ export class ElasticSearchService {
         console.log("film created in elasticsearch", result)
 
     }
+
     async updateFilm(data: any) {
-        console.log('data updatefilm',data)
+        console.log('data updatefilm', data)
         const result = await this.client.update({
             index: this.indexName,
             id: data.id.toString(),
@@ -316,7 +364,7 @@ export class ElasticSearchService {
         })
         return result.count
     }
-    async getFilm(id: string) {
+    async getFilm(id: string): Promise<FilmType> {
         const result = await this.client.get({
             index: this.indexName,
             id: id.toString(),
@@ -327,7 +375,7 @@ export class ElasticSearchService {
 
         console.log("film got from elasticsearch", result)
         const source = result._source as any
-        await source.episodes.length>1 && source.episodes.sort((a:any,b:any)=>a.slug.localeCompare(b.slug))
+        await source.episodes.length > 1 && source.episodes.sort((a: any, b: any) => a.slug.localeCompare(b.slug))
         return source
     }
     async getAllFilms() {
@@ -339,8 +387,8 @@ export class ElasticSearchService {
         })
         return result.hits.hits.map((hit) => hit._source)
     }
-   
-   
+
+
     async getListCategory() {
         const filmList = await this.getAllFilms()
         const categoryList = filmList.flatMap((film: any) => film.category)

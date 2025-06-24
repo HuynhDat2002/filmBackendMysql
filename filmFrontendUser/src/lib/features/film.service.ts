@@ -101,7 +101,7 @@ export const getRatings = async (data:{filmId:string})=>{
     try{
         let axios = await updateAxiosUserInstanceFilm()
 
-        const response = await axios.get(`/getRatings/${data.filmId}`);
+        const response = await axios.get(`/getRating/${data.filmId}`);
         console.log(response.data)
         return response.data;
     }

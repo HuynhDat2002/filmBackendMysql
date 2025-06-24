@@ -78,7 +78,7 @@ export const authentication = asyncHandler(async (req: CustomRequestUser, res: R
     console.log('headers authentication', req.headers)
 
     const userId: string = req.headers[HEADER.CLIENT_ID] as string
-    if (!userId) throw new errorResponse.AuthFailureError("You need to login")
+    if (!userId) throw new errorResponse.AuthFailureError("Bạn cần đăng nhập trước")
    
     // const client = await clientRedis()
     // await client.connect()
@@ -87,7 +87,7 @@ export const authentication = asyncHandler(async (req: CustomRequestUser, res: R
     // const agent = JSON.parse(await client.get('agent') as string)
 
     const userLogin  = await prisma.userLogin.findUnique({where:{userId:userId}})
-    if(!userLogin) throw new errorResponse.AuthFailureError('You need to login')
+    if(!userLogin) throw new errorResponse.AuthFailureError('Bạn cần đăng nhập trước')
     const keyToken = JSON.parse(userLogin.keyToken as string)
     const userInfo = JSON.parse(userLogin.user as string)
     const agent = JSON.parse(userLogin.agent as string)
@@ -99,8 +99,8 @@ export const authentication = asyncHandler(async (req: CustomRequestUser, res: R
     // if (!userAgents.includes(req.headers["user-agent"])) throw new errorResponse.BadRequestError(`You are logging in from a different device`)
 
     //2. check key store
-    if (userId !== keyToken.userId) throw new errorResponse.NotFound("This userId not found")
-    if (userId !== userInfo.id) throw new errorResponse.NotFound("You need to login")
+    if (userId !== keyToken.userId) throw new errorResponse.NotFound("Bạn cần đăng nhập trước")
+    if (userId !== userInfo.id) throw new errorResponse.NotFound("Bạn cần đăng nhập trước")
 
     //check userId
     const isValidId = userId.match(regex.idRegex)
@@ -115,7 +115,7 @@ export const authentication = asyncHandler(async (req: CustomRequestUser, res: R
 
     //check header access token
     const isValidAccess = accessToken.match(regex.accessRegex)
-    if (isValidAccess === null) throw new errorResponse.AuthFailureError(`Định dạng token không đúng`)
+    if (isValidAccess === null) throw new errorResponse.AuthFailureError(`Bạn cần đăng nhập trước`)
 
     jwt.verify(accessToken, keyToken.publicKey, (err: any, decode: any) => {
         if (err) {
@@ -125,7 +125,7 @@ export const authentication = asyncHandler(async (req: CustomRequestUser, res: R
         }
         else {
             console.log(`Decode verify authentication: `, decode)
-            if (userId !== decode.userId) throw new errorResponse.AuthFailureError(`Không thể giải mã access token`)
+            if (userId !== decode.userId) throw new errorResponse.AuthFailureError(`Bạn cần đăng nhập trước`)
             req.keyToken = keyToken
             req.user = userInfo
             return next()

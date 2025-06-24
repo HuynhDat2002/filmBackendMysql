@@ -2,6 +2,7 @@ import { SuccessResonse } from '../cores/success.response';
 import * as jwt from 'jsonwebtoken'
 import { Request } from 'express'
 import { Types } from 'mongoose'
+export * from './filmService.type'
 export interface CustomRequest extends Request {
     keyToken?: KeyTokenModelProps,
     user?: PayloadTokenPair,

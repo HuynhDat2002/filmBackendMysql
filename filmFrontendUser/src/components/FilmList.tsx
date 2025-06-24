@@ -1,3 +1,4 @@
+'use client'
 import { useAppDispatch, useAppSelector } from "../lib/hooks"
 import React, { useEffect,useState } from "react"
 import { getFilms,getPageTotalFilm } from "../lib/features/film.slice"
@@ -47,9 +48,7 @@ console.log('film list')
   console.log('films',pageTotal)
   return (
       <div className="flex flex-col gap-5 min-h-screen">
-
         <div className=" grid grid-cols-2 gap-7 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5 items-start">
-
           {films.map((film: any) => (
 
             <div
@@ -60,7 +59,11 @@ console.log('film list')
           ))
         }
         </div>
+        {
+          films.length>0 &&
           <Pagi total={pageTotal} onPageChange={handleChange}/>
+        }
+       
 
       </div>
 

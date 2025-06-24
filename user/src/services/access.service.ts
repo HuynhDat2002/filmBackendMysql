@@ -32,10 +32,10 @@ export const signUp = async () => {
     const data: dataSign = JSON.parse(await client.get('userSign') as string) ? JSON.parse(await client.get('userSign') as string) : { name: "", email: "", password: "" }
     const { name, email, password } = data
     await client.del('userSign')
-    console.log('data signup',data)
+    console.log('data signup', data)
     //check regex
     const isValidEmail = await email.match(regex.emailRegex)
-    console.log('emailmatch',isValidEmail)
+    console.log('emailmatch', isValidEmail)
     if (isValidEmail === null) throw new errorResponse.BadRequestError('Email không hợp lệ')
     const isValidName = await name.match(regex.nameRegex)
     if (isValidName === null) throw new errorResponse.BadRequestError('Tên không hợp lệ')
@@ -43,10 +43,10 @@ export const signUp = async () => {
     if (isValidPassword === null) throw new errorResponse.BadRequestError('Mật khẩu không hợp lệ! Mật khẩu phải có ít nhất 1 chữ hoa, một ký tự đặc biệt và có độ dài từ 8-32 ký tự')
 
 
-    const userFound = await prisma.user.findUnique({ 
-        where: { 
-            email: email 
-        } 
+    const userFound = await prisma.user.findUnique({
+        where: {
+            email: email
+        }
     });
     if (userFound) throw new errorResponse.BadRequestError("Tài khoản đã tồn tại");
 
@@ -125,13 +125,13 @@ export const signUp = async () => {
     }
 }
 
-export const checkDevice = async ({ email, password, userAgent,tokenCaptcha="" }: CheckDevice) => {
+export const checkDevice = async ({ email, password, userAgent, tokenCaptcha = "" }: CheckDevice) => {
     //captcha
     //   const captcha = await verifyTokenCaptcha(tokenCaptcha)
     //   console.log('captcha',captcha)
     //   if(!captcha) throw new errorResponse.AuthFailureError('Ban chua xac minh captcha')
     //   if(captcha.success===false) throw new errorResponse.AuthFailureError(`${captcha.message}`)
-    
+
     //check input
     const isValidEmail = await email.match(regex.emailRegex)
     if (isValidEmail === null) throw new errorResponse.BadRequestError('Email không hợp lệ')
@@ -142,72 +142,72 @@ export const checkDevice = async ({ email, password, userAgent,tokenCaptcha="" }
     console.log('typeof email', typeof email)
     const userFound = await prisma.user.findUnique({ where: { email: email }, include: { userAgent: true } })
     if (!userFound) throw new errorResponse.AuthFailureError(`Tài khoản không tồn tại`)
-    
-           
+
+
     //check how many times login error
-    if(userFound.timeLock && userFound.timeLock as Date>=new Date()) throw new errorResponse.AuthFailureError(`Tai khoan cua ban da bi khoa trong vong 1p. Hay thu lai sau!`)
-   
+    if (userFound.timeLock && userFound.timeLock as Date >= new Date()) throw new errorResponse.AuthFailureError(`Tai khoan cua ban da bi khoa trong vong 1p. Hay thu lai sau!`)
+
     //compare password
     const checkPassword = await bcrypt.compare(password, userFound.password)
     // if (!checkPassword) throw new errorResponse.AuthFailureError(`Mật khẩu không trùng khớp`)
-        if (!checkPassword) {
-            let failedTimes = await userFound.failedLogin
-            let lockUntil = await userFound.timeLock as Date
-            failedTimes +=1
-            if(failedTimes >4) {
-                await prisma.user.update({
-                    where:{
-                        id:userFound.id
-                    },
-                    data:{
-                        failedLogin:0,
-                        timeLock: new Date(Date.now() + 60*1000)
-                    }
-                })
-                await notifyAccountLocked({email:userFound.email})
-                throw new errorResponse.AuthFailureError(`Tai khoan cua ban da bi khoa trong vong 1p. Hay thu lai sau!`)
-    
-            }
+    if (!checkPassword) {
+        let failedTimes = await userFound.failedLogin
+        let lockUntil = await userFound.timeLock as Date
+        failedTimes += 1
+        if (failedTimes > 4) {
             await prisma.user.update({
-                where:{
-                    id:userFound.id
+                where: {
+                    id: userFound.id
                 },
-                data:{
-                    failedLogin:failedTimes,
+                data: {
+                    failedLogin: 0,
+                    timeLock: new Date(Date.now() + 60 * 1000)
                 }
             })
-            throw new errorResponse.AuthFailureError(`Tai khoan hoac mat khau khong dung`)
+            await notifyAccountLocked({ email: userFound.email })
+            throw new errorResponse.AuthFailureError(`Tai khoan cua ban da bi khoa trong vong 1p. Hay thu lai sau!`)
+
         }
-    
         await prisma.user.update({
-            where:{
-                id:userFound.id
+            where: {
+                id: userFound.id
             },
-            data:{
-                failedLogin:0,
-                timeLock: null
+            data: {
+                failedLogin: failedTimes,
             }
         })
+        throw new errorResponse.AuthFailureError(`Tai khoan hoac mat khau khong dung`)
+    }
+
+    await prisma.user.update({
+        where: {
+            id: userFound.id
+        },
+        data: {
+            failedLogin: 0,
+            timeLock: null
+        }
+    })
     // check device
 
     const userAgents = userFound.userAgent.map(ua => ua.agentId);
     const getUserAgentId = await prisma.userAgent.findFirst({ where: { agent: userAgent } })
     if (!userAgents.includes(getUserAgentId?.id as string)) {
-        await otpService.sendOTPVerifyEmail(email )
+        await otpService.sendOTPVerifyEmail(email)
         console.log('sent', email)
         throw new errorResponse.BadRequestError('Ban dang dang nhap tren thiet bi moi, hay nhap ma OTP!')
     }
 
     return {
-        user: getInfoData(["id", 'name',"role"], userFound)
+        user: getInfoData(["id", 'name', "role"], userFound)
     }
 }
 
 
 export const verifyTokenCaptcha = async (token: string) => {
     const secretKey = process.env.CAPTCHA_SECRET_KEY
-    console.log('secerkey',secretKey)
-    console.log('token12',token)
+    console.log('secerkey', secretKey)
+    console.log('token12', token)
     if (!secretKey) throw new errorResponse.AuthFailureError('Not secret key found')
     const url = new URL("https://www.google.com/recaptcha/api/siteverify")
     url.searchParams.append('secret', secretKey);
@@ -216,7 +216,7 @@ export const verifyTokenCaptcha = async (token: string) => {
     const res = await axios.post(url.toString())
 
     if (!res) return null
-    console.log('res',res)
+    console.log('res', res)
     const captchaData: Captcha = await res.data
     console.log('captcha', captchaData)
     if (!captchaData) {
@@ -229,7 +229,7 @@ export const verifyTokenCaptcha = async (token: string) => {
         return {
             success: false,
             message: "Captcha Failed",
-            errors: !captchaData.success ? captchaData["error-codes"]:null,
+            errors: !captchaData.success ? captchaData["error-codes"] : null,
         }
     }
     return {
@@ -238,20 +238,20 @@ export const verifyTokenCaptcha = async (token: string) => {
     }
 }
 
-export const signIn = async ({ email, password, userAgent,tokenCaptcha }: SignInProps) => {
+export const signIn = async ({ email, password, userAgent, tokenCaptcha }: SignInProps) => {
     //check input
     const isValidEmail = await email.match(regex.emailRegex)
     if (isValidEmail === null) throw new errorResponse.BadRequestError('Email không hợp lệ')
     const isValidPassword = await password.match(regex.passwordRegex)
     if (isValidPassword === null) throw new errorResponse.BadRequestError('Mật khẩu không hợp lệ!')
-        
+
     //captcha
     // const captcha = await verifyTokenCaptcha(tokenCaptcha)
     // console.log('captcha',captcha)
     // if(!captcha) throw new errorResponse.AuthFailureError('Ban chua xac minh captcha')
     // if(captcha.success===false) throw new errorResponse.AuthFailureError(`${captcha.message}`)
 
-   
+
 
 
 
@@ -262,47 +262,47 @@ export const signIn = async ({ email, password, userAgent,tokenCaptcha }: SignIn
     if (!userFound) throw new errorResponse.AuthFailureError(`Tai khoan hoac mat khau khong dung`)
     console.log('password', userFound.password)
 
-       
+
     //check how many times login error
-    if(userFound.timeLock && userFound.timeLock as Date>=new Date()) throw new errorResponse.AuthFailureError(`Tai khoan cua ban da bi khoa trong vong 1p. Hay thu lai sau!`)
-   
+    if (userFound.timeLock && userFound.timeLock as Date >= new Date()) throw new errorResponse.AuthFailureError(`Tai khoan cua ban da bi khoa trong vong 1p. Hay thu lai sau!`)
+
     //compare password
     const checkPassword = await bcrypt.compare(password, userFound.password)
     if (!checkPassword) {
         let failedTimes = await userFound.failedLogin
         let lockUntil = await userFound.timeLock as Date
-        failedTimes +=1
-        if(failedTimes >4) {
+        failedTimes += 1
+        if (failedTimes > 4) {
             await prisma.user.update({
-                where:{
-                    id:userFound.id
+                where: {
+                    id: userFound.id
                 },
-                data:{
-                    failedLogin:0,
-                    timeLock: new Date(Date.now() + 60*1000)
+                data: {
+                    failedLogin: 0,
+                    timeLock: new Date(Date.now() + 60 * 1000)
                 }
             })
-            await notifyAccountLocked({email:userFound.email})
+            await notifyAccountLocked({ email: userFound.email })
             throw new errorResponse.AuthFailureError(`Tai khoan cua ban da bi khoa trong vong 1p. Hay thu lai sau!`)
 
         }
         await prisma.user.update({
-            where:{
-                id:userFound.id
+            where: {
+                id: userFound.id
             },
-            data:{
-                failedLogin:failedTimes,
+            data: {
+                failedLogin: failedTimes,
             }
         })
         throw new errorResponse.AuthFailureError(`Tai khoan hoac mat khau khong dung`)
     }
 
     await prisma.user.update({
-        where:{
-            id:userFound.id
+        where: {
+            id: userFound.id
         },
-        data:{
-            failedLogin:0,
+        data: {
+            failedLogin: 0,
             timeLock: null
         }
     })
@@ -405,7 +405,7 @@ export const signIn = async ({ email, password, userAgent,tokenCaptcha }: SignIn
     const channel = await createChannel() as amqplib.Channel
     await publishMessage(channel, messageConfig.FILM_BINDING_KEY, JSON.stringify(data))
     return {
-        user: getInfoData(["id","name","role"], userFound),
+        user: getInfoData(["id", "name", "role"], userFound),
         tokens: tokens.accessToken
     }
 
@@ -417,12 +417,12 @@ export const logout = async (keyToken: KeyTokenModelProps) => {
     const delKey = await prisma.keyTokens.delete({ where: { id: keyToken.id as string } })
     const channel = await createChannel() as amqplib.Channel
     if (!delKey) throw new errorResponse.BadRequestError(`Không thể  xóa key token`)
-        const data = {
-            event: "LOGOUT",
-            data: {
-                userId:keyToken.userId
-            }
+    const data = {
+        event: "LOGOUT",
+        data: {
+            userId: keyToken.userId
         }
+    }
     await publishMessage(channel, messageConfig.FILM_BINDING_KEY, JSON.stringify(data))
     return delKey
 }
@@ -439,7 +439,7 @@ export const forgotPassword = async ({ email }: { email: string }) => {
     console.log('userrrr', foundUser)
 
     //send otp to email
-    return await otpService.sendOTPVerifyEmail(email )
+    return await otpService.sendOTPVerifyEmail(email)
 }
 
 export const resetPassword = async ({ email, newPassword }: { email: string, newPassword: string }) => {
@@ -499,19 +499,21 @@ export const getUser = async ({ userId }: { userId: string }) => {
     const userFound = await prisma.user.findUnique({ where: { id: userId } })
     if (!userFound) throw new errorResponse.BadRequestError(`Người dùng không tồn tại`)
     return {
-        user: getInfoData(["id", "name", "email"], userFound)
+        id: userFound.id,
+        name: userFound.name,
+        email: userFound.email
     }
 }
 
 export const editUser = async ({ userId, payload }: { userId: string, payload: any }) => {
     //check input
+    console.log('payload edit', payload)
     const isValidId = await userId.match(regex.idRegex)
     if (isValidId === null) throw new errorResponse.BadRequestError('Id không hợp lệ')
     if (payload.name) {
         const isValidName = await payload.name.match(regex.nameRegex)
         if (isValidName === null) throw new errorResponse.BadRequestError('Tên không hợp lệ')
     }
-    console.log('payload edit', payload)
     //find user
     const userFound = await prisma.user.findUnique({ where: { id: userId } })
     if (!userFound) throw new errorResponse.BadRequestError(`Người dùng không tồn tại`)

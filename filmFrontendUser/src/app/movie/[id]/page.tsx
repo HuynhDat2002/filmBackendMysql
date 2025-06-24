@@ -9,7 +9,7 @@ import { useParams } from 'next/navigation'
 import { faPlay } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { Rating as ReactRating } from '@smastrom/react-rating'
-import { ratingFilm, getRatings } from "../../../lib/features/film.slice"
+import { ratingFilm, getRating } from "../../../lib/features/film.slice"
 import CommentList from "../../../components/CommentList"
 import { getCommentByFilm } from "../../../lib/features/comment.slice"
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, Input, Checkbox, Link, Spinner } from "@nextui-org/react";
@@ -27,6 +27,8 @@ export default function MovieDetail() {
     const [comments, setComments] = useState([])
     const [messageError, setMessageError] = useState("")
     const [isError, setIsError] = useState(false)
+    const user = getToken()
+    
     useEffect(() => {
         if (filmState.film?.metadata?.id)
             dispatch(getCommentByFilm({ filmId: params?.id as string }))
@@ -44,7 +46,7 @@ export default function MovieDetail() {
     useEffect(() => {
         // if (params.id!==undefined) {
         dispatch(getA({ id: params.id as string }))
-        dispatch(getRatings({ filmId: params?.id as string }))
+        dispatch(getRating({ filmId: params?.id as string }))
         // }
     }, [params])
 
@@ -61,6 +63,18 @@ export default function MovieDetail() {
         }
     }, [filmState.isLoading])
 
+      useEffect(() => {
+            if (filmState.isSuccess && filmState.isGetRating) {
+                const userFound = filmState.rating.metadata.ratings.filter((r: any) => r.userRating.userId.toString() === user.user.id.toString())
+                if (userFound.length>0) {
+                    console.log('userFoundddddd', userFound)
+                    setRating(userFound[0].ratingNumber as number)
+                }
+            }
+            if(filmState.isSuccess && filmState.isRating){
+                dispatch(getRating({ filmId: params?.id as string }))
+            }
+        }, [filmState.isLoading])
 
     const handlePlay = (e: any) => {
         e.preventDefault()
@@ -71,8 +85,6 @@ export default function MovieDetail() {
 
     const handleRating = (newRating: number) => {
         dispatch(ratingFilm({ filmId: params?.id as string, rating: newRating }))
-        setRating(newRating)
-        dispatch(getRatings({ filmId: params?.id as string }))
 
     }
 
@@ -83,9 +95,9 @@ export default function MovieDetail() {
     console.log('video', filmState.film.metadata?.video)
 
     return (
-        <div className="w-[95%]">
+        <div className="w-[95%] mt-10">
 
-            <div className=" flex flex-col  mx-auto mt-10 shadow-lg">
+            <div className=" flex flex-col  mx-auto shadow-lg">
                 {
                     !playing &&
 
@@ -122,7 +134,7 @@ export default function MovieDetail() {
                         <div className="flex flex-row gap-2 justify-center items-center content-center">
                             <ReactRating style={{ maxWidth: 100 }} value={rating} onChange={handleRating} />
                             <div>
-                                {filmState.ratings.metadata?.ratingAverage}/5
+                                {filmState.rating.metadata?.ratingAverage}/5
                             </div>
                         </div>
                         <div className="flex items-center text-gray-400">

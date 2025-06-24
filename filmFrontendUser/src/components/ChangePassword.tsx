@@ -29,7 +29,6 @@ export default function ChangePassword({ isOpen, onClose, openSuccess }: ChangeP
 
     const formik = useFormik({
         initialValues: {
-
             password: "",
             newPassword: "",
             confirmPassword: ""
@@ -76,7 +75,7 @@ export default function ChangePassword({ isOpen, onClose, openSuccess }: ChangeP
                         <>
                             <form onSubmit={formik.handleSubmit}>
 
-                                <ModalHeader className="flex flex-col gap-1">Reset Password</ModalHeader>
+                                <ModalHeader className="flex flex-col gap-1">Đổi mật khẩu</ModalHeader>
                                 <ModalBody>
                                     {isError &&
                                         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl relative mt-3" role="alert">
@@ -91,8 +90,8 @@ export default function ChangePassword({ isOpen, onClose, openSuccess }: ChangeP
                                             <FontAwesomeIcon icon={faLock} className="text-2xl text-default-400 pointer-events-none flex-shrink-0" />
 
                                         }
-                                        label="Password"
-                                        placeholder="Enter your password"
+                                        label="Mật khẩu"
+                                        placeholder="Nhập mật khẩu"
                                         type="password"
                                         variant="bordered"
                                         value={formik.values.password}
@@ -109,8 +108,8 @@ export default function ChangePassword({ isOpen, onClose, openSuccess }: ChangeP
                                             <FontAwesomeIcon icon={faLock} className="text-2xl text-default-400 pointer-events-none flex-shrink-0" />
 
                                         }
-                                        label="New Password"
-                                        placeholder="Enter your password"
+                                        label="Mật khẩu mới"
+                                        placeholder="Nhập mật khẩu mới"
                                         type="password"
                                         variant="bordered"
                                         value={formik.values.newPassword}
@@ -127,8 +126,8 @@ export default function ChangePassword({ isOpen, onClose, openSuccess }: ChangeP
                                             <FontAwesomeIcon icon={faLock} className="text-2xl text-default-400 pointer-events-none flex-shrink-0" />
 
                                         }
-                                        label="ConfirmPassword"
-                                        placeholder="Enter your confirm password"
+                                        label="Xác nhận mật khẩu"
+                                        placeholder="Nhập xác nhận mật khẩu"
                                         type="password"
                                         variant="bordered"
                                         value={formik.values.confirmPassword}
@@ -148,10 +147,10 @@ export default function ChangePassword({ isOpen, onClose, openSuccess }: ChangeP
                                 <ModalFooter className="flex flex-row">
 
                                     <Button color="danger" variant="flat" onPress={onClose} type="button" className="basis1/4">
-                                        Close
+                                        Đóng
                                     </Button>
                                     <Button className="bg-ctBlue-header text-white basis-1/4" type="submit">
-                                        Submit
+                                        Xác nhận
                                     </Button>
 
 

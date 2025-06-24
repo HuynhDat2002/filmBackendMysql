@@ -240,7 +240,7 @@ export const getUser = async () => {
 export const editUser = async (data: { name: string }) => {
     try {
         let axiosUser =await updateAxiosUserInstance()
-
+        console.log('edit',data)
         const response = await axiosUser.patch(`/editUser`, data);
         if (localStorage.getItem('userinfo')) await localStorage.removeItem('userinfo')
 

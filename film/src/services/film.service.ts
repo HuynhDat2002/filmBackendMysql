@@ -46,11 +46,11 @@ const isAllowedURL = async (url: string) => {
 
 }
 
-export const createFilm = async (urlEmbed: { urlEmbed: string ,type:string|null}) => {
+export const createFilm = async (urlEmbed: { urlEmbed: string, type: string | null }) => {
 
     //check urlEmbed
     if (! await isAllowedURL(urlEmbed.urlEmbed)) throw new errorResponse.BadRequestError(`Embed link không hợp lệ`)
-    
+
     //get url parse
     const parseURL = new URL(urlEmbed.urlEmbed)
     const hostname = parseURL.hostname
@@ -64,7 +64,7 @@ export const createFilm = async (urlEmbed: { urlEmbed: string ,type:string|null}
     //check film already existed
     const filmFound = await prisma.film.findFirst({ where: { origin_name: film.movie.origin_name as string } })
     if (filmFound) throw new errorResponse.BadRequestError(`This film already existed`)
-    
+
     // update images based on hostname
     console.log(hostname.includes("phimapi"))
     let thumb_url
@@ -80,16 +80,16 @@ export const createFilm = async (urlEmbed: { urlEmbed: string ,type:string|null}
             uploadImages(film.movie.poster_url, `${film.movie.slug}-poster`)
         ]);
     }
-    
+
     //clean content of the film
     const $ = cheerio.load(film.movie.content);
     const content = $.text();
     console.log('film', film)
     const episodes = film.episodes[0].server_data.map((data: any) => ({
-                    name: data.name,
-                    slug: data.slug,
-                    video: data.link_m3u8
-                }))
+        name: data.name,
+        slug: data.slug,
+        video: data.link_m3u8
+    }))
     // save film to mysql
     const newfilm = await prisma.film.create({
         data: {
@@ -103,7 +103,7 @@ export const createFilm = async (urlEmbed: { urlEmbed: string ,type:string|null}
             time: film.movie.time,
             lang: film.movie.lang,
             year: film.movie.year,
-            type:urlEmbed.type ? urlEmbed.type :"movie",
+            type: urlEmbed.type ? urlEmbed.type : "movie",
             view: 0,
             actor: {
                 create: film.movie.actor.map((actorName) => (
@@ -184,7 +184,7 @@ export const createFilm = async (urlEmbed: { urlEmbed: string ,type:string|null}
                     }
                 ))
             },
-           
+
             quality: film.movie.quality,
             episodes: {
                 create: episodes
@@ -206,7 +206,7 @@ export const createFilm = async (urlEmbed: { urlEmbed: string ,type:string|null}
             actor: {
                 select: {
                     actor: {
-                        select:{
+                        select: {
                             id: true,
                             name: true,
                         }
@@ -214,9 +214,9 @@ export const createFilm = async (urlEmbed: { urlEmbed: string ,type:string|null}
                 }
             },
             director: {
-                 select: {
+                select: {
                     director: {
-                        select:{
+                        select: {
                             id: true,
                             name: true,
                         }
@@ -226,28 +226,28 @@ export const createFilm = async (urlEmbed: { urlEmbed: string ,type:string|null}
             category: {
                 select: {
                     category: {
-                        select:{
+                        select: {
                             id: true,
                             name: true,
-                            slug:true,
+                            slug: true,
                         }
                     },
                 }
             },
             country: {
-               select: {
+                select: {
                     country: {
-                        select:{
+                        select: {
                             id: true,
                             name: true,
-                            slug:true,
+                            slug: true,
                         }
                     },
                 }
             }
         }
     })
-    if(!newfilm) throw new errorResponse.BadRequestError(`Cannot create film`)
+    if (!newfilm) throw new errorResponse.BadRequestError(`Cannot create film`)
     const convertfilm = {
         ...newfilm,
         actor: newfilm.actor.map((a) => a.actor),
@@ -255,10 +255,10 @@ export const createFilm = async (urlEmbed: { urlEmbed: string ,type:string|null}
         category: newfilm.category.map((c) => c.category),
         country: newfilm.country.map((c) => c.country),
     }
-    if(newfilm){
+    if (newfilm) {
         AppEventListener.instance.notify({
-            event:'createFilm',
-            data:convertfilm
+            event: 'createFilm',
+            data: convertfilm
         })
     }
     return convertfilm
@@ -275,16 +275,16 @@ export const updateFilm = async ({ filmId, payload }: UpdateFilmProps) => {
     // const payloadParams = await updateNestedObjectParser(payload)
     // const filmUpdated = await .findOneAndUpdate({ id: filmId }, payloadParams, { new: true })
     const update = await prisma.film.update({
-        where:{
-            id:filmId
+        where: {
+            id: filmId
         },
-        data:payload
+        data: payload
     })
     // update on elasticsearch
     AppEventListener.instance.notify({
-        event:'updateFilm',
-        data:{
-            id:filmId,
+        event: 'updateFilm',
+        data: {
+            id: filmId,
             ...payload
         }
     })
@@ -295,7 +295,7 @@ export const deleteFilm = async (filmId: string) => {
     //check input
     const isValidId2 = await filmId.match(regex.idRegex)
     if (isValidId2 === null) throw new errorResponse.BadRequestError('Film Id không hợp lệ')
-    
+
     // get all actors, directors, categories, countries related to this film
     const actors = await prisma.actor.findMany({ where: { film: { some: { filmId: filmId } } } })
     const directors = await prisma.director.findMany({ where: { film: { some: { filmId: filmId } } } })
@@ -307,28 +307,28 @@ export const deleteFilm = async (filmId: string) => {
     if (!film) throw new errorResponse.BadRequestError(`Cannot find film`)
     const filmDeleted = await prisma.film.delete({ where: { id: filmId } })
     if (!filmDeleted) throw new errorResponse.BadRequestError(`Cannot delete film`)
-    
-    for (const actor of actors){
-        const filmFound = await prisma.film.findMany({where:{actor:{some:{actorId:actor.id}}}})
-        if(filmFound.length===0) await prisma.actor.delete({where:{id:actor.id}})
-    }   
-    for (const category of categories) {
-        const filmFound = await prisma.film.findMany({where:{category:{some:{categoryId:category.id}}}})
-        if(filmFound.length===0) await prisma.category.delete({where:{id:category.id}})
-    } 
-    for (const director of directors){
-        const filmFound = await prisma.film.findMany({where:{director:{some:{directorId:director.id}}}})
-        if(filmFound.length===0) await prisma.director.delete({where:{id:director.id}})
-    } 
-    for (const country of countries){
-        const filmFound = await prisma.film.findMany({where:{country:{some:{countryId:country.id}}}})
-        if(filmFound.length===0) await prisma.country.delete({where:{id:country.id}})
-    } 
 
-     // delete on elasticsearch
+    for (const actor of actors) {
+        const filmFound = await prisma.film.findMany({ where: { actor: { some: { actorId: actor.id } } } })
+        if (filmFound.length === 0) await prisma.actor.delete({ where: { id: actor.id } })
+    }
+    for (const category of categories) {
+        const filmFound = await prisma.film.findMany({ where: { category: { some: { categoryId: category.id } } } })
+        if (filmFound.length === 0) await prisma.category.delete({ where: { id: category.id } })
+    }
+    for (const director of directors) {
+        const filmFound = await prisma.film.findMany({ where: { director: { some: { directorId: director.id } } } })
+        if (filmFound.length === 0) await prisma.director.delete({ where: { id: director.id } })
+    }
+    for (const country of countries) {
+        const filmFound = await prisma.film.findMany({ where: { country: { some: { countryId: country.id } } } })
+        if (filmFound.length === 0) await prisma.country.delete({ where: { id: country.id } })
+    }
+
+    // delete on elasticsearch
     AppEventListener.instance.notify({
-        event:'deleteFilm',
-        data:filmId
+        event: 'deleteFilm',
+        data: filmId
     })
 
     return filmDeleted
@@ -339,24 +339,24 @@ export const getFilm = async (filmId: string) => {
     const isValidId2 = await filmId.match(regex.idRegex)
     if (isValidId2 === null) throw new errorResponse.BadRequestError('Film Id không hợp lệ')
 
-   
+
     const filmFound = await elasticSearch.getFilm(filmId)
-    if(!filmFound) throw new errorResponse.BadRequestError(`Cannot find this film`)
-    
+    if (!filmFound) throw new errorResponse.BadRequestError(`Cannot find this film`)
+
     const filmUpdateView = await prisma.film.update({
         where: { id: filmId }, data: { view: { increment: 1 } },
     })
 
-    const updatedfilm=await elasticSearch.updateFilm(
+    const updatedfilm = await elasticSearch.updateFilm(
         {
-            id:filmId,
+            id: filmId,
             view: filmUpdateView.view
         }
     )
     const film = await elasticSearch.getFilm(filmId)
-   
 
-     
+
+
     return film
 }
 
@@ -367,10 +367,10 @@ export const ratingFilm = async ({ filmId, userId, rating }: RatingProps) => {
     const isValidId2 = await filmId.match(regex.idRegex)
     if (isValidId2 === null) throw new errorResponse.BadRequestError('Film Id không hợp lệ')
 
-    const filmFound = await prisma.film.findUnique({ where: { id: filmId } })
+    const filmFound = await elasticSearch.getFilm(filmId)
     if (!filmFound) throw new errorResponse.BadRequestError(`Không tìm thấy film!`)
-    const ratingFound = await prisma.rating.findUnique({ where: { filmId: filmId }, include: { ratings: true } })
-    if (!ratingFound) {
+    // const ratingFound = await prisma.rating.findUnique({ where: { filmId: filmId }, include: { ratings: true } })
+    if (!filmFound.rating) {
         let ratingNew = await prisma.rating.create({
             data: {
                 film: { connect: { id: filmId } },
@@ -392,17 +392,41 @@ export const ratingFilm = async ({ filmId, userId, rating }: RatingProps) => {
                 },
                 ratingAverage: rating
             },
-            include: {
-                ratings: true
+            select: {
+                id: true,
+                ratingAverage: true,
+                ratings: {
+                    select: {
+                        ratingNumber: true,
+                        userRating: {
+                            select: {
+                                id: true,
+                                userId: true
+                            }
+                        }
+                    }
+                }
             }
         });
+        AppEventListener.instance.notify({
+            event: 'updateFilm',
+            data: {
+                id: filmFound.id,
+                rating: {
+                    id: ratingNew.id,
+                    ratingAverage: ratingNew.ratingAverage,
+                    ratings: ratingNew.ratings
+                }
+
+            }
+        })
         return ratingNew;
     }
-    console.log('rating found', ratingFound)
+    // if filmFound.rating 
     const updateRating = await prisma.user_Rating.upsert({
         where: {
             ratingId_userRatingId: {
-                ratingId: ratingFound.id,
+                ratingId: filmFound.rating.id,
                 userRatingId: userId
             }
         },
@@ -423,13 +447,13 @@ export const ratingFilm = async ({ filmId, userId, rating }: RatingProps) => {
             ratingNumber: rating,
             rating: {
                 connect: {
-                    id: ratingFound.id
+                    id: filmFound.rating.id
                 }
             }
         }
     })
+
     const ratingUpdated = await prisma.rating.findUnique({ where: { filmId: filmId }, include: { ratings: true } })
-    if (!ratingUpdated) throw new errorResponse.BadRequestError(`Cannot find rating with this filmId`)
     const totalRatings = ratingUpdated?.ratings.reduce((sum: number, r: {
         userRatingId: string,
         ratingNumber: number,
@@ -437,14 +461,34 @@ export const ratingFilm = async ({ filmId, userId, rating }: RatingProps) => {
     }) => sum + r.ratingNumber, 0);
     const ratingCount = ratingUpdated?.ratings.length;
     if (totalRatings && ratingCount) {
-        await prisma.rating.update({
+        const updateFinal = await prisma.rating.update({
             where: { id: ratingUpdated.id },
             data: {
                 ratingAverage: totalRatings / ratingCount
+            },
+            select: {
+                id: true,
+                ratingAverage: true,
+                ratings: {
+                    select: {
+                        ratingNumber: true,
+                        userRating: {
+                            select: {
+                                id: true,
+                                userId: true
+                            }
+                        }
+                    }
+                }
             }
         })
+
+        await elasticSearch.updateFilm({
+            id: filmFound.id,
+            rating: updateFinal
+        })
     }
-    return await prisma.rating.findUnique({ where: { filmId: filmId }, include: { ratings: true } })
+    return await elasticSearch.getFilm(filmId)
 
 }
 
@@ -456,7 +500,10 @@ export const getRatings = async ({ filmId }: { filmId: string }) => {
 
     const filmFound = await prisma.film.findUnique({ where: { id: filmId } })
     if (!filmFound) throw new errorResponse.BadRequestError(`Không tìm thấy film!`)
-    const ratingFound = await prisma.rating.findMany({ where: { filmId: filmFound.id }, include: { ratings: true } })
+    const ratingFound = await prisma.rating.findMany({
+        where: { filmId: filmFound.id },
+        include: { ratings: true }
+    })
     if (!ratingFound) {
         return {
             filmId: "",
@@ -467,8 +514,34 @@ export const getRatings = async ({ filmId }: { filmId: string }) => {
     return ratingFound
 }
 
+export const getRatingByFilm = async ({ filmId }: { filmId: string }) => {
+
+    //check input
+    const isValidId1 = await filmId.match(regex.idRegex)
+    if (isValidId1 === null) throw new errorResponse.BadRequestError('User Id không hợp lệ')
+
+    const filmFound = await elasticSearch.getFilm(filmId)
+    if (!filmFound) throw new errorResponse.BadRequestError(`Không tìm thấy film!`)
+    if (!filmFound.rating) {
+        return {
+        ratings: [
+            {
+                ratingNumber: 0,
+                userRating: {
+                    id: "",
+                    userId: ""
+                }
+            }
+        ],
+        id: "",
+        ratingAverage: 0
+        }
+    }
+   return filmFound.rating
+}
+
 export const getAllFilm = async (query: QueryProps) => {
-    
+
     // if (query.query) {
     //     //check input
     const isValidQuery = await query.query.match(regex.queryRegex)
@@ -552,29 +625,29 @@ export const getAllFilm = async (query: QueryProps) => {
 
     // }
     console.log('length', query.query?.length)
-    const film = await elasticSearch.searchFilm(query.query as string,query.page as number)
+    const film = await elasticSearch.searchFilm(query.query as string, query.page as number)
     return film
 }
 
 
 export const getPageTotal = async () => {
     const count = await elasticSearch.getCount()
-    if(!count) throw new errorResponse.BadRequestError(`Cannot get page total`)
-    const pageTotal = Math.ceil(count /2)
+    if (!count) throw new errorResponse.BadRequestError(`Cannot get page total`)
+    const pageTotal = Math.ceil(count / 2)
     return pageTotal // Assuming 20 items per page
 }
 
-export const getPageTotalFilter = async (filter:string) => {
+export const getPageTotalFilter = async (filter: string) => {
     const count = await elasticSearch.getCount()
-    if(!count) throw new errorResponse.BadRequestError(`Cannot get page total`)
-    const pageTotal = Math.ceil(count /2)
+    if (!count) throw new errorResponse.BadRequestError(`Cannot get page total`)
+    const pageTotal = Math.ceil(count / 2)
     return pageTotal // Assuming 20 items per page
 }
 
-export const getPageTotalSearch = async (search:string) => {
+export const getPageTotalSearch = async (search: string) => {
     const count = await elasticSearch.getCount()
-    if(!count) throw new errorResponse.BadRequestError(`Cannot get page total`)
-    const pageTotal = Math.ceil(count /2)
+    if (!count) throw new errorResponse.BadRequestError(`Cannot get page total`)
+    const pageTotal = Math.ceil(count / 2)
     return pageTotal // Assuming 20 items per page
 }
 
@@ -655,19 +728,19 @@ export const logoutuser = async (data: { userId: string }) => {
     return del
 }
 
-export const getListCategory = async ()=>{
+export const getListCategory = async () => {
     const categoryList = await elasticSearch.getListCategory()
-    if(!categoryList) throw new errorResponse.BadRequestError(`Cannot get list category`)
+    if (!categoryList) throw new errorResponse.BadRequestError(`Cannot get list category`)
     return categoryList
 }
 
-export const getListCountry = async ()=>{
+export const getListCountry = async () => {
     const countryList = await elasticSearch.getListCountry()
-    if(!countryList) throw new errorResponse.BadRequestError(`Cannot get list category`)
+    if (!countryList) throw new errorResponse.BadRequestError(`Cannot get list category`)
     return countryList
 }
 
-export const deleteFilms=async ()=>{
+export const deleteFilms = async () => {
     await prisma.episodes.deleteMany()
     await prisma.film.deleteMany()
     await prisma.actor.deleteMany()
@@ -685,9 +758,9 @@ export const deleteFilms=async ()=>{
     }
 }
 
-export const filterFilm = async({field,data,page}:{field:string,data:string,page:number|null})=>{
-    const filterList = await elasticSearch.filter(field,data,page)
-    if(!filterList) throw new errorResponse.BadRequestError(`Cannot get filter list`)
+export const filterFilm = async ({ field, data, page }: { field: string, data: string, page: number | null }) => {
+    const filterList = await elasticSearch.filter(field, data, page)
+    if (!filterList) throw new errorResponse.BadRequestError(`Cannot get filter list`)
     return filterList
 }
 export const SubscribeEvents = async (payload: string) => {

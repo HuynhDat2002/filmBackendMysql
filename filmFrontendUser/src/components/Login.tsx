@@ -154,22 +154,22 @@ export default function Login({ isOpen, onClose, openSignUp, openForgot, openVer
                                         <div className="text-red-500 text-sm">{formik.errors.password}</div>
                                     ) : null}
                                     <div className="flex py-2 px-1 justify-between">
-                                        <Checkbox
+                                        {/* <Checkbox
                                             classNames={{
                                                 label: "text-small",
                                             }}
                                             color="primary"
                                         >
                                             Ghi nhớ
-                                        </Checkbox>
+                                        </Checkbox> */}
                                         <Link className="text-gray-500 hover:text-ctBlue-logo cursor-pointer" onClick={openForgot} size="sm">
                                             Quên mật khẩu?
                                         </Link>
                                     </div>
-                                    <ReCAPTCHA
+                                    {/* <ReCAPTCHA
                                         sitekey="6LcTMZcqAAAAAAYpYV-BoPjawYsv7_uJutvjVSF0"
                                         onChange={handleCaptchaChange}
-                                    />
+                                    /> */}
                                     {isLoading &&
                                         <Spin />
 

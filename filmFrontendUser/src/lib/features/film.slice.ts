@@ -55,7 +55,7 @@ export const ratingFilm = createAsyncThunk(
   }
 );
 
-export const getRatings = createAsyncThunk(
+export const getRating = createAsyncThunk(
   "film/getrating",
 
   async (data: { filmId: string }, thunkAPI) => {
@@ -264,10 +264,18 @@ export const initialState = {
   // ratings
 
 
-  ratings: {
-    id: "",
-    filmId: "",
-    ratings: []
+  rating: {
+     ratings: [
+            {
+                ratingNumber: 0,
+                userRating: {
+                    id: "",
+                    userId: ""
+                }
+            }
+        ],
+        id: "",
+        ratingAverage: 0
   },
   isError: false,
   isLoading: false,
@@ -276,7 +284,7 @@ export const initialState = {
   isSearch: false,
   isGetA: false,
   isRating: false,
-  isGetRatings: false,
+  isGetRating: false,
   isGetPageTotal: false,
   isGetListCategory: false,
   isGetListCountry: false,
@@ -413,7 +421,7 @@ export const film = createSlice({
         resetFlags(state);
         state.isSuccess = true;
         state.isRating = true;
-        state.ratings = action.payload;
+        state.rating = action.payload;
       })
       .addCase(ratingFilm.rejected, (state, action) => {
         resetFlags(state);
@@ -422,20 +430,20 @@ export const film = createSlice({
         state.message = action.payload as any;
       })
 
-      .addCase(getRatings.pending, (state) => {
+      .addCase(getRating.pending, (state) => {
         resetFlags(state);
         state.isLoading = true;
       })
-      .addCase(getRatings.fulfilled, (state, action) => {
+      .addCase(getRating.fulfilled, (state, action) => {
         resetFlags(state);
         state.isSuccess = true;
-        state.isGetRatings = true
-        state.ratings = action.payload;
+        state.isGetRating = true
+        state.rating = action.payload;
       })
-      .addCase(getRatings.rejected, (state, action) => {
+      .addCase(getRating.rejected, (state, action) => {
         resetFlags(state);
         state.isError = true;
-        state.isGetRatings = true
+        state.isGetRating = true
         state.message = action.payload as any;
       })
 

@@ -89,7 +89,7 @@ export const verifyDevice = createAsyncThunk(
 );
 export const resetPassword = createAsyncThunk(
   "user/resetpassword",
-  async (data: { password:string,confirmPassword: string }, thunkAPI) => {
+  async (data: { password: string, confirmPassword: string }, thunkAPI) => {
     try {
       return await userService.resetPassword(data);
     } catch (error) {
@@ -100,7 +100,7 @@ export const resetPassword = createAsyncThunk(
 
 export const sendOTP = createAsyncThunk(
   "user/sendotp",
-  async (data: { name:string,email:string,password:string}, thunkAPI) => {
+  async (data: { name: string, email: string, password: string }, thunkAPI) => {
     try {
       return await userService.sendOTP(data);
     } catch (error) {
@@ -111,7 +111,7 @@ export const sendOTP = createAsyncThunk(
 
 export const changePassword = createAsyncThunk(
   "user/changepassword",
-  async (data: { password:string,newPassword:string}, thunkAPI) => {
+  async (data: { password: string, newPassword: string }, thunkAPI) => {
     try {
       return await userService.changePassword(data);
     } catch (error) {
@@ -133,8 +133,9 @@ export const getUser = createAsyncThunk(
 
 export const editUser = createAsyncThunk(
   "user/edituser",
-  async (data:{name:string}, thunkAPI) => {
+  async (data: { name: string }, thunkAPI) => {
     try {
+      console.log('edit',data)
       return await userService.editUser(data);
     } catch (error) {
       throw thunkAPI.rejectWithValue(error);
@@ -144,7 +145,7 @@ export const editUser = createAsyncThunk(
 
 export const checkDevice = createAsyncThunk(
   "user/checkDevice",
-  async (data:{email:string,password:string,tokenCaptcha:string}, thunkAPI) => {
+  async (data: { email: string, password: string, tokenCaptcha: string }, thunkAPI) => {
     try {
       return await userService.checkDevice(data);
     } catch (error) {
@@ -153,14 +154,30 @@ export const checkDevice = createAsyncThunk(
   }
 );
 export const initialState = {
-  user: {
-    user: {
-      id: "",
+  userLogin: {
+    message: "",
+    status: 0,
+    metadata: {
+      user: {
+        id: "",
 
-    },
-    tokens: ""
+      },
+      tokens: ""
+    }
   },
-  
+
+  user: {
+    message: "",
+    status: 0,
+    metadata: {
+      id: "",
+      name: "",
+      email: ""
+
+      ,
+    }
+  },
+
   isError: false,
   isSuccess: false,
   isLoading: false,
@@ -170,19 +187,25 @@ export const initialState = {
   isVerify: false,
   isReset: false,
   isSign: false,
-  isCheck:false,
-  isSendOTP:false,
-  isChangePassword:false,
-  isEdit:false,
-  isGetUser:false,
-  isCheckDevice:false,
-  isVerifySign:false,
-  isVerifyDevice:false,
+  isCheck: false,
+  isSendOTP: false,
+  isChangePassword: false,
+  isEdit: false,
+  isGetUser: false,
+  isCheckDevice: false,
+  isVerifySign: false,
+  isVerifyDevice: false,
 
-  message: {message:""} ,
+  message: { message: "" },
 }
 
-
+function resetFlags(state: any) {
+  for (const key in state) {
+    if (key.startsWith("is") && typeof state[key] === "boolean") {
+      state[key] = false;
+    }
+  }
+}
 
 export const resetState = createAction("user/resetState");
 
@@ -194,74 +217,41 @@ export const user = createSlice({
 
     builder
       .addCase(checkLogin.pending, (state) => {
+        resetFlags(state)
         state.isLoading = true;
-        state.isForgot = false
-        state.isCheck=false
-          state.isLogin = false
-          state.isLogout = false
-          state.isVerify = false
-          state.isReset = false
-          state.isSign = false
-          state.isSendOTP=false
-          state.isChangePassword=false
-          state.isGetUser=false
-          state.isEdit=false
-          state.isCheckDevice=false
-          state.isVerifyDevice=false
-          state.isVerifySign=false
+
       })
       .addCase(checkLogin.fulfilled, (state, action) => {
-        state.isError = false;
+        resetFlags(state)
         state.isSuccess = true;
+        state.isCheck = true
         state.user = action.payload;
-        state.isCheck=true
-        state.isLoading=false
 
 
       })
       .addCase(checkLogin.rejected, (state, action) => {
-        state.isLoading = false;
+        resetFlags(state)
         state.isError = true;
-        state.isSuccess = false;
-        state.isCheck=true
-
+        state.isCheck = true
         state.message = action.payload as any;
       })
 
       .addCase(logIn.pending, (state) => {
+        resetFlags(state)
         state.isLoading = true;
-        state.isForgot = false
-          state.isLogin = false
-          state.isLogout = false
-          state.isVerify = false
-          state.isReset = false
-          state.isSign = false
-        state.isCheck=false
-        state.isSendOTP=false
-        state.isChangePassword=false
-        state.isGetUser=false
-        state.isEdit=false
-        state.isCheckDevice=false
-        state.isVerifyDevice=false
-        state.isVerifySign=false
-
-
-
       })
       .addCase(logIn.fulfilled, (state, action) => {
-        state.isLoading = false
-        state.isError = false;
+        resetFlags(state)
         state.isSuccess = true;
-        state.user = action.payload;
+        state.userLogin = action.payload;
         state.isLogin = true
 
 
 
       })
       .addCase(logIn.rejected, (state, action) => {
-        state.isLoading = false
+        resetFlags(state)
         state.isError = true;
-        state.isSuccess = false;
         state.message = action.payload as any;
         state.isLogin = true
 
@@ -270,438 +260,238 @@ export const user = createSlice({
 
 
       .addCase(signUp.pending, (state) => {
+        resetFlags(state)
         state.isLoading = true;
-        state.isForgot = false
-          state.isLogin = false
-          state.isLogout = false
-          state.isVerify = false
-          state.isReset = false
-          state.isSign = false
-        state.isCheck=false
-        state.isSendOTP=false
-        state.isChangePassword=false
-        state.isGetUser=false
-        state.isEdit=false
-        state.isCheckDevice=false
-        state.isVerifyDevice=false
-        state.isVerifySign=false
-
-
-
       })
       .addCase(signUp.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.isError = false;
+        resetFlags(state)
         state.isSuccess = true;
         state.user = action.payload;
-        state.isSign=true
+        state.isSign = true
 
       })
       .addCase(signUp.rejected, (state, action) => {
-        state.isLoading = false;
+        resetFlags(state)
         state.isError = true;
-        state.isSuccess = false;
         state.message = action.payload as any;
-        state.isSign=true
-
+        state.isSign = true
       })
 
 
       .addCase(logout.pending, (state) => {
+        resetFlags(state)
         state.isLoading = true;
-        state.isForgot = false
-          state.isLogin = false
-          state.isLogout = false
-          state.isVerify = false
-          state.isReset = false
-          state.isSign = false
-        state.isCheck=false
-        state.isSendOTP=false
-        state.isChangePassword=false
-        state.isGetUser=false
-
-        state.isEdit=false
-        state.isCheckDevice=false
-        state.isVerifyDevice=false
-        state.isVerifySign=false
-
-
       })
       .addCase(logout.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.isError = false;
+        resetFlags(state)
         state.isSuccess = true;
         state.user = action.payload; // Reset user state to initial
-        state.isLogout=true
+        state.isLogout = true
 
 
       })
       .addCase(logout.rejected, (state, action) => {
-        state.isLoading = false;
+        resetFlags(state)
         state.isError = true;
-        state.isSuccess = false;
         state.message = action.payload as any;
-        state.isLogout=true
+        state.isLogout = true
 
       })
-
-
-
 
       .addCase(forgotPassword.pending, (state) => {
+        resetFlags(state)
         state.isLoading = true;
-        state.isForgot = false
-          state.isLogin = false
-          state.isLogout = false
-          state.isVerify = false
-          state.isReset = false
-          state.isSign = false
-        state.isCheck=false
-        state.isSendOTP=false
-        state.isChangePassword=false
-        state.isGetUser=false
-        state.isEdit=false
-        state.isCheckDevice=false
-        state.isVerifyDevice=false
-        state.isVerifySign=false
-
-
       })
       .addCase(forgotPassword.fulfilled, (state, action) => {
+        resetFlags(state)
         state.isForgot = true
-        state.isLoading = false;
-        state.isError = false;
         state.isSuccess = true;
         state.user = action.payload; // Reset user state to initial
       })
       .addCase(forgotPassword.rejected, (state, action) => {
-        state.isLoading = false;
+        resetFlags(state)
         state.isForgot = true
-
         state.isError = true;
-        state.isSuccess = false;
         state.message = action.payload as any;
       })
 
 
       .addCase(verify.pending, (state) => {
+        resetFlags(state)
         state.isLoading = true;
-        state.isForgot = false
-          state.isLogin = false
-          state.isLogout = false
-          state.isVerify = false
-          state.isReset = false
-          state.isSign = false
-        state.isCheck=false
-        state.isSendOTP=false
-        state.isChangePassword=false
-        state.isGetUser=false
-        state.isEdit=false
-        state.isCheckDevice=false
-        state.isVerifyDevice=false
-        state.isVerifySign=false
-
-
       })
       .addCase(verify.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.isError = false;
+        resetFlags(state)
         state.isSuccess = true;
-        state.isVerify=true
+        state.isVerify = true
         state.user = action.payload; // Reset user state to initial
-        
+
       })
       .addCase(verify.rejected, (state, action) => {
-        state.isLoading = false;
+        resetFlags(state)
         state.isError = true;
-        state.isSuccess = false;
-        state.isVerify=true
+        state.isVerify = true
         state.message = action.payload as any;
       })
 
       .addCase(resetPassword.pending, (state) => {
+        resetFlags(state)
         state.isLoading = true;
-         state.isForgot = false
-          state.isLogin = false
-          state.isLogout = false
-          state.isVerify = false
-          state.isReset = false
-          state.isSign = false
-        state.isCheck=false
-        state.isSendOTP=false
-        state.isChangePassword=false
-        state.isGetUser=false
-        state.isEdit=false
-        state.isCheckDevice=false
-        state.isVerifyDevice=false
-        state.isVerifySign=false
-
-
-
       })
       .addCase(resetPassword.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.isError = false;
+        resetFlags(state)
         state.isSuccess = true;
-        state.isReset=true
+        state.isReset = true
         state.user = action.payload; // Reset user state to initial
-        
+
       })
-      
+
       .addCase(resetPassword.rejected, (state, action) => {
-        state.isLoading = false;
+        resetFlags(state)
         state.isError = true;
-        state.isSuccess = false;
-        state.isReset=true
+        state.isReset = true
         state.message = action.payload as any;
       })
 
       .addCase(sendOTP.pending, (state) => {
+        resetFlags(state)
         state.isLoading = true;
-         state.isForgot = false
-          state.isLogin = false
-          state.isLogout = false
-          state.isVerify = false
-          state.isReset = false
-          state.isSign = false
-        state.isCheck=false
-        state.isSendOTP=false
-        state.isChangePassword=false
-        state.isGetUser=false
-        state.isEdit=false
-        state.isCheckDevice=false
-        state.isVerifyDevice=false
-        state.isVerifySign=false
       })
       .addCase(sendOTP.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.isError = false;
+        resetFlags(state)
         state.isSuccess = true;
-        state.isSendOTP=true
+        state.isSendOTP = true
         state.user = action.payload; // Reset user state to initial
-        
+
       })
-      
+
       .addCase(sendOTP.rejected, (state, action) => {
-        state.isLoading = false;
+        resetFlags(state)
         state.isError = true;
-        state.isSuccess = false;
-        state.isSendOTP=true
+        state.isSendOTP = true
         state.message = action.payload as any;
       })
 
 
       .addCase(changePassword.pending, (state) => {
+        resetFlags(state)
         state.isLoading = true;
-         state.isForgot = false
-          state.isLogin = false
-          state.isLogout = false
-          state.isVerify = false
-          state.isReset = false
-          state.isSign = false
-        state.isCheck=false
-        state.isSendOTP=false
-        state.isChangePassword=false
-        state.isGetUser=false
-        state.isEdit=false
-        state.isCheckDevice=false
-        state.isVerifyDevice=false
-        state.isVerifySign=false
       })
       .addCase(changePassword.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.isError = false;
+        resetFlags(state)
+
+
         state.isSuccess = true;
-        state.isChangePassword=true
+        state.isChangePassword = true
         state.user = action.payload; // Reset user state to initial
-        
+
       })
-      
+
       .addCase(changePassword.rejected, (state, action) => {
-        state.isLoading = false;
+        resetFlags(state)
+
+
         state.isError = true;
-        state.isSuccess = false;
-        state.isChangePassword=true
+
+        state.isChangePassword = true
         state.message = action.payload as any;
       })
 
       .addCase(getUser.pending, (state) => {
+        resetFlags(state)
+
         state.isLoading = true;
-         state.isForgot = false
-          state.isLogin = false
-          state.isLogout = false
-          state.isVerify = false
-          state.isReset = false
-          state.isSign = false
-        state.isCheck=false
-        state.isSendOTP=false
-        state.isChangePassword=false
-        state.isGetUser=false
-        state.isEdit=false
-        state.isCheckDevice=false
-        state.isVerifyDevice=false
-        state.isVerifySign=false
+
       })
       .addCase(getUser.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.isError = false;
+        resetFlags(state)
         state.isSuccess = true;
-        state.isGetUser=true
+        state.isGetUser = true
         state.user = action.payload; // Reset user state to initial
-        
+
       })
-      
+
       .addCase(getUser.rejected, (state, action) => {
-        state.isLoading = false;
+        resetFlags(state)
         state.isError = true;
-        state.isSuccess = false;
-        state.isGetUser=true
+        state.isGetUser = true
         state.message = action.payload as any;
       })
 
       .addCase(editUser.pending, (state) => {
+        resetFlags(state)
         state.isLoading = true;
-         state.isForgot = false
-          state.isLogin = false
-          state.isLogout = false
-          state.isVerify = false
-          state.isReset = false
-          state.isSign = false
-        state.isCheck=false
-        state.isSendOTP=false
-        state.isChangePassword=false
-        state.isGetUser=false
-        state.isEdit=false
-        state.isCheckDevice=false
-        state.isVerifyDevice=false
-        state.isVerifySign=false
       })
       .addCase(editUser.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.isError = false;
+        resetFlags(state)
         state.isSuccess = true;
-        state.isEdit=true
+        state.isEdit = true
         state.user = action.payload; // Reset user state to initial
-        
+
       })
-      
+
       .addCase(editUser.rejected, (state, action) => {
-        state.isLoading = false;
+        resetFlags(state)
         state.isError = true;
-        state.isSuccess = false;
-        state.isEdit=true
+        state.isEdit = true
         state.message = action.payload as any;
       })
 
 
       .addCase(checkDevice.pending, (state) => {
+        resetFlags(state)
         state.isLoading = true;
-         state.isForgot = false
-          state.isLogin = false
-          state.isLogout = false
-          state.isVerify = false
-          state.isReset = false
-          state.isSign = false
-        state.isCheck=false
-        state.isSendOTP=false
-        state.isChangePassword=false
-        state.isGetUser=false
-        state.isEdit=false
-        state.isCheckDevice=false
-        state.isVerifyDevice=false
-        state.isVerifySign=false
       })
       .addCase(checkDevice.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.isError = false;
+        resetFlags(state)
         state.isSuccess = true;
-        state.isEdit=false
-        state.isCheckDevice=true
-
+        state.isCheckDevice = true
         state.user = action.payload; // Reset user state to initial
-        
+
       })
-      
+
       .addCase(checkDevice.rejected, (state, action) => {
-        state.isLoading = false;
+        resetFlags(state)
         state.isError = true;
-        state.isSuccess = false;
-        state.isEdit=false
-        state.isCheckDevice=true
+        state.isCheckDevice = true
         state.message = action.payload as any;
       })
       .addCase(verifyDevice.pending, (state) => {
+        resetFlags(state)
         state.isLoading = true;
-         state.isForgot = false
-          state.isLogin = false
-          state.isLogout = false
-          state.isVerify = false
-          state.isReset = false
-          state.isSign = false
-        state.isCheck=false
-        state.isSendOTP=false
-        state.isChangePassword=false
-        state.isGetUser=false
-        state.isEdit=false
-        state.isCheckDevice=false
-        state.isVerifyDevice=false
-        state.isVerifySign=false
       })
       .addCase(verifyDevice.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.isError = false;
+        resetFlags(state)
         state.isSuccess = true;
-        state.isEdit=false
-        state.isVerifyDevice=true
-
+        state.isVerifyDevice = true
         state.message = action.payload; // Reset user state to initial
-        
-      })
-      
-      .addCase(verifyDevice.rejected, (state, action) => {
-        state.isLoading = false;
-        state.isError = true;
-        state.isSuccess = false;
-        state.isEdit=false
-        state.isVerifyDevice=true
 
+      })
+
+      .addCase(verifyDevice.rejected, (state, action) => {
+        resetFlags(state)
+        state.isError = true;
+        state.isVerifyDevice = true
         state.message = action.payload as any;
       })
 
       .addCase(verifySign.pending, (state) => {
+        resetFlags(state)
+
         state.isLoading = true;
-         state.isForgot = false
-          state.isLogin = false
-          state.isLogout = false
-          state.isVerify = false
-          state.isReset = false
-          state.isSign = false
-        state.isCheck=false
-        state.isSendOTP=false
-        state.isChangePassword=false
-        state.isGetUser=false
-        state.isEdit=false
-        state.isCheckDevice=false
-        state.isVerifyDevice=false
-        state.isVerifySign=false
+
       })
       .addCase(verifySign.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.isError = false;
+        resetFlags(state)
         state.isSuccess = true;
-        state.isEdit=false
-        state.isVerifySign=true
-
+        state.isVerifySign = true
         state.message = action.payload; // Reset user state to initial
-        
       })
-      
+
       .addCase(verifySign.rejected, (state, action) => {
-        state.isLoading = false;
+        resetFlags(state)
         state.isError = true;
-        state.isSuccess = false;
-        state.isEdit=false
-        state.isVerifySign=true
+        state.isVerifySign = true
 
         state.message = action.payload as any;
       })
