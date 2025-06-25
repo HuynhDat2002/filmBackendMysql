@@ -95,8 +95,8 @@ services:
       # - mysql-film
       - redis-film
       - elasticsearch
-    env_file:
-      - ./film/.env
+    # env_file:
+    #   - ./film/.env
     expose:
       - 5003
     volumes:
@@ -140,8 +140,8 @@ services:
       # - "redis"
     volumes:
       - .:/app/
-    env_file:
-      - ./admin/.env
+    # env_file:
+    #   - ./admin/.env
     expose:
       - 5002
     networks:
@@ -183,8 +183,8 @@ services:
       - rabbitmq
     volumes:
       - .:/app
-    env_file:
-      - ./user/.env
+    # env_file:
+    #   - ./user/.env
     expose:
       - 5000
     networks:
@@ -224,8 +224,8 @@ services:
       - redis-film
     volumes:
       - .:/app
-    env_file:
-      - ./rbac/.env
+    # env_file:
+    #   - ./rbac/.env
     expose:
       - 5004
     logging:
