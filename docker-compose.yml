@@ -60,28 +60,30 @@ services:
       - elasticsearch
     networks:
       - backend-network
-  mysql-film:
-    image: mysql:8
-    restart: always
-    environment:
-      MYSQL_USER: film_user
-      MYSQL_PASSWORD: trongdatfilm
-      MYSQL_ROOT_PASSWORD: rootfilm
-      MYSQL_DATABASE: filmdb
-    volumes:
-      - mysql-film:/var/lib/mysql
-    ports:
-      - "3308:3306"
-    networks:
-      - backend-network
-    deploy:
-      mode: replicated
-      replicas: 1
+  # mysql-film:
+  #   image: mysql:8
+  #   restart: always
+  #   environment:
+  #     MYSQL_USER: film_user
+  #     MYSQL_PASSWORD: trongdatfilm
+  #     MYSQL_ROOT_PASSWORD: rootfilm
+  #     MYSQL_DATABASE: filmdb
+  #   volumes:
+  #     - mysql-film:/var/lib/mysql
+  #   ports:
+  #     - "3308:3306"
+  #   networks:
+  #     - backend-network
+  #   deploy:
+  #     mode: replicated
+  #     replicas: 1
 
   film:
-    build:
-      context: ./film
-      dockerfile: Dockerfile
+    # build:
+    #   context: ./film
+    #   dockerfile: Dockerfile
+    image: tdat/film:latest
+    
     restart: always
     deploy:
       replicas: 1
@@ -90,7 +92,7 @@ services:
       - REDIS_PORT=6379
       - ELASTICSEARCH_URL=http://elasticsearch:9200
     depends_on:
-      - mysql-film
+      # - mysql-film
       - redis-film
       - elasticsearch
     env_file:
@@ -102,36 +104,37 @@ services:
     networks:
       - backend-network
 
-  mysql-admin:
-    image: mysql:8
-    restart: always
-    environment:
-      MYSQL_USER: admin_user
-      MYSQL_PASSWORD: trongdatadmin
-      MYSQL_ROOT_PASSWORD: rootadmin
-      MYSQL_DATABASE: admindb
-    volumes:
-      - mysql-admin:/var/lib/mysql
-    ports:
-      - "3309:3306"
-    networks:
-      - backend-network
-    deploy:
-      mode: replicated
-      replicas: 1
+  # mysql-admin:
+  #   image: mysql:8
+  #   restart: always
+  #   environment:
+  #     MYSQL_USER: admin_user
+  #     MYSQL_PASSWORD: trongdatadmin
+  #     MYSQL_ROOT_PASSWORD: rootadmin
+  #     MYSQL_DATABASE: admindb
+  #   volumes:
+  #     - mysql-admin:/var/lib/mysql
+  #   ports:
+  #     - "3309:3306"
+  #   networks:
+  #     - backend-network
+  #   deploy:
+  #     mode: replicated
+  #     replicas: 1
 
   admin:
-    build:
-      context: ./admin
-      dockerfile: Dockerfile
+    # build:
+    #   context: ./admin
+    #   dockerfile: Dockerfile
     restart: always
+    image: tdat/admin:latest
     deploy:
       replicas: 1
     environment:
       - REDIS_HOST=redis-film
       - REDIS_PORT=6379
     depends_on:
-      - mysql-admin
+      # - mysql-admin
       - rabbitmq
       - redis-film
       # - "redis"
@@ -144,28 +147,30 @@ services:
     networks:
       - backend-network
 
-  mysql-user:
-    image: mysql:8
-    restart: always
-    environment:
-      MYSQL_USER: user_user
-      MYSQL_PASSWORD: trongdatuser
-      MYSQL_ROOT_PASSWORD: rootuser
-      MYSQL_DATABASE: userdb
-    volumes:
-      - mysql-user:/var/lib/mysql
-    ports:
-      - "3310:3306"
-    networks:
-      - backend-network
-    deploy:
-      mode: replicated
-      replicas: 1
+  # mysql-user:
+  #   image: mysql:8
+  #   restart: always
+  #   environment:
+  #     MYSQL_USER: user_user
+  #     MYSQL_PASSWORD: trongdatuser
+  #     MYSQL_ROOT_PASSWORD: rootuser
+  #     MYSQL_DATABASE: userdb
+  #   volumes:
+  #     - mysql-user:/var/lib/mysql
+  #   ports:
+  #     - "3310:3306"
+  #   networks:
+  #     - backend-network
+  #   deploy:
+  #     mode: replicated
+  #     replicas: 1
 
   user:
-    build:
-      context: ./user
-      dockerfile: Dockerfile
+    # build:
+    #   context: ./user
+    #   dockerfile: Dockerfile
+    image: tdat/user:latest
+    
     restart: always
     deploy:
       replicas: 1
@@ -173,7 +178,7 @@ services:
       - REDIS_HOST=redis-film
       - REDIS_PORT=6379
     depends_on:
-      - mysql-user
+      # - mysql-user
       - redis-film
       - rabbitmq
     volumes:
@@ -185,37 +190,37 @@ services:
     networks:
       - backend-network
 
-  mysql-rbac:
-    image: mysql:8
-    restart: always
-    environment:
-      MYSQL_USER: rbac_user
-      MYSQL_PASSWORD: trongdatrbac
-      MYSQL_ROOT_PASSWORD: rootrbac
-      MYSQL_DATABASE: rbacdb
-    volumes:
-      - mysql-rbac:/var/lib/mysql
-    ports:
-      - "3311:3306"
-    networks:
-      - backend-network
-    deploy:
-      mode: replicated
-      replicas: 1
+  # mysql-rbac:
+  #   image: mysql:8
+  #   restart: always
+  #   environment:
+  #     MYSQL_USER: rbac_user
+  #     MYSQL_PASSWORD: trongdatrbac
+  #     MYSQL_ROOT_PASSWORD: rootrbac
+  #     MYSQL_DATABASE: rbacdb
+  #   volumes:
+  #     - mysql-rbac:/var/lib/mysql
+  #   ports:
+  #     - "3311:3306"
+  #   networks:
+  #     - backend-network
+  #   deploy:
+  #     mode: replicated
+  #     replicas: 1
 
   rbac:
-    build:
-      context: ./rbac
-      dockerfile: Dockerfile
+    # build:
+    #   context: ./rbac
+    #   dockerfile: Dockerfile
     restart: always
-    image: tdat/rbac:1.0.0
+    image: tdat/rbac:latest
     deploy:
       replicas: 1
     environment:
       - REDIS_HOST=redis-film
       - REDIS_PORT=6379
     depends_on:
-      - mysql-rbac
+      # - mysql-rbac
       - redis-film
     volumes:
       - .:/app
@@ -257,10 +262,10 @@ services:
 
   nextjs:
     # container_name: nextjs-frontend
-    build: 
-      context: ./filmFrontendUser
-      dockerfile: Dockerfile
-    image: tdat/nextjs:1.0.0
+    # build: 
+    #   context: ./filmFrontendUser
+    #   dockerfile: Dockerfile
+    image: tdat/nextjs:latest
     restart: always
     expose:
       - 3000
@@ -274,10 +279,10 @@ services:
 
   nextjs-admin:
     # container_name: nextjs-frontend
-    build: 
-      context: ./filmFrontendAdmin
-      dockerfile: Dockerfile
-    # image: tdat/nextjs:1.0.0
+    # build: 
+    #   context: ./filmFrontendAdmin
+    #   dockerfile: Dockerfile
+    image: tdat/nextjs-admin:latest
     restart: always
     volumes:
       - .:/app        # Mount mã nguồn vào container
@@ -291,16 +296,16 @@ services:
 
 
   nginx-proxy:
-    # image: tdat/nginx:1.0.0 # owasp/modsecurity-crs:nginx #reverse-proxy # owasp/modsecurity-crs:nginx 
+    image: tdat/nginx:latest # owasp/modsecurity-crs:nginx #reverse-proxy # owasp/modsecurity-crs:nginx 
     container_name: nginx-backend
-    build:
-      dockerfile: Dockerfile
-      context: ./proxy
+    # build:
+    #   dockerfile: Dockerfile
+    #   context: ./proxy
     depends_on:
       - film
-      # - user
-      # - admin
-      # - rbac  
+      - user
+      - admin
+      - rbac  
       - nextjs
       - nextjs-admin
     ports:
@@ -331,14 +336,14 @@ networks:
 volumes:
   esdata:
     driver: local
-  mysql-film:
-    external: true
-  mysql-admin:
-    external: true
-  mysql-user:
-    external: true
-  mysql-rbac:
-    external: true
+  # mysql-film:
+  #   external: true
+  # mysql-admin:
+  #   external: true
+  # mysql-user:
+  #   external: true
+  # mysql-rbac:
+  #   external: true
   redis:
     driver: local
 

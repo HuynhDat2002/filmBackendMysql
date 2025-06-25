@@ -18,8 +18,9 @@ export default function FilmList(tab: any) {
   // const [userInfo, setUserInfo] = useState<{ user: { id: "", email: "", name: "" } }>({ user: { id: "", email: "", name: "" } })
   const user: typeof initialState = useAppSelector((state) => state.userReducer)
   const [isSuccess, setIsSuccess] = useState(false)
-  const userInfo = JSON.parse(localStorage.getItem('user') as string) || { user: { id: "", email: "", name: "" } }
   const [email, setEmail] = useState("")
+  const [name,setName]=useState("")
+  // const userInfo = JSON.parse(localStorage.getItem('user') as string) || { user: { id: "", email: "", name: "" } }
   useEffect(() => {
 
     dispatch(checkLogin())
@@ -31,11 +32,13 @@ export default function FilmList(tab: any) {
     if (user.isError && user.isCheck) router.push(`/`)
     if (user.isSuccess && user.isGetUser) {
       setEmail(user.user.metadata.email)
+      setName(user.user.metadata.name)
     }
   }, [user])
   useEffect(()=>{
  setEmail(email)
-  },[email])
+ setName(name)
+  },[email,name])
 
   let schema = yup.object().shape({
     email: yup
@@ -99,7 +102,7 @@ export default function FilmList(tab: any) {
                 name="name"
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
-                defaultValue={userInfo.user.name}
+                defaultValue={name}
 
               />
               {formik.touched.name && formik.errors.name ? (
