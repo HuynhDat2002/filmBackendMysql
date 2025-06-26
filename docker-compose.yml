@@ -77,7 +77,7 @@ services:
   #   deploy:
   #     mode: replicated
   #     replicas: 1
-
+  
   film:
     # build:
     #   context: ./film
@@ -127,7 +127,7 @@ services:
     #   context: ./admin
     #   dockerfile: Dockerfile
     restart: always
-    image: tdat/admin:latest
+    image: tdat/admin:latest  
     deploy:
       replicas: 1
     environment:
@@ -323,7 +323,18 @@ services:
       # - ./certbot/www/:/var/www/certbot/:ro
     networks:
       - backend-network
-
+  # waf:
+  #   image: owasp/modsecurity-crs:nginx
+  #   ports:
+  #     - "80:80"
+  #   volumes:
+  #     - ./proxy/nginx.conf:/etc/nginx/nginx.conf.template
+  #     - ./proxy/modsecurity.conf:/etc/modsecurity.d/modsecurity.conf
+  #     - ./proxy/modsecurity.d:/etc/modsecurity.d/owasp-crs
+  #     - ./cert:/etc/ssl/certs
+  #     - ./proxy/.htpasswd:/etc/nginx/.htpasswd
+  #   networks:
+  #     - backend-network
 
   
 

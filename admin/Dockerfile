@@ -1,13 +1,25 @@
-FROM node:20.18.1
+FROM node:20-alpine3.16 AS builder
 
 WORKDIR /app/admin
+RUN apk add --no-cache libssl1.1
 
-COPY package.json .
-
+COPY package.json ./
 RUN npm install
 
 COPY . .
-# RUN npx prisma migrate dev --name init
+
+
+# ----------- Stage 2: Runtime -----------
+FROM node:20-alpine3.16
+
+# Tạo thư mục làm việc
+WORKDIR /app/admin
+RUN apk add --no-cache libssl1.1
+
+# Copy built code & package.json từ builder
+COPY --from=builder /app/admin ./
+# Mở port ứng dụng
 EXPOSE 5002
 
-CMD [ "npm","start" ]
+# Chạy ứng dụng
+CMD ["npm", "start"]

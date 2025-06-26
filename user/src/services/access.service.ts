@@ -3,7 +3,7 @@
 import { Request, Response, NextFunction } from 'express'
 import { SignUpProps, SignInProps, TokenPairProps, PayloadTokenPair, CheckDevice } from '@/types'
 import { errorResponse } from '@/cores'
-import bcrypt from 'bcrypt'
+import bcrypt from 'bcryptjs'
 import crypto, { hash, Sign } from 'crypto'
 import { createTokenPair } from '@/auth/util.auth'
 import { getInfoData } from '@/utils'

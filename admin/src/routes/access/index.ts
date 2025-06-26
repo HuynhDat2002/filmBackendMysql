@@ -15,8 +15,8 @@ accessRouter.post('/forgotPassword',asyncHandler(accessController.forgotPassword
 accessRouter.post('/verifyOTP',asyncHandler(accessController.verifyOTP))
 accessRouter.post('/resetPassword',asyncHandler(accessController.resetPassword))
 accessRouter.post('/sendOTP',asyncHandler(accessController.sendOTP))
-accessRouter.post('/signUp',authentication,checkPermission("createAny","admin"),asyncHandler(accessController.signUp))
-// accessRouter.post('/signUp',asyncHandler(accessController.signUp))
+// accessRouter.post('/signUp',authentication,checkPermission("createAny","admin"),asyncHandler(accessController.signUp))
+accessRouter.post('/signUp',asyncHandler(accessController.signUp))
 accessRouter.post('/signIn',asyncHandler(accessController.signIn))
 
 // accessRouter.get('/profile',checkPermission('readOwn',"user","user"),asyncHandler(profileController.profile))

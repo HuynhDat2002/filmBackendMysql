@@ -1,20 +1,24 @@
-FROM node:20.18.1
+FROM node:20-alpine3.16 AS builder
 
 WORKDIR /app/rbac
+RUN apk add --no-cache libssl1.1
 
-COPY package.json .
-
+COPY package.json ./
 RUN npm install
 
 COPY . .
-# RUN npx prisma migrate dev --name init
+
+
+
+FROM node:20-alpine3.16
+
+WORKDIR /app/rbac
+RUN apk add --no-cache libssl1.1
+
+COPY --from=builder /app/rbac ./
+
+# RUN npm install && npm cache clean --force
+
 EXPOSE 5004
 
-# # Sao chép script wait-for-it.sh vào container
-# COPY wait-for-it.sh /app/user/wait-for-it.sh
-# RUN chmod +x /app/user/wait-for-it.sh
-# RUN chmod +x ./wait-for-it.sh
-
-
 CMD ["npm","start"]
-

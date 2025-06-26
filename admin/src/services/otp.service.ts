@@ -1,7 +1,7 @@
 'use strict'
 
 import nodemailer from 'nodemailer'
-import bcrypt from 'bcrypt'
+import bcrypt from 'bcryptjs'
 import { VerifyOTPProps } from '@/types';
 import { errorResponse } from '@/cores';
 import { createClient } from 'redis'

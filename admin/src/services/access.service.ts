@@ -4,7 +4,7 @@ import { adminModel } from '@/models/access.model'
 import { Request, Response, NextFunction } from 'express'
 import { SignUpProps, SignInProps, TokenPairProps, CheckDevice } from '@/types'
 import { errorResponse } from '@/cores'
-import bcrypt from 'bcrypt'
+import bcrypt from 'bcryptjs'
 import crypto, { Sign } from 'crypto'
 import { createTokenPair } from '@/auth/util.auth'
 import { getInfoData, publishMessage, createChannel } from '@/utils'
@@ -20,26 +20,32 @@ import {clientRedis} from '@/utils'
 import axios from 'axios'
 export const signUp = async ({ name, email, password, role = "ADMIN" }: SignUpProps) => {
     //check input
+    console.log("hello signup")
     const isValidEmail = await email.match(regex.emailRegex)
     if (isValidEmail === null) throw new errorResponse.BadRequestError('Email không hợp lệ')
     const isValidName = await name.match(regex.nameRegex)
     if (isValidName === null) throw new errorResponse.BadRequestError('Tên không hợp lệ')
     const isValidPassword = await password.match(regex.passwordRegex)
     if (isValidPassword === null) throw new errorResponse.BadRequestError('Mật khẩu không hợp lệ! Mật khẩu phải có ít nhất 1 chữ hoa, một ký tự đặc biệt và có độ dài từ 8-32 ký tự')
-
+    console.log('hello check signup',email)
     // check if user exist
     const userFound = await prisma.user.findUnique({ where: { email: email } });
+    console.log('userfound',userFound)
     if (userFound) {
+        console.log('user',userFound)
         throw new errorResponse.BadRequestError("Tài khoản đã tồn tại");
         // return {
         //     code: "xxx",
         //     message: "This shop already registered!",
         // };
     }
+    console.log('before')
     //hash password
     const passwordHash = await bcrypt.hash(password, 10);
-
+    console.log('after')
     //create new user
+    console.log('new user')
+
     const newUser = await prisma.user.create({
         data: {
             name,
@@ -48,7 +54,7 @@ export const signUp = async ({ name, email, password, role = "ADMIN" }: SignUpPr
             role: role as Role
         }
     });
-
+    console.log('new user2')
     if (!newUser) throw new errorResponse.BadRequestError(`Không thể tạo tài khoản mớ`)
 
     //create publickey and privatekey for accesstoken and refreshtoken
@@ -83,6 +89,7 @@ export const signUp = async ({ name, email, password, role = "ADMIN" }: SignUpPr
     })
 
     if (!keyToken) throw new errorResponse.BadRequestError(`Không thể  tạo key token`)
+        console.log('create')
     return {
         user: getInfoData(["id", "name", "email"], newUser),
         tokens

@@ -1,5 +1,5 @@
 #Build stage
-FROM  node:18 AS builder
+FROM  node:18-alpine AS builder
 WORKDIR /app/filmFrontendAdmin
 COPY package*.json ./
 RUN npm install
@@ -7,7 +7,7 @@ COPY . .
 RUN npm run build
 
 #production stage
-FROM  node:18
+FROM  node:18-alpine
 WORKDIR /app/filmFrontendAdmin
 COPY --from=builder /app/filmFrontendAdmin/next.config.mjs ./next.config.mjs
 COPY --from=builder /app/filmFrontendAdmin/public ./public

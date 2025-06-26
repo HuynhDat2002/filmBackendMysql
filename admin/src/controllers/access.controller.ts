@@ -9,6 +9,7 @@ import { PayloadTokenPair } from '@/types'
 import { otpService } from '@/services'
 
 export const signUp = async (req:CustomRequest,res:Response,next:NextFunction)=>{
+    console.log('signup')
     new successResponse.Created({
         message:"Created a new user",
         metadata: await accessService.signUp(req.body)
