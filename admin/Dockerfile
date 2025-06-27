@@ -15,7 +15,7 @@ FROM node:20-alpine3.16
 # Tạo thư mục làm việc
 WORKDIR /app/admin
 RUN apk add --no-cache libssl1.1
-
+RUN npm install
 # Copy built code & package.json từ builder
 COPY --from=builder /app/admin ./
 # Mở port ứng dụng

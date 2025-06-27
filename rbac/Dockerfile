@@ -14,7 +14,7 @@ FROM node:20-alpine3.16
 
 WORKDIR /app/rbac
 RUN apk add --no-cache libssl1.1
-
+RUN npm install
 COPY --from=builder /app/rbac ./
 
 # RUN npm install && npm cache clean --force
