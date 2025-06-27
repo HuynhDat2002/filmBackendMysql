@@ -8,7 +8,8 @@
   },
   "scripts": {
     "test": "jest",
-    "start": "nodemon --inspect"
+    "dev": "nodemon --inspect",
+    "start": "node server.ts"
   },
   "keywords": [],
   "author": "",

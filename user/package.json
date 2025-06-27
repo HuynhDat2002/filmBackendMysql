@@ -11,7 +11,7 @@
     "migrate:init": "npx prisma migrate dev",
     "migrate:deploy": "npx prisma migrate deploy",
     "dev": "nodemon --inspect --watch prisma/schema.prisma --exec \"npx prisma migrate dev && npx prisma generate && ts-node server.ts\"",
-    "start": "nodemon"
+    "start": "node server.ts"
   },
   "keywords": [],
   "author": "",
