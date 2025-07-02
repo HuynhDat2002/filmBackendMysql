@@ -92,8 +92,6 @@ services:
       # - mysql-film
       - redis-film
       - elasticsearch
-    env_file:
-      - ./film/.env
     expose:
       - 5003
     networks:
@@ -131,8 +129,6 @@ services:
       - rabbitmq
       - redis-film
       # - "redis"
-    env_file:
-      - ./admin/.env
     expose:
       - 5002
     networks:
@@ -165,8 +161,6 @@ services:
       - REDIS_HOST=redis-film
       - REDIS_PORT=6379
       - NODE_ENV=production
-    env_file:
-      - ./user/.env
     depends_on:
       # - mysql-user
       - redis-film
@@ -207,8 +201,6 @@ services:
     depends_on:
       # - mysql-rbac
       - redis-film
-    env_file:
-      - ./rbac/.env
     expose:
       - 5004
     networks:
