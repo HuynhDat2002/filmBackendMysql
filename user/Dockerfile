@@ -22,6 +22,7 @@ CMD ["npm","run","dev" ]
 FROM base AS builder
 
 COPY package.json ./
+COPY  .env ./
 # Cài openssl1.1 cho Prisma
 
 RUN npm install
@@ -36,6 +37,7 @@ COPY --from=builder /app/user/dist ./dist
 COPY --from=builder /app/user/prisma ./prisma
 COPY --from=builder /app/user/package.json .
 COPY --from=builder /app/user/package-lock.json .
+COPY --from=builder /app/user/.env .
 
 
 RUN npm ci --omit=dev

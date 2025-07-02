@@ -78,7 +78,7 @@ services:
   #     mode: replicated
   #     replicas: 1
   
-  film-prod:
+  film:
     image: tdat/film:prod
     restart: always
     deploy:
@@ -115,7 +115,7 @@ services:
   #     mode: replicated
   #     replicas: 1
 
-  admin-prod:
+  admin:
     restart: always
     image: tdat/admin:prod  
     deploy:
@@ -152,7 +152,7 @@ services:
   #     mode: replicated
   #     replicas: 1
 
-  user-prod:
+  user:
     image: tdat/user:prod
     restart: always
     deploy:
@@ -189,7 +189,7 @@ services:
   #     mode: replicated
   #     replicas: 1
 
-  rbac-prod:
+  rbac:
     image: tdat/rbac:prod
     restart: always
     deploy:
@@ -230,7 +230,7 @@ services:
     networks:
       - backend-network   
 
-  nextjs-prod:
+  nextjs:
     image: tdat/nextjs:prod
     restart: always
     expose:
@@ -240,7 +240,7 @@ services:
     networks:
       - backend-network
 
-  nextjs-admin-prod:
+  nextjs-admin:
     image: tdat/nextjs-admin:prod
     restart: always
     expose:
@@ -255,12 +255,12 @@ services:
     image: tdat/nginx:latest # owasp/modsecurity-crs:nginx #reverse-proxy # owasp/modsecurity-crs:nginx 
     container_name: nginx-backend
     depends_on:
-      - film-prod
-      - user-prod
-      - admin-prod
-      - rbac-prod
-      - nextjs-prod
-      - nextjs-admin-prod
+      - film
+      - user
+      - admin
+      - rbac
+      - nextjs
+      - nextjs-admin
     ports:
       - "8080:8080"
     volumes:

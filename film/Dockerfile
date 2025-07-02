@@ -26,7 +26,7 @@ FROM base AS builder
 
 COPY package.json ./
 RUN npm install
-
+COPY  .env ./
 COPY . .
 
 RUN npm run prisma:generate
@@ -39,6 +39,7 @@ COPY --from=builder /app/film/dist ./dist
 COPY --from=builder /app/film/prisma ./prisma
 COPY --from=builder /app/film/package.json .
 COPY --from=builder /app/film/package-lock.json .
+COPY --from=builder /app/film/.env .
 
 
 RUN npm ci --omit=dev

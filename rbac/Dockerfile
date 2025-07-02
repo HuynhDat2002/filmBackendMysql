@@ -25,6 +25,7 @@ CMD ["npm","run","dev" ]
 FROM base AS builder
 
 COPY package.json ./
+COPY  .env ./
 RUN npm install
 COPY prisma ./prisma
 COPY . .
@@ -41,6 +42,7 @@ COPY --from=builder /app/rbac/dist ./dist
 COPY --from=builder /app/rbac/prisma ./prisma
 COPY --from=builder /app/rbac/package.json .
 COPY --from=builder /app/rbac/package-lock.json .
+COPY --from=builder /app/rbac/.env .
 
 
 RUN npm ci --omit=dev

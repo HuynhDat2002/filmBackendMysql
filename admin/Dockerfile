@@ -25,8 +25,8 @@ CMD ["npm","run","dev" ]
 FROM base AS builder
 
 COPY package.json ./
-RUN npm install
-
+RUN npm inst
+COPY  .env ./
 COPY . .
 
 RUN npm run prisma:generate
@@ -41,6 +41,7 @@ COPY --from=builder /app/admin/dist ./dist
 COPY --from=builder /app/admin/prisma ./prisma
 COPY --from=builder /app/admin/package.json .
 COPY --from=builder /app/admin/package-lock.json .
+COPY --from=builder /app/admin/.env .
 
 
 RUN npm ci --omit=dev
