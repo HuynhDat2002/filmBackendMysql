@@ -1,4 +1,3 @@
-import "module-alias/register"
 import movieApp from './src/app'
 import 'dotenv/config'
 import express from "express"

@@ -3,6 +3,7 @@ import * as jwt from 'jsonwebtoken'
 import { Request } from 'express'
 import { Types } from 'mongoose'
 export * from './filmService.type'
+export * from './comment.type'
 export interface CustomRequest extends Request {
     keyToken?: KeyTokenModelProps,
     user?: PayloadTokenPair,

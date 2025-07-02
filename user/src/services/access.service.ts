@@ -190,7 +190,7 @@ export const checkDevice = async ({ email, password, userAgent, tokenCaptcha = "
     })
     // check device
 
-    const userAgents = userFound.userAgent.map(ua => ua.agentId);
+    const userAgents = userFound.userAgent.map((ua:{userId:string,agentId:string} )=> ua.agentId);
     const getUserAgentId = await prisma.userAgent.findFirst({ where: { agent: userAgent } })
     if (!userAgents.includes(getUserAgentId?.id as string)) {
         await otpService.sendOTPVerifyEmail(email)
@@ -252,7 +252,7 @@ export const signIn = async ({ email, password, userAgent, tokenCaptcha }: SignI
     // if(captcha.success===false) throw new errorResponse.AuthFailureError(`${captcha.message}`)
 
 
-
+console.log('hello a man signin')
 
 
     // check if user exist

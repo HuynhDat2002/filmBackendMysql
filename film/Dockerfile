@@ -1,22 +1,51 @@
-FROM node:20-alpine3.16 AS builder
+#for base
+FROM node:20-alpine3.16 AS base
 
 WORKDIR /app/film
 RUN apk add --no-cache libssl1.1
 
-COPY package.json ./
 
+
+#for development
+FROM base as dev
+
+COPY package.json ./
+# Cài openssl1.1 cho Prisma
+
+RUN npm install
+COPY . .
+RUN npm run prisma:generate
+
+EXPOSE 5003
+
+CMD ["npm","run","dev" ]
+
+
+
+FROM base AS builder
+
+COPY package.json ./
 RUN npm install
 
 COPY . .
 
+RUN npm run prisma:generate
+RUN npm run build
 
-FROM node:20-alpine3.16
 
-WORKDIR /app/film
-RUN apk add --no-cache libssl1.1
-RUN npm install
-COPY --from=builder /app/film ./
+FROM base as prod
+
+COPY --from=builder /app/film/dist ./dist
+COPY --from=builder /app/film/prisma ./prisma
+COPY --from=builder /app/film/package.json .
+COPY --from=builder /app/film/package-lock.json .
+
+
+RUN npm ci --omit=dev
+
+# RUN npm install && npm cache clean --force
 
 EXPOSE 5003
 
-CMD [ "npm","start"]
+# CMD ["npm","run","dev" ]
+CMD ["npm","start" ]

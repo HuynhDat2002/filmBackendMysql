@@ -11,6 +11,7 @@ import * as errorResponse from "@/cores/error.response";
 import * as regex from "@/middlewares/regex";
 import DOMPurify from "isomorphic-dompurify";
 import { prisma } from "@/db/prisma.init";
+import { CommentService } from "@/types";
 export const createComment = async ({
     filmId,
     user,
@@ -247,7 +248,7 @@ export const deleteComment = async ({
         }
     })
 
-    const commentChildMap = await commentChild.map(comment => comment.comment_user_id)
+    const commentChildMap = await commentChild.map((comment:CommentService) => comment.comment_user_id)
     const deleteComment = await prisma.commentUser.deleteMany({
         where: {
             id: {

@@ -1,313 +1,112 @@
 version: '3.8'
 services:
-
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.18.2
-    container_name: elasticsearch
-    restart: always
-    environment:
-      - discovery.type=single-node
-      - xpack.security.enabled=false
-      - xpack.security.transport.ssl.enabled=false
-      - node.name=elasticsearch
-      - bootstrap.memory_lock=true
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-    ports:
-      - "9200:9200"
-    volumes:
-      - esdata:/usr/share/elasticsearch/data
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 30s
-    networks:
-      - backend-network
-
-
-
-
-  logstash:
-    image: docker.elastic.co/logstash/logstash:8.18.2
-    container_name: logstash
-    restart: always
-    environment:
-      - TZ=Asia/Ho_Chi_Minh  # Đặt múi giờ của hệ thống
-    volumes:
-      - ./logstash/pipeline:/usr/share/logstash/pipeline
-      - /var/log/nginx:/var/log/nginx
-      - ./logstash/csv:/usr/share/logstash/csv
-    depends_on:
-      - elasticsearch
-    ports:
-      - "5044:5044"
-      - "9600:9600"
-    networks:
-      - backend-network
-
-
-
-  kibana:
-    image: docker.elastic.co/kibana/kibana:8.18.2
-    container_name: kibana
-    restart: always
-    environment:
-      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
-    ports:
-      - "5601:5601"
-    depends_on:
-      - elasticsearch
-    networks:
-      - backend-network
-  # mysql-film:
-  #   image: mysql:8
-  #   restart: always
-  #   environment:
-  #     MYSQL_USER: film_user
-  #     MYSQL_PASSWORD: trongdatfilm
-  #     MYSQL_ROOT_PASSWORD: rootfilm
-  #     MYSQL_DATABASE: filmdb
-  #   volumes:
-  #     - mysql-film:/var/lib/mysql
-  #   ports:
-  #     - "3308:3306"
-  #   networks:
-  #     - backend-network
-  #   deploy:
-  #     mode: replicated
-  #     replicas: 1
   
-  film:
-    # build:
-    #   context: ./film
-    #   dockerfile: Dockerfile
-    image: tdat/film:latest
+  film-dev:
+    build:
+      context: ./film
+      dockerfile: Dockerfile
+      target: dev
+    image: tdat/film:dev
+    container_name: film-dev
+
+  film-prod:
+    build:
+      context: ./film
+      dockerfile: Dockerfile
+      target: prod
+    image: tdat/film:prod
+    container_name: film-prod
     
-    restart: always
-    deploy:
-      replicas: 1
-    environment:
-      - REDIS_HOST=redis-film
-      - REDIS_PORT=6379
-      - ELASTICSEARCH_URL=http://elasticsearch:9200
-    depends_on:
-      # - mysql-film
-      - redis-film
-      - elasticsearch
-    # env_file:
-    #   - ./film/.env
-    expose:
-      - 5003
-    volumes:
-      - .:/app/
-    networks:
-      - backend-network
 
-  # mysql-admin:
-  #   image: mysql:8
-  #   restart: always
-  #   environment:
-  #     MYSQL_USER: admin_user
-  #     MYSQL_PASSWORD: trongdatadmin
-  #     MYSQL_ROOT_PASSWORD: rootadmin
-  #     MYSQL_DATABASE: admindb
-  #   volumes:
-  #     - mysql-admin:/var/lib/mysql
-  #   ports:
-  #     - "3309:3306"
-  #   networks:
-  #     - backend-network
-  #   deploy:
-  #     mode: replicated
-  #     replicas: 1
+  admin-dev:
+    build:
+      context: ./admin
+      dockerfile: Dockerfile
+      target: dev
+    image: tdat/admin:dev
+    container_name: admin-dev
+  admin-prod:
+    build:
+      context: ./admin
+      dockerfile: Dockerfile
+      target: prod
+    image: tdat/admin:prod
+    container_name: admin-prod
+   
+  user-dev:
+    build:
+      context: ./user
+      dockerfile: Dockerfile
+      target: dev
+    image: tdat/user:dev
+    container_name: user-dev
+   
 
-  admin:
-    # build:
-    #   context: ./admin
-    #   dockerfile: Dockerfile
-    restart: always
-    image: tdat/admin:latest  
-    deploy:
-      replicas: 1
-    environment:
-      - REDIS_HOST=redis-film
-      - REDIS_PORT=6379
-    depends_on:
-      # - mysql-admin
-      - rabbitmq
-      - redis-film
-      # - "redis"
-    volumes:
-      - .:/app/
-    # env_file:
-    #   - ./admin/.env
-    expose:
-      - 5002
-    networks:
-      - backend-network
+  user-prod:
+    build:
+      context: ./user
+      dockerfile: Dockerfile
+      target: prod
+    image: tdat/user:prod
+    container_name: user-prod
 
-  # mysql-user:
-  #   image: mysql:8
-  #   restart: always
-  #   environment:
-  #     MYSQL_USER: user_user
-  #     MYSQL_PASSWORD: trongdatuser
-  #     MYSQL_ROOT_PASSWORD: rootuser
-  #     MYSQL_DATABASE: userdb
-  #   volumes:
-  #     - mysql-user:/var/lib/mysql
-  #   ports:
-  #     - "3310:3306"
-  #   networks:
-  #     - backend-network
-  #   deploy:
-  #     mode: replicated
-  #     replicas: 1
-
-  user:
-    # build:
-    #   context: ./user
-    #   dockerfile: Dockerfile
-    image: tdat/user:latest
+  rbac-dev:
+    build:
+      context: ./rbac
+      dockerfile: Dockerfile
+      target: dev
+    image: tdat/rbac:dev
+    container_name: rbac-dev
+  rbac-prod:
+    build:
+      context: ./rbac
+      dockerfile: Dockerfile
+      target: prod
+    image: tdat/rbac:prod
+    container_name: rbac-prod
+ 
+  nextjs-dev:
+    container_name: nextjs-dev
+    build: 
+      context: ./filmFrontendUser
+      dockerfile: Dockerfile
+      target: dev
+    image: tdat/nextjs:dev
     
-    restart: always
-    deploy:
-      replicas: 1
-    environment:
-      - REDIS_HOST=redis-film
-      - REDIS_PORT=6379
-    depends_on:
-      # - mysql-user
-      - redis-film
-      - rabbitmq
-    volumes:
-      - .:/app
-    # env_file:
-    #   - ./user/.env
-    expose:
-      - 5000
-    networks:
-      - backend-network
 
-  # mysql-rbac:
-  #   image: mysql:8
-  #   restart: always
-  #   environment:
-  #     MYSQL_USER: rbac_user
-  #     MYSQL_PASSWORD: trongdatrbac
-  #     MYSQL_ROOT_PASSWORD: rootrbac
-  #     MYSQL_DATABASE: rbacdb
-  #   volumes:
-  #     - mysql-rbac:/var/lib/mysql
-  #   ports:
-  #     - "3311:3306"
-  #   networks:
-  #     - backend-network
-  #   deploy:
-  #     mode: replicated
-  #     replicas: 1
+  nextjs-prod:
+    container_name: nextjs-prod
+    build: 
+      context: ./filmFrontendUser
+      dockerfile: Dockerfile
+      target: prod
+    image: tdat/nextjs:prod
+    
 
-  rbac:
-    # build:
-    #   context: ./rbac
-    #   dockerfile: Dockerfile
-    restart: always
-    image: tdat/rbac:latest
-    deploy:
-      replicas: 1
-    environment:
-      - REDIS_HOST=redis-film
-      - REDIS_PORT=6379
-    depends_on:
-      # - mysql-rbac
-      - redis-film
-    volumes:
-      - .:/app
-    # env_file:
-    #   - ./rbac/.env
-    expose:
-      - 5004
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
-    networks:
-      - backend-network
+  nextjs-admin-dev:
+    container_name: nextjs-admin-dev
+    build: 
+      context: ./filmFrontendAdmin
+      dockerfile: Dockerfile
+      target: dev
+    image: tdat/nextjs-admin:dev
 
-  
-  redis-film:
-    image: redis:latest
-    container_name: redis-film
-    ports:
-      - '6379:6379'
-    command: redis-server --save 20 1 --loglevel warning
-    volumes: 
-      - redis:/data
-    networks:
-      - backend-network
+  nextjs-admin-prod:
+    container_name: nextjs-admin-prod
+    build: 
+      context: ./filmFrontendAdmin
+      dockerfile: Dockerfile
+      target: prod
+    image: tdat/nextjs-admin:prod
 
-
-  rabbitmq:
-    image: rabbitmq:3-management
-    ports:
-      - '5672:5672'
-      - "15672:15672"
-    environment:
-      RABBITMQ_DEFAULT_USER: trongdat
-      RABBITMQ_DEFAULT_PASS: abc123456
-    networks:
-      - backend-network   
-
-  nextjs:
-    # container_name: nextjs-frontend
-    # build: 
-    #   context: ./filmFrontendUser
-    #   dockerfile: Dockerfile
-    image: tdat/nextjs:latest
-    restart: always
-    expose:
-      - 3000
-    deploy:
-      replicas: 1
-    volumes:
-      - .:/app        # Mount mã nguồn vào container
-      - /app/node_modules  # Ignore node_modules trong host
-    networks:
-      - backend-network
-
-  nextjs-admin:
-    # container_name: nextjs-frontend
-    # build: 
-    #   context: ./filmFrontendAdmin
-    #   dockerfile: Dockerfile
-    image: tdat/nextjs-admin:latest
-    restart: always
-    volumes:
-      - .:/app        # Mount mã nguồn vào container
-      - /app/node_modules  # Ignore node_modules trong host
-    expose:
-      - 3001
-    deploy:
-      replicas: 1
-    networks:
-      - backend-network
 
 
   nginx-proxy:
-    image: tdat/nginx:latest # owasp/modsecurity-crs:nginx #reverse-proxy # owasp/modsecurity-crs:nginx 
     container_name: nginx-backend
-    # build:
-    #   dockerfile: Dockerfile
-    #   context: ./proxy
-    depends_on:
-      - film
-      - user
-      - admin
-      - rbac  
-      - nextjs
-      - nextjs-admin
+    build:
+      dockerfile: Dockerfile
+      context: ./proxy
+    image: tdat/nginx:latest # owasp/modsecurity-crs:nginx #reverse-proxy # owasp/modsecurity-crs:nginx 
     ports:
       - "8080:8080"
     volumes:
@@ -321,8 +120,6 @@ services:
       - ./proxy/cert/selfsigned.crt:/etc/ssl/certs/selfsigned.crt
       - ./proxy/cert/selfsigned.key:/etc/ssl/certs/selfsigned.key
       # - ./certbot/www/:/var/www/certbot/:ro
-    networks:
-      - backend-network
   # waf:
   #   image: owasp/modsecurity-crs:nginx
   #   ports:

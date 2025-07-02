@@ -2,7 +2,7 @@ import { ConfigDB,ConfigEnvironment } from "@/types"
 import 'dotenv/config'
 const dev:ConfigEnvironment={
     app:{
-        port:parseInt(process.env.DEV_APP_PORT||"5000"),
+        port:parseInt(process.env.DEV_APP_PORT||"5004"),
     },
     db:{
         host:process.env.DB_HOST as string,

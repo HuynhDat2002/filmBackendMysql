@@ -114,7 +114,7 @@ export const checkDevice = async ({ email, password, userAgent }: CheckDevice) =
 
     // check device
 
-    const userAgents = userFound.userAgent.map(ua => ua.agentId);
+    const userAgents = userFound.userAgent.map((ua:{userId:string,agentId:string}) => ua.agentId);
     const getUserAgentId = await prisma.userAgent.findFirst({ where: { agent: userAgent } })
     if (!userAgents.includes(getUserAgentId?.id as string)) {
         await otpService.sendOTPVerifyEmail({ email })

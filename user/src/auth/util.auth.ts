@@ -59,7 +59,7 @@ export const authentication = asyncHandler(async (req: CustomRequest, res: Respo
     if(!userFound) throw new errorResponse.BadRequestError('User Id không tồn tại')
      
     // check new device
-    const userAgents = userFound.userAgent.map(ua=>ua.agentId)
+    const userAgents = userFound.userAgent.map((ua:{userId:string,agentId:string})=>ua.agentId)
     const getAgentId = await prisma.userAgent.findFirst({where:{agent:req.headers["user-agent"] as string}})
     if(!userAgents.includes(getAgentId?.id as string)) throw new errorResponse.BadRequestError(`Ban dang dang nhap tren thiet bi moi`)
     

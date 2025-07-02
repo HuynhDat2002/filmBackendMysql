@@ -35,7 +35,7 @@ const userApp = async (app:express.Express)=>{
     connectDB()
     //checking overload
     checkOverload()
-
+      console.log('hello from app')
     //create channel
     const channel = await createChannel() as amqplib.Channel
 

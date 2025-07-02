@@ -249,10 +249,10 @@ export const createFilm = async (urlEmbed: { urlEmbed: string, type: string | nu
     if (!newfilm) throw new errorResponse.BadRequestError(`Cannot create film`)
     const convertfilm = {
         ...newfilm,
-        actor: newfilm.actor.map((a) => a.actor),
-        director: newfilm.director.map((d) => d.director),
-        category: newfilm.category.map((c) => c.category),
-        country: newfilm.country.map((c) => c.country),
+        actor: newfilm.actor.map((a:{actor:{id: string, name: string}}) => a.actor),
+        director: newfilm.director.map((d:{director:{id: string, name: string}}) => d.director),
+        category: newfilm.category.map((c:{category:{id: string, name: string}}) => c.category),
+        country: newfilm.country.map((c:{country:{id: string, name: string}}) => c.country),
     }
     if (newfilm) {
         AppEventListener.instance.notify({

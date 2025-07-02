@@ -1,24 +1,53 @@
-FROM node:20-alpine3.16 AS builder
+#for base
+FROM node:20-alpine3.16 AS base
 
 WORKDIR /app/rbac
 RUN apk add --no-cache libssl1.1
 
+
+
+#for development
+FROM base AS dev
+
 COPY package.json ./
+# Cài openssl1.1 cho Prisma
 RUN npm install
 
 COPY . .
+RUN npx prisma generate
+
+EXPOSE 5004
+
+CMD ["npm","run","dev" ]
 
 
 
-FROM node:20-alpine3.16
+FROM base AS builder
 
-WORKDIR /app/rbac
-RUN apk add --no-cache libssl1.1
+COPY package.json ./
 RUN npm install
-COPY --from=builder /app/rbac ./
+COPY prisma ./prisma
+COPY . .
+
+RUN npx prisma generate
+RUN npm run build
+
+
+
+
+FROM base AS prod
+
+COPY --from=builder /app/rbac/dist ./dist
+COPY --from=builder /app/rbac/prisma ./prisma
+COPY --from=builder /app/rbac/package.json .
+COPY --from=builder /app/rbac/package-lock.json .
+
+
+RUN npm ci --omit=dev
 
 # RUN npm install && npm cache clean --force
 
 EXPOSE 5004
 
-CMD ["npm","start"]
+# CMD ["npm","run","dev" ]
+CMD ["npm","start" ]
