@@ -49,7 +49,7 @@ RUN npm ci --omit=dev
 # RUN npm install && npm cache clean --force
 
 EXPOSE 5002
-#hell
+
 # CMD ["npm","run","dev" ]
 CMD ["npm","start" ]
 
