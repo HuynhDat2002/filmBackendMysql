@@ -144,7 +144,7 @@ export default function MovieDetail() {
                     <div className="text-gray-600 text-white my-2">
                         {filmState.film.metadata?.content ? filmState.film.metadata.content : ""}
                     </div>
-                    <div className="flex flex-row">
+                    <div className="flex flex-row mb-5">
                         <div className="flex flex-col w-1/6">
 
 
