@@ -4,13 +4,13 @@ import React, { useState, useEffect } from 'react'; // Thêm dòng này
 import { useRouter } from 'next/navigation'
 import { FilmIcon, MonitorIcon } from '@iconicicons/react'
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { deleteMovie } from '@/lib/features/movie.slice';
+import { deleteFilm } from '@/lib/features/film.slice';
 import AlertInfo from './Alert';
 import { FaHeart, FaReply, FaEdit, FaTrash, FaSave, FaTimes } from 'react-icons/fa'
 // import {}
 export default function FilmCard(data: any) {
   const dispatch = useAppDispatch()
-  const movieState = useAppSelector(state => state.movieReducer)
+  const movieState = useAppSelector(state => state.filmReducer)
   const [isDelete, setIsDelete] = useState(false)
   const [infoAlert, setInfoAlert] = useState("")
   const [colorAlert, setColorAlert] = useState("")
@@ -45,7 +45,7 @@ export default function FilmCard(data: any) {
   const handleDeleteFilm = (e: any) => {
     e.stopPropagation()
     console.log('delete')
-    dispatch(deleteMovie({ id: data.data.id }))
+    dispatch(deleteFilm({ id: data.data.id }))
     setIsDelete(true)
 
   }

@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, Input, Checkbox, Link } from "@nextui-org/react";
 import { useDisclosure } from '@nextui-org/use-disclosure'
-import { verify } from "../lib/features/user.slice";
+import { verifySign } from "../lib/features/user.slice";
 import { VerifySignProps } from '../types/index'
 import { useFormik } from 'formik'
 import * as yup from 'yup'
@@ -32,15 +32,16 @@ export default function VerifySign({ isOpen, onClose, openLogin,openSuccess }: V
         validationSchema: schema,
         onSubmit: async (value) => {
             console.log('value', value)
-            await dispatch(verify(value))
+            await dispatch(verifySign(value))
         },
     });
 
     useEffect(() => {
-        if (user.isVerify && user.isSuccess) {
+        if (user.isVerifySign && user.isSuccess) {
             dispatch(signUp())
         }
-        if (user.isVerify && user.isError) {
+       
+        if (user.isVerifySign && user.isError) {
             if (Object.keys(user.message).length === 0) { setError(true); setMessageError("Server Error") }
             if (Object.keys(user.message).length > 0) { setError(true); setMessageError(`${user.message.message}`) }
         }
@@ -67,7 +68,6 @@ export default function VerifySign({ isOpen, onClose, openLogin,openSuccess }: V
                 onClose={onClose}
                 placement="center"
                 isDismissable={false}
-
             >
                 <ModalContent>
                     {(onClose) => (

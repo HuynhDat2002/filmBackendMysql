@@ -66,19 +66,25 @@ export const createFilm = async (urlEmbed: { urlEmbed: string, type: string | nu
 
     // update images based on hostname
     console.log(hostname.includes("phimapi"))
-    let thumb_url
-    let poster_url
-    if (hostname.includes("phimapi")) {
-        [thumb_url, poster_url] = await Promise.all([
-            uploadImages(film.movie.poster_url, `${film.movie.slug}-thumb`),
-            uploadImages(film.movie.thumb_url, `${film.movie.slug}-poster`)
-        ]);
-    } else {
-        [thumb_url, poster_url] = await Promise.all([
-            uploadImages(film.movie.thumb_url, `${film.movie.slug}-thumb`),
-            uploadImages(film.movie.poster_url, `${film.movie.slug}-poster`)
-        ]);
+    let thumb_url=""
+    let poster_url=""
+    // if (hostname.includes("phimapi")) {
+    //     [thumb_url, poster_url] = await Promise.all([
+    //         uploadImages(film.movie.poster_url, `${film.movie.slug}-thumb`),
+    //         uploadImages(film.movie.thumb_url, `${film.movie.slug}-poster`)
+    //     ]);
+    // } else {
+    //     [thumb_url, poster_url] = await Promise.all([
+    //         uploadImages(film.movie.thumb_url, `${film.movie.slug}-thumb`),
+    //         uploadImages(film.movie.poster_url, `${film.movie.slug}-poster`)
+    //     ]);
+    // }   
+    if (hostname.includes("phimapi")){
+        thumb_url = film.movie.poster_url
+        poster_url = film.movie.thumb_url
     }
+    console.log('thumburl',thumb_url)
+    console.log('poster',poster_url)
 
     //clean content of the film
     const $ = cheerio.load(film.movie.content);
@@ -96,8 +102,8 @@ export const createFilm = async (urlEmbed: { urlEmbed: string, type: string | nu
             slug: film.movie.slug,
             origin_name: film.movie.origin_name,
             content: content,
-            poster_url: poster_url.url,
-            thumb_url: thumb_url.url,
+            poster_url: poster_url,
+            thumb_url: thumb_url,
             trailer: film.movie.trailer_url,
             time: film.movie.time,
             lang: film.movie.lang,

@@ -21,7 +21,6 @@ export default function Verify({ isOpen, onClose, openLogin,openReset }: VerifyP
     const [isError, setError] = useState(false)
     const [messageError, setMessageError] = useState("")
     let schema = yup.object().shape({
-
       otp:yup.string().required('Hãy nhập otp')
     });
 

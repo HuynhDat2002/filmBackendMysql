@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { FilmIcon, MonitorIcon } from '@iconicicons/react'
 
 export default function FilmCard(data: any) {
-  console.log('cardddddd', data.data)
+  console.log('cardddddd', data)
   const  router = useRouter()
   const handleClick = (e:any) => {
     e.preventDefault()

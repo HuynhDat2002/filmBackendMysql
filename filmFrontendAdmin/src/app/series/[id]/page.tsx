@@ -6,45 +6,33 @@ import Image from 'next/image'
 import { useAppDispatch, useAppSelector } from "../../../lib/hooks"
 import { useParams } from 'next/navigation'
 import ReactPlayer from 'react-player'
+import { ratingFilm, getRating } from "../../../lib/features/film.slice"
 import { faPlay } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { Rating as ReactRating } from '@smastrom/react-rating'
-import { ratingTV, getRatings, getA } from "../../../lib/features/tv.slice"
+import { getA } from '../../../lib/features/film.slice'
 import CommentList from "../../../components/CommentList"
 import { getCommentByFilm } from "../../../lib/features/comment.slice"
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, Input, Checkbox, Link, Spinner } from "@nextui-org/react";
 import { getToken } from "../../../utils/axiosConfig"
 import ErrorModal from "../../../components/ErrorModal"
 import VideoPlayer from '../../../components/Player'
-export default function MovieDetail() {
+export default function SeriesDetail() {
     const dispatch = useAppDispatch()
-    const [src, setSrc] = useState("")
-    const [poster, setPoster] = useState("")
     const [playing, setPlaying] = useState(false);
     const [rating, setRating] = useState(0)
-    const [ratingAverage, setRatingAverage] = useState(0)
-    const [type, setType] = useState("")
-    const [country, setCountry] = useState("Đang cập nhật")
-    const [category, setCategory] = useState("Đang cập nhật")
-    const [director, setDirector] = useState("Đang cập nhật")
-    const [actor, setActor] = useState("Đang cập nhật")
-    const tv: any = useAppSelector((state) => state.tvReducer)
-    const userState = useAppSelector((state) => state.userReducer)
     const user = getToken()
     const params = useParams<{ id: string }>()
     const comment: any = useAppSelector((state) => state.commentReducer)
     const [comments, setComments] = useState([])
     const [episodeCurrent, setEpisodeCurrent] = useState("")
-    const [episodeTotal, setEpisodeTotal] = useState([])
-    const [quality, setQuality] = useState("")
     const [messageError, setMessageError] = useState("")
     const [isError, setIsError] = useState(false)
-    const [view, setView] = useState(0)
-    
+    const film: any = useAppSelector((state) => state.filmReducer)
+
     useEffect(() => {
-        if (tv.tv.metadata.id)
-            dispatch(getCommentByFilm({ filmId: params?.id as string }))
-    }, [tv.isLoading, params])
+        if (film.isSuccess && film.isGetA) dispatch(getCommentByFilm({ filmId: params?.id as string }))
+    }, [film.isLoading, params])
 
     useEffect(() => {
         if (comment.isSuccess && comment.isGetCommentByFilm)
@@ -58,7 +46,7 @@ export default function MovieDetail() {
     useEffect(() => {
         if (params?.id !== undefined) {
             dispatch(getA({ id: params?.id as string }))
-            dispatch(getRatings({ filmId: params?.id as string }))
+            dispatch(getRating({ filmId: params?.id as string }))
         }
     }, [params])
 
@@ -67,48 +55,23 @@ export default function MovieDetail() {
 
 
     useEffect(() => {
-        if (tv.isSuccess && tv.isGetA) {
-            setSrc(tv.tv.metadata.video);
-            setPoster(tv.tv.metadata.poster_url)
 
-            const countryString = tv.tv.metadata.country.map((item: any) => item.name)
-            if (countryString.join(", ") !== "") setCountry(countryString.join(", "))
-            const directorString = tv.tv.metadata.director.map((item: any) => item)
-            if (directorString.join(", ") !== "") setDirector(directorString.join(", "))
-            const actorString = tv.tv.metadata.actor.map((item: any) => item)
-            if (actorString.join(", ") !== "") setActor(actorString.join(", "))
-            const categoryString = tv.tv.metadata.category.map((item: any) => item.name)
-            if (categoryString.join(", ") !== "") setCategory(categoryString.join(", "))
-
-            setType(tv.tv.metadata.type[0].toUpperCase() + tv.tv.metadata.type.slice(1))
-            setEpisodeTotal(tv.tv.metadata.episodes)
-            setEpisodeCurrent(tv.tv.metadata?.episodes[0].video)
-            setEpisodeTotal(prev=>{
-                const newData = [...prev]
-                return newData.sort((a:any,b:any)=> a.slug.localeCompare(b.slug))
-            })
-            setQuality(tv.tv.metadata.quality)
-            setView(tv.tv.metadata.view)
-            setPoster(tv.tv.metadata.poster_url)
-
-        }
-        if (tv.isSuccess && tv.isGetRatings) { setRatingAverage(tv.ratings.metadata.ratingAverage) }
-        if (tv.isError && tv.isRating) {
+        if (film.isError && film.isRating) {
             setIsError(true)
-            setMessageError(tv.message.message)
+            setMessageError(film.message.message)
         }
-    }, [tv])
+    }, [film.isLoading])
 
 
     useEffect(() => {
-        if (tv.ratings.metadata) {
-            const userFound = tv.ratings.metadata.ratings.filter((r: any) => r.userId.toString() === user.user.id.toString())
-            if (userFound.length > 0) {
-                console.log('userFoundddddd', userFound[0].rating)
-                setRating(userFound[0].rating as number)
+        if (film.rating.metadata) {
+            const userFound = film.rating.metadata.ratings.filter((r: any) => r.userRating.userId.toString() === user.user.id.toString())
+            if (userFound.length>0) {
+                console.log('userFoundddddd', userFound)
+                setRating(userFound[0].ratingNumber as number)
             }
         }
-    }, [tv.ratings])
+    }, [film.rating])
 
     const handlePlay = (e: any) => {
         e.preventDefault()
@@ -116,21 +79,21 @@ export default function MovieDetail() {
     };
 
     const handleRating = (newRating: number) => {
-        dispatch(ratingTV({ filmId: params?.id as string, rating: newRating }))
+        dispatch(ratingFilm({ filmId: params?.id as string, rating: newRating }))
         setRating(newRating)
     }
-
+console.log('quality',film.film.metadata.quality)
     return (
         <div className="w-[95%]">
             <div className=" flex flex-col  mx-auto mt-10 shadow-lg">
 
-            {
+                {
                     !playing &&
 
                     <div className="relative">
                         <img
-                            src={tv.tv.metadata?.poster_url}
-                            alt="Movie poster"
+                            src={film.film.metadata?.poster_url || "/public/black.jpg"}
+                            alt="Series poster"
                             className=""
                             width={`100%`}
                         />
@@ -143,16 +106,13 @@ export default function MovieDetail() {
                     </div>
                 }
                 {playing &&
-
-                    <VideoPlayer src={episodeCurrent} />
-
-
+                    <VideoPlayer src={episodeCurrent||""} />
                 }
             </div>
 
-            <div className="flex flex-row flex-wrap gap-3 my-3 mt-5">
+            <div className="flex flex-row flex-wrap gap-3 my-3 mt-5 text-white  ">
                 {
-                    episodeTotal && episodeTotal.map((episode: any) => (
+                    film.film.metadata.episodes.length>0 &&  film.film.metadata.episodes.map((episode: any) => (
                         <>
 
                             <button
@@ -167,31 +127,31 @@ export default function MovieDetail() {
 
             </div>
 
-            <div id="infotv" className="mt-5  flex flex-row border-1 shadow-lg  rounded-lg shadow-lg">
-                <div className="flex flex-col mx-5">
+            <div id="infoseries" className="mt-5  flex flex-row border-1 shadow-lg  gap-1 rounded-lg shadow-lg">
+                <div className="flex flex-col text-justify mx-5 basis-4/5">
 
-                    <p className="flex justify-start text-start py-5 font-bold dark:text-white text-xl">{tv.tv.metadata.name}</p>
-                    <div className="flex flex-row gap-2 mb-2">
+                    <p className="flex justify-start text-start py-5 font-bold text-white text-xl">{film.film.metadata.name||""}</p>
+                    <div className="flex flex-row gap-2 mb-2 text-white">
                         <div className="text-ctBlue-logo">
-                            <p className="ring-1 ring-ctBlue-logo p-1">{quality}</p>
+                            <p className="ring-1 ring-ctBlue-logo text p-1">{film.film.metadata?.quality ? film.film.metadata.quality : ""}</p>
                         </div>
                         <div className="flex items-center text-red-600">
-                            {tv.tv.metadata.time}
+                            {film.film.metadata.time||""}
                         </div>
                         <div className="flex flex-row gap-2 justify-center items-center content-center">
                             <ReactRating style={{ maxWidth: 100 }} value={rating} onChange={handleRating} />
                             <div>
-                                {tv.ratings.metadata?.ratingAverage}/5
+                                {film.rating.metadata?.ratingAverage||0}/5
                             </div>
                         </div>
-                        <div className="flex items-center text-gray-600">
-                            ({view} lượt xem)
+                        <div className="flex items-center text-gray-400">
+                            ({film.film.metadata.view||0} lượt xem)
                         </div>
                     </div>
-                    <div className="text-gray-600">
-                        {tv.tv.metadata.content}
+                    <div className="text-gray-600 text-white my-2">
+                        {film.film.metadata.content||""}
                     </div>
-                    <div className="flex flex-row">
+                    <div className="flex flex-row text-white">
                         <div className="flex flex-col w-1/6">
                             <p className="pr-5">Loại:</p>
                             <p className="pr-5">Quốc gia:</p>
@@ -202,47 +162,47 @@ export default function MovieDetail() {
                         </div>
                         <div className="flex flex-col w-5/6">
                             <div>
-                                TV Show
+                                Series
                             </div>
                             <div>
                                 {
 
-                                    tv.tv.metadata?.country.map((item: any) => item.country.name).join(", ") !== "" && tv.tv.metadata?.country.map((item: any) => item.country.name).join(", ") !== ", " ?
-                                        tv.tv.metadata?.country.map((item: any) => item.country.name).join(", ") : "Đang cập nhật"
+                                    film.film.metadata?.country.map((item: any) => item.name).join(", ") !== "" && film.film.metadata?.country.map((item: any) => item.name).join(", ") !== ", " ?
+                                        film.film.metadata?.country.map((item: any) => item.name).join(", ") : "Đang cập nhật"
                                 }
                             </div>
                             <div>
                                 {
 
-                                    tv.tv.metadata?.category.map((item: any) => item.category.name).join(", ") !== "" && tv.tv.metadata?.category.map((item: any) => item.category.name).join(", ") !== ", " ?
-                                        tv.tv.metadata?.category.map((item: any) => item.category.name).join(", ") : "Đang cập nhật"
+                                    film.film.metadata?.category.map((item: any) => item.name).join(", ") !== "" && film.film.metadata?.category.map((item: any) => item.name).join(", ") !== ", " ?
+                                        film.film.metadata?.category.map((item: any) => item.name).join(", ") : "Đang cập nhật"
                                 }
                             </div>
                             <div>
-                                {tv.tv.metadata?.year ? tv.tv.metadata.year : 2024}
+                                {film.film.metadata?.year ? film.film.metadata.year : 2024}
                             </div>
                             <div>
                                 {
 
-                                    tv.tv.metadata?.director.map((item: any) => item.director.name).join(", ") !== "" && tv.tv.metadata?.director.map((item: any) => item.director.name).join(", ") !== ", " ?
-                                        tv.tv.metadata?.director.map((item: any) => item.director.name).join(", ") : "Đang cập nhật"
+                                    film.film.metadata?.director.map((item: any) => item.name).join(", ") !== "" && film.film.metadata?.director.map((item: any) => item.name).join(", ") !== ", " ?
+                                        film.film.metadata?.director.map((item: any) => item.name).join(", ") : "Đang cập nhật"
                                 }
                             </div>
                             <div>
                                 {
 
-                                    tv.tv.metadata?.actor.map((item: any) => item.actor.name).join(", ") !== "" && tv.tv.metadata?.actor.map((item: any) => item.actor.name).join(", ") !== ", " ?
-                                        tv.tv.metadata?.actor.map((item: any) => item.actor.name).join(", ") : "Đang cập nhật"
+                                    film.film.metadata?.actor.map((item: any) => item.name).join(", ") !== "" && film.film.metadata?.actor.map((item: any) => item.name).join(", ") !== ", " ?
+                                        film.film.metadata?.actor.map((item: any) => item.name).join(", ") : "Đang cập nhật"
                                 }
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div className="flex justify-end w-[calc(12/9*100vh)] object-cover">
+                <div className="flex justify-end basis-1/5 object-cover">
                     <Image
-                        src={tv.tv.metadata.thumb_url}
-                        alt={tv.tv.metadata.name}
+                        src={film.film.metadata.thumb_url || "/hourglass.png"}
+                        alt={film.film.metadata.name}
                         width={231}
                         height={231}
                         className="object-cover rounded-md h-full"

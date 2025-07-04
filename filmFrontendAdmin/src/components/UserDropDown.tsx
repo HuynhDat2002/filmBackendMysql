@@ -1,6 +1,7 @@
+'use client'
 import React,{useEffect} from "react";
-import { useAppDispatch,useAppSelector } from "@/lib/hooks";
-import { logout } from "@/lib/features/user.slice";
+import { useAppDispatch,useAppSelector } from "../lib/hooks";
+import { logout } from "../lib/features/user.slice";
 import {useRouter} from 'next/navigation'
 import {Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, Avatar, User} from "@nextui-org/react";
 export default function UserDropDown({isChangePassword,setIsChangePassword}:{isChangePassword:boolean,setIsChangePassword:any}) {

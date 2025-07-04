@@ -1,6 +1,5 @@
 'use client'
 import React, { useEffect, useState } from "react";
-import SignUp from "./SignUp";
 import Login from "./Login";
 import ForgotPassword from './ForgotPassword'
 import ResetPassword from './ResetPassword'
@@ -128,15 +127,7 @@ export default function ModalManager({ isOpen, setIsOpen }: { isOpen: boolean, s
                     openVerifyDevice={openVerifyDevice}
                 />
             }
-            {isOpen &&
-
-                <SignUp
-                    isOpen={isSignUpOpen}
-                    onClose={close}
-                    openLogin={openLogin}
-                    openVerifySign={openVerifySign}
-                />
-            }
+           
             {/* {isOpen &&
 
                 <ForgotPassword
@@ -182,14 +173,7 @@ export default function ModalManager({ isOpen, setIsOpen }: { isOpen: boolean, s
                     openSuccess={openSuccess}
                 />
             }
-            {isOpen &&
-
-                <Success
-                    isOpen={isSuccess}
-                    onClose={close}
-                    // openLogin={openLogin}
-                />
-            }
+            
             {isOpen &&
 
                 <VerifyNewDevice

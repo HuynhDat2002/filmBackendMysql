@@ -25,12 +25,11 @@ CMD ["npm","run","dev" ]
 FROM base AS builder
 
 COPY package.json ./
-RUN npm inst
+RUN npm install
 COPY  .env ./
 COPY . .
 
-RUN npm run prisma:generate
-RUN npm run build
+RUN npm run prisma:generate && npm run build
 
 
 

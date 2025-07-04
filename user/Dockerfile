@@ -27,8 +27,7 @@ COPY  .env ./
 
 RUN npm install
 COPY . .
-RUN npx prisma generate
-RUN npm run build
+RUN npx prisma generate && npm run build
 
 
 FROM base as prod

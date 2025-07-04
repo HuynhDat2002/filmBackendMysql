@@ -12,9 +12,8 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faRightToBracket, faCheckCircle } from '@fortawesome/free-solid-svg-icons'
 import { resetState } from "../lib/features/user.slice";
 import Login from "./Login";
-import { Spinner } from "@nextui-org/react";
 
-export default function Loading({ isOpen, onClose }: {isOpen:boolean,onClose:any}) {
+export default function SuccessEdit({ isOpen, onClose }: {isOpen:boolean,onClose:()=>void}) {
     // const [isOpenLogin, setIsOpenLogin] = useState(false)
     // const user: any = useAppSelector((state) => state.userReducer)
     // const dispatch = useAppDispatch()
@@ -66,27 +65,39 @@ export default function Loading({ isOpen, onClose }: {isOpen:boolean,onClose:any
                 <ModalContent>
                     {(onClose) => (
                         <>
+                           
+
+                                <ModalHeader className="flex flex-col gap-1">Success</ModalHeader>
+                                <ModalBody className="flex flex-col justify-center items-center">
+                                    <p className="text-gray-700 font-bold text-xl">Thành công</p>
+                                    <div>
+
+                                    <FontAwesomeIcon icon={faCheckCircle} className="pr-2 fa-4x my-4 text-ctBlue-logo_hover" />
+                                    </div>
+                                  
 
 
-                            <ModalHeader className="flex flex-col gap-1">Loading</ModalHeader>
-                            <ModalBody className="flex flex-col justify-center items-center text-center">
-                              
 
-                                <div className="flex gap-4 mb-10">
-                                   
-                                    <Spinner color="primary" />
-                                    
-                                </div>
+                                </ModalBody>
+                                <ModalFooter className="flex flex-row justify-center">
+                                    {/* <Button className="text-gray-500 hover:text-ctBlue-logo flex basis-1/2 px-1" type="button" onClick={openLogin}>
+
+                                        <FontAwesomeIcon icon={faRightToBracket} className="pr-2" />
+                                        <span className="text-center">Login Now</span>
+
+                                    </Button> */}
+                                    <Button color="danger" variant="flat" onPress={onClose} type="button" className="basis1/4">
+                                        Close
+                                    </Button>
 
 
-                            </ModalBody>
-
+                                </ModalFooter>
 
                         </>
                     )}
                 </ModalContent>
             </Modal>
-
+           
         </>
     );
 }

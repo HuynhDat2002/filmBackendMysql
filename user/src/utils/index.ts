@@ -80,7 +80,7 @@ const updateNestedObjectParser = (obj:any)=>{
   
   export const clientRedis = async ()=>{
     console.log('ms',config.MSG_QUEUE_URL)
-    for (let i =0;i<6;i++){
+    for (let i =0;i<10;i++){
         try{
             const client = createClient({ url: "redis://redis-film:6379" })
             console.log('Connect to redis successfully')

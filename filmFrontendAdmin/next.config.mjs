@@ -1,17 +1,18 @@
 /** @type {import('next').NextConfig} */
-
-import fs from 'fs'
-import path, {dirname} from 'path'
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
 const nextConfig = {
-    basePath: '/adminpage',
-    images: {
-    domains: [], // Nếu dùng hình ảnh từ domain ngoài, liệt kê domain ở đây
-    unoptimized: true, // Tắt tối ưu hóa nếu không cần thiết
+  // webpack(config, { isServer }) {
+  //   if (!isServer) {
+  //     // Vô hiệu hóa module Node.js như fs cho frontend
+  //     config.resolve.fallback = {
+  //       fs: false,
+  //       path: false,
+  //     };
+  //   }
+  //   return config;
+  // },
+  reactStrictMode: false,
+  images: {
+    domains: ['phimimg.com'], // Thêm domain này
   },
  
 };

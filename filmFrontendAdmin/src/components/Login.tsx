@@ -10,7 +10,6 @@ import { useAppDispatch, useAppSelector } from "../lib/hooks"
 import { logIn,checkDevice} from "../lib/features/user.slice";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faRightToBracket, faEnvelope, faLock, faTimesCircle } from '@fortawesome/free-solid-svg-icons'
-import SignUp from './SignUp'
 import { useRouter } from "next/navigation";
 // import VerifyNewDevice from "./VerifyNewDevice";
 import Spin from "./Spinner";
@@ -40,7 +39,7 @@ export default function Login({ isOpen, onClose, openSignUp, openForgot,openVeri
         },
         validationSchema: schema,
         onSubmit: async (value) => {
-            await  dispatch(checkDevice({email:formik.values.email,password:formik.values.password}))
+            await  dispatch(checkDevice({email:value.email,password:value.password}))
         },
     });
 

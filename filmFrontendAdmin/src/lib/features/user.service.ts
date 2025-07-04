@@ -1,7 +1,8 @@
 
 import axios from 'axios';
-import { LoginValueProps, SignUpValueProps } from '@/types'
-import { updateAxiosUserInstanceFilm, updateAxiosUserInstance } from '@/utils/axiosConfig';
+import { LoginValueProps, SignUpValueProps } from '../../types'
+import { updateAxiosUserInstanceFilm, updateAxiosUserInstance } from '../../utils/axiosConfig';
+import { NextRequest, NextResponse, userAgent } from 'next/server'
 interface Token {
     user: { id: string };
     tokens: string;
@@ -12,7 +13,7 @@ export const getToken = (): Token => {
         return JSON.parse(localStorage.getItem("user") as string) as Token;
     }
     return {
-        user: {id: ""},
+        user: { id: "" },
         tokens: ""
     };
 };
@@ -32,54 +33,8 @@ export const getToken = (): Token => {
 // };
 
 
-let axiosUser = updateAxiosUserInstance()
-
-export const getUserList = async () => {
-    try {
-       updateAxiosUserInstance();  // Update the axios instance with new token
-       await updateAxiosUserInstanceFilm()
-        const response = await axiosUser.get(`/getUserList`);
-        // await localStorage.setItem('user', JSON.stringify(response.data.metadata));
-        return response.data;
-    }
-    catch (error: any) {
-        console.log(`error getuser`, error)
-        throw error.response.data
-    }
 
 
-}
-
-export const deleteUser = async (data:{userId:string}) => {
-    try {
-       updateAxiosUserInstance();  // Update the axios instance with new token
-       await updateAxiosUserInstanceFilm()
-        const response = await axiosUser.delete(`/deleteUser/${data.userId}`);
-        // await localStorage.setItem('user', JSON.stringify(response.data.metadata));
-        return response.data;
-    }
-    catch (error: any) {
-        console.log(`error delete user`, error.response.data)
-        throw error.response.data
-    }
-
-}
-
-export const checkDevice = async (data: {email:string,password:string}) => {
-    try {
-        console.log('data check',data)
-        await localStorage.setItem('email', data.email);
-        const response = await axiosUser.post(`/checkDevice`, {email:data.email,password:data.password});
-        // await localStorage.setItem('user', JSON.stringify(response.data.metadata));
-        await updateAxiosUserInstance();  // Update the axios instance with new token
-        await updateAxiosUserInstanceFilm()
-        return response.data;
-    }
-    catch (error: any) {
-        console.log(`error check`, error)
-        throw error.response.data
-    }
-}
 
 const getEmail = (): string => {
     if (localStorage.getItem('email')) return localStorage.getItem('email') as string
@@ -89,24 +44,50 @@ const getEmail = (): string => {
 
 export const checkLogin = async () => {
     try {
-        await updateAxiosUserInstance()
-        const response = await axiosUser.post(`/checkLogin`);
-        await updateAxiosUserInstance()
+let axiosUser =await updateAxiosUserInstance()
 
+        const response = await axiosUser.post(`/checkLogin`);
+        return response.data;
+    }
+    catch (error: any) {
+        console.log(`error check login`, error)
+        throw error.response.data
+    }
+
+}
+
+export function middleware(request: NextRequest) {
+    const url = request.nextUrl
+    const { device } = userAgent(request)
+    const viewport = device.type === 'mobile' ? 'mobile' : 'desktop'
+    url.searchParams.set('viewport', viewport)
+    return NextResponse.rewrite(url)
+  }
+
+export const logIn = async (data: LoginValueProps) => {
+    try {
+        console.log('data login',data)
+let axiosUser =await updateAxiosUserInstance()
+        const response = await axiosUser.post(`/signIn`, {email:data.email,password:data.password,tokenCaptcha:data.tokenCaptcha});
+        await localStorage.setItem('user', JSON.stringify(response.data.metadata));
+        await updateAxiosUserInstance();  // Update the axios instance with new token
+        await updateAxiosUserInstanceFilm()
         return response.data;
     }
     catch (error: any) {
         console.log(`error login`, error.response.data)
         throw error.response.data
     }
-
 }
 
-export const logIn = async (data: LoginValueProps) => {
+export const checkDevice = async (data: {email:string,password:string}) => {
     try {
+        console.log('data check',data)
+let axiosUser =await updateAxiosUserInstance()
 
-        const response = await axiosUser.post(`/signIn`, data);
-        await localStorage.setItem('user', JSON.stringify(response.data.metadata));
+        await localStorage.setItem('email', data.email);
+        const response = await axiosUser.post(`/checkDevice`, {email:data.email,password:data.password});
+        // await localStorage.setItem('user', JSON.stringify(response.data.metadata));
         await updateAxiosUserInstance();  // Update the axios instance with new token
         await updateAxiosUserInstanceFilm()
         return response.data;
@@ -118,8 +99,11 @@ export const logIn = async (data: LoginValueProps) => {
 
 }
 
+
 export const signUp = async () => {
     try {
+let axiosUser =await updateAxiosUserInstance()
+
         const response = await axiosUser.post(`/signUp`);
         console.log('dataaa', response.data)
         await localStorage.setItem('user', JSON.stringify(response.data.metadata));
@@ -133,15 +117,17 @@ export const signUp = async () => {
 }
 export const logout = async () => {
     try {
+        let axiosUser =await updateAxiosUserInstance()
 
         const response = await axiosUser.post(`/logout`);
         await localStorage.removeItem("user");
+        await localStorage.removeItem('userinfo')
         await updateAxiosUserInstance();  // Update the axios instance after removing token
         await updateAxiosUserInstanceFilm()
         return response.data;
     }
     catch (error: any) {
-        console.log(`error login`, error.response.data)
+        console.log(`error logout`, error.response.data)
         throw error.response.data
     }
 
@@ -149,6 +135,7 @@ export const logout = async () => {
 
 export const forgotPassword = async (data: { email: string }) => {
     try {
+        let axiosUser =await updateAxiosUserInstance()
 
         const response = await axiosUser.post(`/forgotPassword`, data);
        await localStorage.setItem('email', data.email)
@@ -163,7 +150,9 @@ export const forgotPassword = async (data: { email: string }) => {
 
 export const verify = async (data: { otp: string }) => {
     try {
-        const email = getEmail()
+let axiosUser =await updateAxiosUserInstance()
+
+        const email = await getEmail()
         const response = await axiosUser.post(`/verifyOTP`, {
             email: email,
             otp: data.otp
@@ -179,6 +168,8 @@ export const verify = async (data: { otp: string }) => {
 
 export const resetPassword = async (data: { password: string, confirmPassword: string }) => {
     try {
+let axiosUser =await updateAxiosUserInstance()
+
         const email = getEmail()
         const response = await axiosUser.post(`/resetPassword`, {
             email: email,
@@ -198,11 +189,9 @@ export const resetPassword = async (data: { password: string, confirmPassword: s
 
 export const sendOTP = async (data: { name: string, email: string, password: string }) => {
     try {
-        
+let axiosUser =await updateAxiosUserInstance()
+
         const response = await axiosUser.post(`/sendOTP`, data);
-        if (localStorage.getItem('email')) {
-            await localStorage.removeItem('email')
-        }
         localStorage.setItem('email', data.email)
 
         return response.data;
@@ -216,7 +205,8 @@ export const sendOTP = async (data: { name: string, email: string, password: str
 
 export const changePassword = async (data: { password: string, newPassword: string }) => {
     try {
-        await updateAxiosUserInstance()
+let axiosUser =await updateAxiosUserInstance()
+
         const response = await axiosUser.post(`/changePassword`, data);
        await updateAxiosUserInstanceFilm()
         return response.data;
@@ -230,7 +220,8 @@ export const changePassword = async (data: { password: string, newPassword: stri
 
 export const getUser = async () => {
     try {
-      await  updateAxiosUserInstance()
+      let axiosUser =await updateAxiosUserInstance()
+
         const response = await axiosUser.get(`/getUser`);
         if (localStorage.getItem('userinfo')) {
             await localStorage.removeItem('userinfo')
@@ -248,7 +239,8 @@ export const getUser = async () => {
 
 export const editUser = async (data: { name: string }) => {
     try {
-        await updateAxiosUserInstance()
+        let axiosUser =await updateAxiosUserInstance()
+        console.log('edit',data)
         const response = await axiosUser.patch(`/editUser`, data);
         if (localStorage.getItem('userinfo')) await localStorage.removeItem('userinfo')
 
@@ -257,6 +249,38 @@ export const editUser = async (data: { name: string }) => {
     }
     catch (error: any) {
         console.log(`error login`, error.response.data)
+        throw error.response.data
+    }
+
+}
+
+export const getUserList = async () => {
+    try {
+       let axiosUser =await updateAxiosUserInstance()  // Update the axios instance with new token
+       await updateAxiosUserInstanceFilm()
+        const response = await axiosUser.get(`/getUserList`);
+        // await localStorage.setItem('user', JSON.stringify(response.data.metadata));
+        return response.data;
+    }
+    catch (error: any) {
+        console.log(`error getuser`, error)
+        throw error.response.data
+    }
+
+
+}
+
+export const deleteUser = async (data:{userId:string}) => {
+    try {
+     let axiosUser =await updateAxiosUserInstance()  // Update the axios instance with new token
+ // Update the axios instance with new token
+       await updateAxiosUserInstanceFilm()
+        const response = await axiosUser.delete(`/deleteUser/${data.userId}`);
+        // await localStorage.setItem('user', JSON.stringify(response.data.metadata));
+        return response.data;
+    }
+    catch (error: any) {
+        console.log(`error delete user`, error.response.data)
         throw error.response.data
     }
 

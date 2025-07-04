@@ -56,7 +56,7 @@ const updateNestedObjectParser = (obj:any)=>{
 //create a channel
 const createChannel = async ()=>{
     console.log('ms',config.MSG_QUEUE_URL)
-    for (let i =0;i<6;i++){
+    for (let i =0;i<10;i++){
         try{
            await amqplib.connect(config.MSG_QUEUE_URL,{frameMax:131072})
             console.log('Connect to rabbitmq successfully')
@@ -64,7 +64,7 @@ const createChannel = async ()=>{
         }
         catch(err){
             console.error('Failed to connect to rabbitmq',err)
-            await new Promise(resolve=>setTimeout(resolve,1000))
+            await new Promise(resolve=>setTimeout(resolve,5000))
         }
     }
     const connection = await amqplib.connect(config.MSG_QUEUE_URL,{frameMax:131072})
@@ -77,7 +77,7 @@ const createChannel = async ()=>{
 
 export const clientRedis = async ()=>{
     console.log('ms',config.MSG_QUEUE_URL)
-    for (let i =0;i<6;i++){
+    for (let i =0;i<10;i++){
         try{
             const client = createClient({ url: "redis://redis-film:6379" })
             console.log('Connect to redis successfully')

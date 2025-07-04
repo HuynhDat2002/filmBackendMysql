@@ -220,7 +220,7 @@ export class ElasticSearchService {
         console.log("film deleted in elasticsearch", result)
     }
     async searchFilm(search: string, page: number) {
-        const from = (page - 1) * 2
+        const from = (page - 1) * 20
 
         const result = await this.client.search({
             index: this.indexName,
@@ -239,7 +239,7 @@ export class ElasticSearchService {
                     }
                 }
             ],
-            size: 2,
+            size: 20,
             from: from
 
         })
@@ -258,7 +258,7 @@ export class ElasticSearchService {
         })
         return {
             films: result.hits.hits.map((hit) => hit._source),
-            pageTotal: Math.ceil(count.count / 2)
+            pageTotal: Math.ceil(count.count / 20)
         }
     }
 
@@ -275,7 +275,7 @@ export class ElasticSearchService {
 
     async filter(field: string, data: string, page: number | null) {
         if (!page) page = 1
-        const from = (page - 1) * 2
+        const from = (page - 1) * 20
 
         if (field !== "type") {
             const result = await this.client.search({
@@ -297,7 +297,7 @@ export class ElasticSearchService {
                         }
                     }
                 ],
-                size: 2,
+                size: 20,
                 from: from
 
             })
@@ -316,7 +316,7 @@ export class ElasticSearchService {
             })
             return {
                 films: result.hits.hits.map((hit) => hit._source),
-                pageTotal: Math.ceil(count.count / 2)
+                pageTotal: Math.ceil(count.count / 20)
             }
         }
         else {
@@ -334,7 +334,7 @@ export class ElasticSearchService {
                         }
                     }
                 ],
-                size: 2,
+                size: 20,
                 from: from
             })
             const count = await this.client.count({
@@ -349,7 +349,7 @@ export class ElasticSearchService {
             })
             return {
                 films: result.hits.hits.map((hit) => hit._source),
-                pageTotal: Math.ceil(count.count / 2)
+                pageTotal: Math.ceil(count.count / 20)
             }
         }
     }

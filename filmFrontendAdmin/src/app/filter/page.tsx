@@ -5,16 +5,17 @@ import FilmList from '../../components/FilmList'
 import FilmCard from '../../components/FilmCard'
 import { useAppDispatch, useAppSelector } from '../../lib/hooks'
 import React, { useState, useEffect } from 'react'
-import { searchFilm } from '../../lib/features/film.slice'
+import { filter } from '../../lib/features/film.slice'
 import Pagi from '../../components/Pagination'
 import ErrorModal from '../../components/ErrorModal'
 
-export default function Search() {
+export default function Filter() {
     const searchParams = useSearchParams()
-    const [searchList, setSearchList] = useState<Array<any>>([])
+    const [filterList, setFilterList] = useState<Array<any>>([])
     const film = useAppSelector((state) => state.filmReducer)
     const pageTotal = useAppSelector((state) => state.filmReducer.films.metadata.pageTotal)
-    const [query, setQuery] = useState("")
+    const [field, setField] = useState("")
+    const [data, setData] = useState("")
     const [page, setPage] = useState("1")
 
     const [isOpenError, setIsOpenError] = useState(false)
@@ -22,28 +23,23 @@ export default function Search() {
 
 
     const dispatch = useAppDispatch()
-    useEffect(() => {
-         setQuery(searchParams?.get('query') as string || '')
-        setPage(searchParams?.get('page') as string || '1')
-        const query1 = searchParams?.get('query') as string || ''
-        const page1 = searchParams?.get('page') as string || '1'
-        dispatch(searchFilm({ query: query1, page: parseInt(page1) }))
-        // dispatch(searchTV({ query, page }))
-
-    }, [query, page])
 
     useEffect(() => {
-        setQuery(searchParams?.get('query') as string || '')
+        setField(searchParams?.get('field') as string || '')
+        setData(searchParams?.get('data') as string || '')
         setPage(searchParams?.get('page') as string || '1')
     }, [searchParams])
 
+    useEffect(() => {
+        const field1 = searchParams?.get('field') as string || ''
+        const data1 = searchParams?.get('data') as string || ''
+        const page1 = searchParams?.get('page') as string || '1'
+        dispatch(filter({ field: field1, data: data1, page: parseInt(page1) }))
+    }, [field, data, page])
 
     useEffect(() => {
-        // let combinedList: Array<any> = []
-        // if (film.isSearch && film.isSuccess) combinedList = [...film.films.metadata]
-        // if (tv.isSearch && tv.isSuccess) combinedList = [...combinedList, ...tv.tvs.metadata]
-        if (film.isSuccess && film.isSearch)
-            setSearchList(film.films.metadata.films)
+        if (film.isSuccess && film.isFilter)
+            setFilterList(film.films.metadata.films)
     }, [film.isLoading])
 
     useEffect(() => {
@@ -52,19 +48,23 @@ export default function Search() {
             setIsOpenError(true)
         }
     }, [film.isLoading])
-    console.log('query1', query)
-
+    console.log('field', field)
+    console.log('data', data)
+    console.log('page', page)
+    console.log('filterList', filterList)
     const handlePageChange = (page: number) => {
-         dispatch(searchFilm({ query: query, page: page }));
-      }
+        const field1 = searchParams?.get('field') as string || ''
+        const data1 = searchParams?.get('data') as string || ''
+        dispatch(filter({ field: field1, data: data1, page: page }))
+    }
     return (
         // <div className="w-[90%] xl:w-[80%] flex justify-center items-center  mx-auto mt-10">
         <>
-            <div className="flex flex-col gap-5 mt-10 min-h-screen">
+            <div className="flex flex-col gap-5 min-h-screen mt-10 text-white">
 
                 <div className=" grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5 items-start">
 
-                    {searchList.map((film: any) => (
+                    {filterList.map((film: any) => (
                         <div
                             key={film.id}
                         >
@@ -73,13 +73,13 @@ export default function Search() {
                     ))}
                 </div>
                 {
-                    searchList.length > 0 &&
-                    <Pagi total={pageTotal} onPageChange={handlePageChange} />
+                    filterList.length > 0 &&
+                    <Pagi total={pageTotal} onPageChange={handlePageChange}/>
                 }
                 {
-                    searchList.length === 0 &&
+                    filterList.length === 0 &&
                     <div
-                        className="flex justify-center items-center my-10 font-bold text-3xl text-white"
+                        className="flex justify-center items-center my-10 font-bold text-3xl"
 
                     >
                         <div>Không tìm thấy kết quả mong muốn!</div>

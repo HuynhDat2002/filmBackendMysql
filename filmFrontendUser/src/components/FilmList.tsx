@@ -9,7 +9,7 @@ import Pagi from './Pagination'
 export default function FilmList(tab: any) {
 
   const dispatch = useAppDispatch()
-  const pageTotal: any = useAppSelector((state) => state.filmReducer.filmLength.metadata)
+  const pageTotal: any = useAppSelector((state) => state.filmReducer.films.metadata.pageTotal)
 
   const films: any = useAppSelector((state) => state.filmReducer.films.metadata.films)
   const user: any = useAppSelector((state) => state.userReducer)

@@ -18,21 +18,14 @@ export default function Menu() {
                 </button>
                 <button
                     className='cursor-pointer px-2 hover:bg-white hover:w-[100%] hover:shadow-xl py-3 hover:text-black'
-                    onClick={() => router.push('/create/movie')}
+                    onClick={() => router.push('/create')}
                 >
                     <div className="inline-block border-b-2 border-white">
-                        Create Movie
+                        Create Film
                     </div>
 
                 </button>
-                <button
-                    onClick={() => router.push('/create/tv')}
-                    className='cursor-pointer px-2 hover:bg-white hover:w-[100%] hover:shadow-xl py-3 hover:text-black'>
-                    <div className="inline-block border-b-2 border-white">
-                    <p>Create TV Shows</p>
-                    </div>
-
-                </button>
+               
                 <button
                     onClick={() => router.push('/userlist')}
                     className='cursor-pointer px-2 hover:bg-white hover:w-[100%] hover:shadow-xl py-3 hover:text-black'>

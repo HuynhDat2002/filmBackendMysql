@@ -10,7 +10,10 @@ const nextConfig = {
   //   }
   //   return config;
   // },
-  reactStrictMode: false
+  reactStrictMode: false,
+  images: {
+    domains: ['phimimg.com'], // Thêm domain này
+  },
  
 };
 

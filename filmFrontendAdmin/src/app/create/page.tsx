@@ -5,11 +5,11 @@ import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, Input
 import { FaArrowCircleRight } from 'react-icons/fa'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faRightToBracket, faEnvelope, faLock, faTimesCircle } from '@fortawesome/free-solid-svg-icons'
-import { createTV } from '@/lib/features/tv.slice';
+import { createFilm } from '@/lib/features/film.slice';
 import Success from '@/components/Success';
 import ErrorModal from '@/components/ErrorModal';
 import Loading from '@/components/LoadingModal';
-export default function CreateMovie() {
+export default function CreateFilm() {
     const [urlEmbed, setUrlEmbed] = useState("")
     const [isError,setError] = useState(false)
     const [messageError,setMessageError] = useState("")
@@ -18,11 +18,11 @@ export default function CreateMovie() {
 
     const dispatch = useAppDispatch()
 
-    const movieState = useAppSelector((state)=>state.tvReducer)
+    const movieState = useAppSelector((state)=>state.filmReducer)
 
 const handleSubmit = (event:any)=>{
     event.preventDefault()
-    dispatch(createTV({urlEmbed:urlEmbed}))
+    dispatch(createFilm({urlEmbed:urlEmbed}))
 }
 const handleError = () => {
     setError(false),
@@ -30,8 +30,8 @@ const handleError = () => {
   }
 
   useEffect(()=>{
-    if(movieState.isSuccess && movieState.isCreateTV) setIsOpenSuccess(true)
-    if(movieState.isError && movieState.isCreateTV){
+    if(movieState.isSuccess && movieState.isCreate) setIsOpenSuccess(true)
+    if(movieState.isError && movieState.isCreate){
         setError(true)
         setMessageError(movieState.message.message)
     }
@@ -45,7 +45,7 @@ const handleError = () => {
             <div className='h-screen mt-10'>
                 <form onSubmit={handleSubmit}>
                     <div className="mx-5 flex flex-row gap-5 mb-5">
-                <label className='font-semibold text-center bg-ctBlue-header text-white rounded-lg p-1 px-2'>Create new tv show</label>
+                <label className='font-semibold text-center bg-ctBlue-header text-white rounded-lg p-1 px-2'>Create new movie</label>
 
                         <input
                             autoFocus={false}

@@ -1,17 +1,12 @@
-# build images
-docker compose -f docker-compose.yml build
+# 1.build images
+DOCKER_BUILDKIT=1 docker compose -f docker-compose.yml build
 
-# push images after built
-docker compose -f docker-compsose.yml push
-
-# run pull image development enviroment
+# 2.pull image development/production enviroment
 docker compose -f docker-compose.dev.yml pull
-# run development enviroment
-docker compose -f docker-compose.dev.yml up
-
-# run pull image production enviroment
 docker compose -f docker-compose.prod.yml pull
-# run production enviroment
+
+# 3.run development/production enviroment
+docker compose -f docker-compose.dev.yml up
 docker compose -f docker-compose.prod.yml up
 
 # clean dangling image

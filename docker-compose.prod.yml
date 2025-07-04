@@ -60,23 +60,23 @@ services:
       - elasticsearch
     networks:
       - backend-network
-  # mysql-film:
-  #   image: mysql:8
-  #   restart: always
-  #   environment:
-  #     MYSQL_USER: film_user
-  #     MYSQL_PASSWORD: trongdatfilm
-  #     MYSQL_ROOT_PASSWORD: rootfilm
-  #     MYSQL_DATABASE: filmdb
-  #   volumes:
-  #     - mysql-film:/var/lib/mysql
-  #   ports:
-  #     - "3308:3306"
-  #   networks:
-  #     - backend-network
-  #   deploy:
-  #     mode: replicated
-  #     replicas: 1
+  mysql-film:
+    image: mysql:8
+    restart: always
+    environment:
+      MYSQL_USER: film_user
+      MYSQL_PASSWORD: trongdatfilm
+      MYSQL_ROOT_PASSWORD: rootfilm
+      MYSQL_DATABASE: filmdb
+    volumes:
+      - mysql-film:/var/lib/mysql
+    ports:
+      - "3308:3306"
+    networks:
+      - backend-network
+    deploy:
+      mode: replicated
+      replicas: 1
   
   film:
     image: tdat/film:prod
@@ -89,7 +89,7 @@ services:
       - ELASTICSEARCH_URL=http://elasticsearch:9200
       - NODE_ENV=production
     depends_on:
-      # - mysql-film
+      - mysql-film
       - redis-film
       - elasticsearch
     expose:
@@ -97,23 +97,23 @@ services:
     networks:
       - backend-network
 
-  # mysql-admin:
-  #   image: mysql:8
-  #   restart: always
-  #   environment:
-  #     MYSQL_USER: admin_user
-  #     MYSQL_PASSWORD: trongdatadmin
-  #     MYSQL_ROOT_PASSWORD: rootadmin
-  #     MYSQL_DATABASE: admindb
-  #   volumes:
-  #     - mysql-admin:/var/lib/mysql
-  #   ports:
-  #     - "3309:3306"
-  #   networks:
-  #     - backend-network
-  #   deploy:
-  #     mode: replicated
-  #     replicas: 1
+  mysql-admin:
+    image: mysql:8
+    restart: always
+    environment:
+      MYSQL_USER: admin_user
+      MYSQL_PASSWORD: trongdatadmin
+      MYSQL_ROOT_PASSWORD: rootadmin
+      MYSQL_DATABASE: admindb
+    volumes:
+      - mysql-admin:/var/lib/mysql
+    ports:
+      - "3309:3306"
+    networks:
+      - backend-network
+    deploy:
+      mode: replicated
+      replicas: 1
 
   admin:
     restart: always
@@ -125,7 +125,7 @@ services:
       - REDIS_PORT=6379
       - NODE_ENV=production
     depends_on:
-      # - mysql-admin
+      - mysql-admin
       - rabbitmq
       - redis-film
       # - "redis"
@@ -134,23 +134,23 @@ services:
     networks:
       - backend-network
 
-  # mysql-user:
-  #   image: mysql:8
-  #   restart: always
-  #   environment:
-  #     MYSQL_USER: user_user
-  #     MYSQL_PASSWORD: trongdatuser
-  #     MYSQL_ROOT_PASSWORD: rootuser
-  #     MYSQL_DATABASE: userdb
-  #   volumes:
-  #     - mysql-user:/var/lib/mysql
-  #   ports:
-  #     - "3310:3306"
-  #   networks:
-  #     - backend-network
-  #   deploy:
-  #     mode: replicated
-  #     replicas: 1
+  mysql-user:
+    image: mysql:8
+    restart: always
+    environment:
+      MYSQL_USER: user_user
+      MYSQL_PASSWORD: trongdatuser
+      MYSQL_ROOT_PASSWORD: rootuser
+      MYSQL_DATABASE: userdb
+    volumes:
+      - mysql-user:/var/lib/mysql
+    ports:
+      - "3310:3306"
+    networks:
+      - backend-network
+    deploy:
+      mode: replicated
+      replicas: 1
 
   user:
     image: tdat/user:prod
@@ -162,7 +162,7 @@ services:
       - REDIS_PORT=6379
       - NODE_ENV=production
     depends_on:
-      # - mysql-user
+      - mysql-user
       - redis-film
       - rabbitmq
     expose:
@@ -171,23 +171,23 @@ services:
       - backend-network
 
 
-  # mysql-rbac:
-  #   image: mysql:8
-  #   restart: always
-  #   environment:
-  #     MYSQL_USER: rbac_user
-  #     MYSQL_PASSWORD: trongdatrbac
-  #     MYSQL_ROOT_PASSWORD: rootrbac
-  #     MYSQL_DATABASE: rbacdb
-  #   volumes:
-  #     - mysql-rbac:/var/lib/mysql
-  #   ports:
-  #     - "3311:3306"
-  #   networks:
-  #     - backend-network
-  #   deploy:
-  #     mode: replicated
-  #     replicas: 1
+  mysql-rbac:
+    image: mysql:8
+    restart: always
+    environment:
+      MYSQL_USER: rbac_user
+      MYSQL_PASSWORD: trongdatrbac
+      MYSQL_ROOT_PASSWORD: rootrbac
+      MYSQL_DATABASE: rbacdb
+    volumes:
+      - mysql-rbac:/var/lib/mysql
+    ports:
+      - "3311:3306"
+    networks:
+      - backend-network
+    deploy:
+      mode: replicated
+      replicas: 1
 
   rbac:
     image: tdat/rbac:prod
@@ -199,7 +199,7 @@ services:
       - REDIS_PORT=6379
       - NODE_ENV=production
     depends_on:
-      # - mysql-rbac
+      - mysql-rbac
       - redis-film
     expose:
       - 5004
@@ -296,14 +296,14 @@ networks:
 volumes:
   esdata:
     driver: local
-  # mysql-film:
-  #   external: true
-  # mysql-admin:
-  #   external: true
-  # mysql-user:
-  #   external: true
-  # mysql-rbac:
-  #   external: true
+  mysql-film:
+    external: true
+  mysql-admin:
+    external: true
+  mysql-user:
+    external: true
+  mysql-rbac:
+    external: true
   redis:
     driver: local
 

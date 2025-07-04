@@ -2,7 +2,6 @@
 'use client'
 
 import React, { useEffect, useState, useMemo, useRef } from "react"
-import Image from "next/image"
 import { getToken } from "../utils/axiosConfig"
 import { useAppDispatch, useAppSelector } from "../lib/hooks"
 import { getCommentByParentId, getCommentByFilm } from "../lib/features/comment.slice"
@@ -14,24 +13,34 @@ import CommentReply from "./CommentReply"
 import { useParams } from 'next/navigation'
 import { editComment,deleteComment } from "../lib/features/comment.slice"
 import { CommentProps } from "../types"
-const dateFormatter = new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "long" })
+
+
 export default function Comment({ comment, childs, setChilds }: { comment: CommentProps, childs: any[], setChilds: any }) {
     const dispatch = useAppDispatch()
+    const [dateFormatted, setDateFormatted] = useState<Intl.DateTimeFormat>(new Intl.DateTimeFormat(undefined,{ dateStyle: "medium", timeStyle: "long" }))
     const [comments, setComments] = useState([])
     const [isReplying, setIsReplying] = useState(false)
-    const movie: any = useAppSelector((state) => state.movieReducer.movie.metadata)
+    const film: any = useAppSelector((state) => state.filmReducer.film.metadata)
     const [areChildrenHidden, setAreChildrenHidden] = useState(false);
     const commentChild: any = useAppSelector((state) => state.commentReducer)
     const [isEdit, setIsEdit] = useState(false)
     const replyBoxRef = useRef<any>(null)
     const [editContent, setEditContent] = useState(comment.comment_content)
     const params = useParams<{ id: string }>()
+    const [dateComment, setDateComment] = useState<string>("")
     
     useEffect(() => {
         if (comment.comment_right - comment.comment_left > 1) {
             console.log('commentId', comment)
-            dispatch(getCommentByParentId({ filmId: movie.id, parentCommentId: comment.id }))
+            dispatch(getCommentByParentId({ filmId: film.id, parentCommentId: comment.id }))
         }
+        setDateFormatted(new Intl.DateTimeFormat(undefined,{ dateStyle: "medium", timeStyle: "long" }))
+        setDateComment(()=>{
+            const createDate = new Date(comment.createdAt);
+            return !isNaN(createDate.getTime())
+                ? dateFormatted.format(createDate)
+                : 'Ngày không hợp lệ';
+        })
     }, [])
     console.log('comment',comment)
     useEffect(() => {
@@ -111,11 +120,11 @@ export default function Comment({ comment, childs, setChilds }: { comment: Comme
     };
 
     const handleSaveEdit = () => {
-        dispatch(editComment({commentId: comment.id, filmId: comment.comment_movieId ? comment.comment_movieId : comment.comment_tvId, content: editContent }))
+        dispatch(editComment({commentId: comment.id, filmId: comment.comment_filmId, content: editContent }))
     };
 
     const handleDeleteComment= ()=>{
-        dispatch(deleteComment({commentId: comment.id, filmId:comment.comment_movieId ? comment.comment_movieId : comment.comment_tvId}))
+        dispatch(deleteComment({commentId: comment.id, filmId:comment.comment_filmId}))
     }
     useEffect(()=>{
         if(commentChild.isSuccess && commentChild.isEditComment){
@@ -142,12 +151,7 @@ export default function Comment({ comment, childs, setChilds }: { comment: Comme
                         </div>
 
                         <div className="flex text-ctBlue-header">
-                            {(() => {
-                                const createDate = new Date(comment.createdAt);
-                                return !isNaN(createDate.getTime())
-                                    ? dateFormatter.format(createDate)
-                                    : 'Ngày không hợp lệ';
-                            })()}
+                            {dateComment}
                         </div>
                     </div>
 
@@ -189,7 +193,7 @@ export default function Comment({ comment, childs, setChilds }: { comment: Comme
 
                             />
                         </button>
-                        {user && (user.user.id === comment.comment_user?.userId || user.user.role==="SUPERVISOR"|| comment.comment_user.role==="USER") &&
+                        {user && user.user.id === comment.comment_user?.userId &&
                             <>
                                 {/* <button onClick={()=>setIsEdit(true)}>
                                     <FaEdit

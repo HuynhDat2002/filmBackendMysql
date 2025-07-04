@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { useAppDispatch, useAppSelector } from "@/lib/hooks";
-import { createComment } from "@/lib/features/comment.slice";
-import { getCommentByFilm } from "@/lib/features/comment.slice";
+import { useAppDispatch, useAppSelector } from "../lib/hooks";
+import { createComment } from "../lib/features/comment.slice";
+import { getCommentByFilm } from "../lib/features/comment.slice";
 import { useParams } from 'next/navigation'
 import { FaArrowCircleRight } from 'react-icons/fa'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -11,7 +11,6 @@ export default function CommentForm() {
   const [message, setMessage] = useState("");
   const [messageError, setMessageError] = useState("")
   const dispatch = useAppDispatch()
-  const movie: any = useAppSelector((state) => state.movieReducer)
   const params = useParams<{ id: string }>()
   const commentState = useAppSelector((state) => state.commentReducer)
   const [isError, setError] = useState(false)

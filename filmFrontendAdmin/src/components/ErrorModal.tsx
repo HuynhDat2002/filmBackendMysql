@@ -42,7 +42,7 @@ export default function ErrorModal({ isOpen, onClose, message = "" }: ErrorProps
                             <ModalFooter className="flex flex-row justify-center">
 
                                 <Button color="danger" variant="flat" onPress={onClose} type="button" className="basis1/4">
-                                    Close
+                                    Đóng
                                 </Button>
                             </ModalFooter>
 

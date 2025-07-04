@@ -24,6 +24,7 @@ const config: Config = {
           'logo':'#11A3A3',
           'logo_hover':'#3ad6ca'
         },
+        'background':'#1a1b24'
       },
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
