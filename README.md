@@ -14,6 +14,7 @@
     Movie Screenshot
 ![Movie Screenshot](./images/movie.png)
 
+
 # How to run the project (Install docker first)
 
 👉 **Step 1: Pull images from Docker Hub**
@@ -21,16 +22,18 @@
 docker compose -f docker-compose.prod.yml pull
 ```
 
-# 2.pull image development/production enviroment
-docker compose -f docker-compose.dev.yml pull
-docker compose -f docker-compose.prod.yml pull
-
-# 3.run development/production enviroment
-docker compose -f docker-compose.dev.yml up
+👉 **Step 2: Run the project up**
+```bash
 docker compose -f docker-compose.prod.yml up
+```
 
-# clean dangling image
+👉 **Step 3: Access project via browser**
+```bash
+http://localhost:8080/
+```
+
+**Clean dangling images**
+```bash
 docker image prune
+```
 
-# clear all of docker
-docker system prune -a --volumes -f
