@@ -34,7 +34,6 @@ export default function RootLayout({
       <html lang="en">
          <body className={inter.className}>
           <Header />
-          <div className="">
             {/* <GoogleReCaptchaProvider reCaptchaKey="6LcJEnAqAAAAANHBtZwgCHDob75w_potmRxZ9xa0"> */}
             <div className="w-[100%]  flex justify-center items-center  mx-auto shadow-2xl bg-background">
               <Suspense fallback={<SearchBarFallback />}>
@@ -42,7 +41,6 @@ export default function RootLayout({
               </Suspense>
             </div>
             {/* </GoogleReCaptchaProvider> */}
-          </div>
 
         </body>
       </html>
